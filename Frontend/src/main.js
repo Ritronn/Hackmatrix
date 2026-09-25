@@ -1,252 +1,30 @@
 /**
- * Atmos Twin — Dashboard Main Script
- * Handles UI interactions, live clock, map visualization,
- * wind particles, and entrance animations.
+ * Atmos Twin — Tablet Bento Dashboard
+ * Interactions, animations, and live telemetry matching the reference design.
  */
 import './style.css';
 
-// ─── Initialize Lucide Icons ───
 document.addEventListener('DOMContentLoaded', () => {
+  // Initialize Lucide icons
   if (window.lucide) {
     window.lucide.createIcons();
   }
 
-  initClock();
-  initAlertBanner();
-  initPastelSwatches();
-  initNavigation();
-  initChipToggles();
-  initTimeSlider();
-  initStationMarkers();
-  initWindParticles();
+  initNavRail();
+  initMapControls();
   initHeroCountUp();
-  initMapHover();
+  initDriftAlert();
 });
 
-// ─── Pastel Palette Swatches (Sage, Oat, Lavender, Slate) ───
-function initPastelSwatches() {
-  const swatches = document.querySelectorAll('.swatch-btn');
-  if (!swatches.length) return;
-
-  const savedPastel = localStorage.getItem('atmos_pastel') || 'sage';
-  applyPastel(savedPastel);
-
-  swatches.forEach((swatch) => {
-    swatch.addEventListener('click', () => {
-      const pastel = swatch.dataset.pastel;
-      applyPastel(pastel);
+// ─── Left Nav Rail Interaction ───
+function initNavRail() {
+  const buttons = document.querySelectorAll('.rail-btn:not(.rail-btn--alert)');
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      buttons.forEach((b) => b.classList.remove('rail-btn--active'));
+      btn.classList.add('rail-btn--active');
     });
   });
-
-  function applyPastel(pastel) {
-    document.body.classList.remove('pastel-oat', 'pastel-lavender', 'pastel-slate');
-    if (pastel !== 'sage') {
-      document.body.classList.add(`pastel-${pastel}`);
-    }
-    localStorage.setItem('atmos_pastel', pastel);
-    swatches.forEach((s) => {
-      s.classList.toggle('swatch-btn--active', s.dataset.pastel === pastel);
-    });
-  }
-}
-
-// ─── Live Clock ───
-function initClock() {
-  const clockEl = document.getElementById('live-clock');
-  if (!clockEl) return;
-
-  function update() {
-    const now = new Date();
-    clockEl.textContent = now.toLocaleTimeString('en-IN', {
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
-  }
-  update();
-  setInterval(update, 1000);
-}
-
-// ─── Alert Banner Dismiss ───
-function initAlertBanner() {
-  const closeBtn = document.getElementById('alert-close');
-  const banner = document.getElementById('alert-banner');
-  if (!closeBtn || !banner) return;
-
-  closeBtn.addEventListener('click', () => {
-    banner.style.animation = 'slideDown 0.2s ease reverse forwards';
-    setTimeout(() => banner.classList.add('alert-banner--hidden'), 200);
-  });
-}
-
-// ─── Sidebar Navigation ───
-function initNavigation() {
-  const navItems = document.querySelectorAll('.nav-item');
-  navItems.forEach((item) => {
-    item.addEventListener('click', (e) => {
-      e.preventDefault();
-      navItems.forEach((n) => n.classList.remove('nav-item--active'));
-      item.classList.add('nav-item--active');
-    });
-  });
-}
-
-// ─── Chip Toggles (Map pollutant selector) ───
-function initChipToggles() {
-  const chips = document.querySelectorAll('.chip-group .chip');
-  chips.forEach((chip) => {
-    chip.addEventListener('click', () => {
-      chips.forEach((c) => c.classList.remove('chip--active'));
-      chip.classList.add('chip--active');
-    });
-  });
-}
-
-// ─── Time Slider ───
-function initTimeSlider() {
-  const slider = document.getElementById('time-slider');
-  const display = document.getElementById('time-display');
-  const playBtn = document.getElementById('time-play');
-  if (!slider || !display) return;
-
-  let playing = false;
-  let playInterval = null;
-
-  slider.addEventListener('input', () => {
-    const val = parseInt(slider.value);
-    display.textContent = formatTimeLabel(val);
-  });
-
-  if (playBtn) {
-    playBtn.addEventListener('click', () => {
-      playing = !playing;
-      const icon = playBtn.querySelector('i');
-
-      if (playing) {
-        icon.setAttribute('data-lucide', 'pause');
-        if (window.lucide) window.lucide.createIcons();
-        
-        playInterval = setInterval(() => {
-          let val = parseInt(slider.value);
-          val += 1;
-          if (val > 240) {
-            val = 0;
-          }
-          slider.value = val;
-          display.textContent = formatTimeLabel(val);
-        }, 100);
-      } else {
-        icon.setAttribute('data-lucide', 'play');
-        if (window.lucide) window.lucide.createIcons();
-        clearInterval(playInterval);
-      }
-    });
-  }
-}
-
-function formatTimeLabel(hourIndex) {
-  // 0–167 = past 7 days, 168 = now, 169–240 = future 3 days
-  const diff = hourIndex - 168;
-  if (diff === 0) return 'Now';
-
-  const absDiff = Math.abs(diff);
-  const days = Math.floor(absDiff / 24);
-  const hours = absDiff % 24;
-
-  let label = '';
-  if (days > 0) label += `${days}d `;
-  if (hours > 0) label += `${hours}h`;
-
-  return diff < 0 ? `-${label.trim()}` : `+${label.trim()}`;
-}
-
-// ─── Station Markers on Map ───
-function initStationMarkers() {
-  const container = document.getElementById('station-markers');
-  if (!container) return;
-
-  const stations = [
-    { x: '18%', y: '35%', aqi: 142, name: 'Rohini' },
-    { x: '35%', y: '42%', aqi: 187, name: 'ITO' },
-    { x: '28%', y: '58%', aqi: 165, name: 'Dwarka' },
-    { x: '52%', y: '30%', aqi: 210, name: 'Anand Vihar' },
-    { x: '65%', y: '48%', aqi: 178, name: 'Noida Sec-62' },
-    { x: '45%', y: '65%', aqi: 155, name: 'Faridabad' },
-    { x: '72%', y: '25%', aqi: 130, name: 'Ghaziabad' },
-    { x: '80%', y: '55%', aqi: 148, name: 'Greater Noida' },
-    { x: '40%', y: '20%', aqi: 195, name: 'Bawana' },
-    { x: '55%', y: '75%', aqi: 162, name: 'Manesar' },
-  ];
-
-  stations.forEach((s) => {
-    const marker = document.createElement('div');
-    marker.className = 'station-marker';
-    marker.style.left = s.x;
-    marker.style.top = s.y;
-    marker.style.backgroundColor = getAqiColor(s.aqi);
-    marker.title = `${s.name}: AQI ${s.aqi}`;
-    container.appendChild(marker);
-  });
-}
-
-function getAqiColor(aqi) {
-  if (aqi <= 50) return '#10B981';
-  if (aqi <= 100) return '#84CC16';
-  if (aqi <= 150) return '#F59E0B';
-  if (aqi <= 200) return '#F97316';
-  if (aqi <= 300) return '#EF4444';
-  return '#8B5CF6';
-}
-
-// ─── Wind Particle Animation ───
-function initWindParticles() {
-  const canvas = document.getElementById('map-canvas');
-  if (!canvas) return;
-
-  const mapPlaceholder = canvas.querySelector('.map-placeholder');
-  if (!mapPlaceholder) return;
-
-  const PARTICLE_COUNT = 60;
-  const particles = [];
-
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
-    const p = document.createElement('div');
-    p.className = 'wind-particle';
-    p.style.left = `${Math.random() * 100}%`;
-    p.style.top = `${Math.random() * 100}%`;
-    p.style.opacity = 0.15 + Math.random() * 0.35;
-    p.style.width = `${1.5 + Math.random() * 2}px`;
-    p.style.height = p.style.width;
-    mapPlaceholder.appendChild(p);
-
-    particles.push({
-      el: p,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      speed: 0.02 + Math.random() * 0.06,
-      drift: -0.01 + Math.random() * 0.02,
-    });
-  }
-
-  function animate() {
-    particles.forEach((p) => {
-      p.x += p.speed; // wind goes roughly east (NW → SE)
-      p.y += p.drift;
-
-      if (p.x > 102) {
-        p.x = -2;
-        p.y = Math.random() * 100;
-      }
-      if (p.y < -2) p.y = 102;
-      if (p.y > 102) p.y = -2;
-
-      p.el.style.left = `${p.x}%`;
-      p.el.style.top = `${p.y}%`;
-    });
-    requestAnimationFrame(animate);
-  }
-  animate();
 }
 
 // ─── Hero AQI Count-Up Animation ───
@@ -254,14 +32,13 @@ function initHeroCountUp() {
   const aqiEl = document.getElementById('hero-aqi');
   if (!aqiEl) return;
 
-  const target = parseInt(aqiEl.textContent);
+  const target = 187;
   const duration = 1200;
   const start = performance.now();
 
   function step(now) {
     const elapsed = now - start;
     const progress = Math.min(elapsed / duration, 1);
-    // Ease out cubic
     const eased = 1 - Math.pow(1 - progress, 3);
     aqiEl.textContent = Math.round(target * eased);
     if (progress < 1) requestAnimationFrame(step);
@@ -269,39 +46,81 @@ function initHeroCountUp() {
   requestAnimationFrame(step);
 }
 
-// ─── Map Hover Glow ───
-function initMapHover() {
-  const mapCanvas = document.getElementById('map-canvas');
-  if (!mapCanvas) return;
+// ─── Map Controls & Location Chips ───
+function initMapControls() {
+  // Location Chips
+  const chips = document.querySelectorAll('.loc-chip');
+  const heroStation = document.getElementById('hero-station');
+  const heroAqi = document.getElementById('hero-aqi');
 
-  const placeholder = mapCanvas.querySelector('.map-placeholder');
-  if (!placeholder) return;
+  const stationsData = {
+    'Delhi NCR, IN': { aqi: 187, cond: 'Poor Air Quality • Haze' },
+    'Noida, UP': { aqi: 178, cond: 'Poor Air Quality • High PM2.5' },
+    'Gurugram, HR': { aqi: 165, cond: 'Moderate to Poor • Smog' },
+  };
 
-  // Add a glow follower
-  const glow = document.createElement('div');
-  glow.style.cssText = `
-    position: absolute;
-    width: 160px;
-    height: 160px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
-    pointer-events: none;
-    transition: left 0.1s ease, top 0.1s ease;
-    transform: translate(-50%, -50%);
-    z-index: 5;
-  `;
-  placeholder.appendChild(glow);
+  chips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      chips.forEach((c) => c.classList.remove('loc-chip--active'));
+      chip.classList.add('loc-chip--active');
 
-  mapCanvas.addEventListener('mousemove', (e) => {
-    const rect = mapCanvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    glow.style.left = `${x}px`;
-    glow.style.top = `${y}px`;
-    glow.style.opacity = '1';
+      const locName = chip.querySelector('span')?.textContent?.trim();
+      if (locName && stationsData[locName]) {
+        if (heroStation) heroStation.textContent = locName;
+        if (heroAqi) heroAqi.textContent = stationsData[locName].aqi;
+      }
+    });
   });
 
-  mapCanvas.addEventListener('mouseleave', () => {
-    glow.style.opacity = '0';
+  // Map Zoom Controls
+  const mapSurface = document.getElementById('map-surface');
+  let zoomLevel = 1;
+
+  const btnZoomIn = document.getElementById('ctrl-zoom-in');
+  const btnZoomOut = document.getElementById('ctrl-zoom-out');
+  const btnLocate = document.getElementById('ctrl-locate');
+
+  if (btnZoomIn && mapSurface) {
+    btnZoomIn.addEventListener('click', () => {
+      if (zoomLevel < 1.3) {
+        zoomLevel += 0.1;
+        mapSurface.style.transform = `scale(${zoomLevel})`;
+        mapSurface.style.transition = 'transform 0.3s ease';
+      }
+    });
+  }
+
+  if (btnZoomOut && mapSurface) {
+    btnZoomOut.addEventListener('click', () => {
+      if (zoomLevel > 0.9) {
+        zoomLevel -= 0.1;
+        mapSurface.style.transform = `scale(${zoomLevel})`;
+        mapSurface.style.transition = 'transform 0.3s ease';
+      }
+    });
+  }
+
+  if (btnLocate && mapSurface) {
+    btnLocate.addEventListener('click', () => {
+      zoomLevel = 1;
+      mapSurface.style.transform = 'scale(1)';
+      mapSurface.style.transition = 'transform 0.3s ease';
+    });
+  }
+}
+
+// ─── Twin Drift Alert Notification ───
+function initDriftAlert() {
+  const alertBtn = document.getElementById('drift-alert-trigger');
+  if (!alertBtn) return;
+
+  alertBtn.addEventListener('click', () => {
+    alert(
+      '⚠️ Twin Drift Alert Detected:\n\n' +
+      'Station: Anand Vihar\n' +
+      'Observed PM2.5: 218 µg/m³\n' +
+      'Forecast Model: 165 µg/m³ (+32% divergence)\n' +
+      'Likely Cause: Stubble burning plume & localized inversion'
+    );
   });
 }
