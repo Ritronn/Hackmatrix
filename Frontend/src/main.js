@@ -34,7 +34,7 @@ class LightningRenderer {
     this.hue = 210; // Electric Cyan/Blue
     this.xOffset = 0;
     this.speed = 1.2;
-    this.intensity = 1.0;
+    this.intensity = 0.0; // Starts dark; strikes only on thunder
     this.size = 1.0;
     this.animationFrameId = null;
     this.startTime = performance.now();
@@ -218,6 +218,46 @@ class LightningRenderer {
     this.speed = speed;
   }
 
+  strike(maxIntensity = 4.5, durationMs = 1040, onPulse = null) {
+    const startTime = performance.now();
+    this.speed = 3.6;
+    const animate = () => {
+      const elapsed = performance.now() - startTime;
+      if (elapsed >= durationMs) {
+        this.intensity = 0.0;
+        return;
+      }
+      const p = elapsed / durationMs;
+      // Multi-stroke realistic lightning across the 30% to 50% duration (1040ms window)
+      let pulse = 0;
+      if (p < 0.18) {
+        // Return Stroke 1: Sharp initial lightning burst
+        const sub = p / 0.18;
+        pulse = Math.sin(sub * Math.PI) * 1.1 + Math.random() * 0.2;
+      } else if (p < 0.28) {
+        // Dart leader lull & ionized flicker
+        pulse = 0.25 + Math.random() * 0.35;
+      } else if (p < 0.50) {
+        // Return Stroke 2: Secondary powerful discharge
+        const sub = (p - 0.28) / 0.22;
+        pulse = Math.sin(sub * Math.PI) * 0.95 + Math.random() * 0.25;
+      } else if (p < 0.72) {
+        // Stroke 3: Jagged rapid electrical flickers
+        pulse = 0.3 + 0.45 * Math.sin((p - 0.50) * 22.0) + Math.random() * 0.2;
+      } else {
+        // Dissipation: channel cooling and smooth decay to 0
+        const sub = (1.0 - p) / 0.28;
+        pulse = Math.max(0, sub) * (0.45 + Math.random() * 0.15);
+      }
+      this.intensity = maxIntensity * Math.max(0, Math.min(1.2, pulse));
+      if (onPulse && this.intensity > 1.0) {
+        onPulse(this.intensity);
+      }
+      requestAnimationFrame(animate);
+    };
+    animate();
+  }
+
   destroy() {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
@@ -260,23 +300,15 @@ class CloudRenderer {
     this.isParting = false;
     this.flashIllumination = 0.0;
 
-    // Generate dense billowing cumulus clouds covering the whole screen
-    const count = Math.floor(Math.max(55, Math.min(85, (this.width * this.height) / 19000)));
+    // Generate dense billowing cumulus clouds covering the entire full screen
+    const count = Math.floor(Math.max(90, Math.min(140, (this.width * this.height) / 10500)));
 
     for (let i = 0; i < count; i++) {
-      let x;
-      const r = Math.random();
-      if (r < 0.45) {
-        x = (Math.random() * 0.62 - 0.12) * this.width; // Left bank
-      } else if (r < 0.90) {
-        x = (Math.random() * 0.62 + 0.50) * this.width; // Right bank
-      } else {
-        x = Math.random() * this.width; // Center / top overhang
-      }
-
-      const y = Math.random() * this.height * 1.15 - this.height * 0.08;
-      const radius = Math.random() * 180 + 140; // 140px to 320px
-      const baseAlpha = Math.random() * 0.35 + 0.55; // 0.55 to 0.90
+      // Uniform full-screen coverage with rich overlap across center, left, right, top, bottom
+      const x = (Math.random() * 1.3 - 0.15) * this.width;
+      const y = (Math.random() * 1.25 - 0.12) * this.height;
+      const radius = Math.random() * 220 + 170; // 170px to 390px voluminous puffs
+      const baseAlpha = Math.random() * 0.22 + 0.78; // 0.78 to 1.0 high density
       const side = x < this.width * 0.5 ? -1 : 1;
 
       this.puffs.push({
@@ -285,10 +317,10 @@ class CloudRenderer {
         radius,
         baseAlpha,
         side,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.18,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.2,
         partingVx: 0,
-        warmth: Math.random() < 0.35, // Highlights with coral #e07b5b & gold #efd395
+        warmth: Math.random() < 0.25,
       });
     }
   }
@@ -300,7 +332,7 @@ class CloudRenderer {
   part() {
     this.isParting = true;
     for (const p of this.puffs) {
-      const speed = Math.random() * 8 + 8;
+      const speed = Math.random() * 10 + 10;
       p.partingVx = p.side * speed;
     }
   }
@@ -317,13 +349,13 @@ class CloudRenderer {
       ctx.clearRect(0, 0, this.width, this.height);
 
       if (this.flashIllumination > 0.01) {
-        this.flashIllumination *= 0.86;
+        this.flashIllumination *= 0.88;
       } else {
         this.flashIllumination = 0;
       }
 
       if (this.isParting) {
-        this.globalAlpha = Math.max(0, this.globalAlpha - 0.02);
+        this.globalAlpha = Math.max(0, this.globalAlpha - 0.022);
       }
 
       ctx.save();
@@ -334,40 +366,36 @@ class CloudRenderer {
         p.y += p.vy;
 
         if (this.isParting) {
-          p.partingVx *= 1.025;
+          p.partingVx *= 1.03;
         }
 
-        const alpha = Math.min(1.0, p.baseAlpha + this.flashIllumination * 0.3);
+        const alpha = Math.min(1.0, p.baseAlpha + this.flashIllumination * 0.25);
 
+        // Center the radial gradient slightly upward for illuminated 3D cumulus billows
         const grad = ctx.createRadialGradient(
-          p.x - p.radius * 0.15,
-          p.y - p.radius * 0.15,
-          p.radius * 0.05,
+          p.x,
+          p.y - p.radius * 0.25,
+          p.radius * 0.04,
           p.x,
           p.y,
           p.radius
         );
 
-        if (this.flashIllumination > 0.3) {
-          // Cloud lit up during lightning flash
-          grad.addColorStop(0, `rgba(255, 255, 255, ${0.92 * alpha})`);
-          grad.addColorStop(0.3, `rgba(239, 211, 149, ${0.82 * alpha})`); // gold #efd395
-          grad.addColorStop(0.65, `rgba(90, 104, 130, ${0.75 * alpha})`); // slate light #5a6882
-          grad.addColorStop(1, 'rgba(12, 16, 21, 0)');
-        } else if (p.warmth) {
-          // Dusk rim-lit cloud (coral #e07b5b & gold #efd395)
-          grad.addColorStop(0, `rgba(90, 104, 130, ${0.88 * alpha})`);
-          grad.addColorStop(0.4, `rgba(60, 71, 90, ${0.82 * alpha})`);
-          grad.addColorStop(0.72, `rgba(29, 41, 56, ${0.75 * alpha})`);
-          grad.addColorStop(0.9, `rgba(224, 123, 91, ${0.35 * alpha})`);
-          grad.addColorStop(1, 'rgba(12, 16, 21, 0)');
+        if (this.flashIllumination > 0.1) {
+          // Intense brilliant white lightning flash illumination
+          grad.addColorStop(0, `rgba(255, 255, 255, ${1.0 * alpha})`);
+          grad.addColorStop(0.35, `rgba(255, 255, 255, ${0.98 * alpha})`);
+          grad.addColorStop(0.65, `rgba(240, 249, 255, ${0.94 * alpha})`);
+          grad.addColorStop(0.9, `rgba(219, 234, 254, ${0.85 * alpha})`);
+          grad.addColorStop(1, 'rgba(191, 219, 254, 0)');
         } else {
-          // Deep slate storm body (#5a6882, #3c475a, #1d2938, #0c1015)
-          grad.addColorStop(0, `rgba(90, 104, 130, ${0.92 * alpha})`);
-          grad.addColorStop(0.38, `rgba(60, 71, 90, ${0.88 * alpha})`);
-          grad.addColorStop(0.75, `rgba(29, 41, 56, ${0.82 * alpha})`);
-          grad.addColorStop(0.95, `rgba(12, 16, 21, ${0.65 * alpha})`);
-          grad.addColorStop(1, 'rgba(12, 16, 21, 0)');
+          // Volumetric 3D pure white storm cloud with soft silver-slate contours
+          grad.addColorStop(0, `rgba(255, 255, 255, ${1.0 * alpha})`);
+          grad.addColorStop(0.35, `rgba(255, 255, 255, ${0.98 * alpha})`);
+          grad.addColorStop(0.65, `rgba(241, 245, 249, ${0.94 * alpha})`);
+          grad.addColorStop(0.85, `rgba(203, 213, 225, ${0.88 * alpha})`);
+          grad.addColorStop(0.96, `rgba(148, 163, 184, ${0.72 * alpha})`);
+          grad.addColorStop(1, 'rgba(148, 163, 184, 0)');
         }
 
         ctx.fillStyle = grad;
@@ -532,7 +560,7 @@ function initStormSequence() {
   function runSequence() {
     clearTimeouts();
 
-    // Reset styles
+    // ─── STEP 1: Clouds already present covering the full screen ───
     clouds.reset();
     introEl.classList.remove('storm-intro--hidden', 'clouds-parting');
     introEl.style.opacity = '1';
@@ -544,56 +572,60 @@ function initStormSequence() {
     if (fillEl) fillEl.style.width = '0%';
     if (flashEl) flashEl.classList.remove('storm-flash--active');
 
-    lightning.setBurst(0.6, 1.0);
+    lightning.setBurst(0.0, 0.0);
 
-    // 1. Title fades in smoothly (300ms)
+    // ─── STEP 2: Lightning applied from 30% to 50% (1560ms to 2600ms) with Thunder ───
+    sequenceTimeouts.push(
+      setTimeout(() => {
+        soundSynth.playThunder(1.0);
+        // Lightning runs from 30% to 50% of the 5200ms sequence = 1040ms duration
+        lightning.strike(4.5, 1040, (intensity) => {
+          clouds.flash(intensity * 0.7);
+        });
+        clouds.flash(3.0);
+
+        // Synchronized multi-stroke screen flashes during the 30%-50% strike window
+        if (flashEl) {
+          flashEl.classList.add('storm-flash--active');
+          setTimeout(() => flashEl.classList.remove('storm-flash--active'), 90);
+          setTimeout(() => flashEl.classList.add('storm-flash--active'), 250);
+          setTimeout(() => flashEl.classList.remove('storm-flash--active'), 380);
+          setTimeout(() => flashEl.classList.add('storm-flash--active'), 520);
+          setTimeout(() => flashEl.classList.remove('storm-flash--active'), 620);
+        }
+      }, 1560)
+    );
+
+    // ─── STEP 3: Name should be for 75% - 100% (3900ms to 5200ms) ───
     sequenceTimeouts.push(
       setTimeout(() => {
         if (titleEl) titleEl.classList.add('storm-title-group--visible');
         if (fillEl) fillEl.style.width = '100%';
-      }, 300)
+      }, 3900)
     );
 
-    // 2. Thunder Strike & Screen Flash (1200ms)
+    // ─── STEP 4: Clouds start fading out at 80% (4160ms) ───
     sequenceTimeouts.push(
       setTimeout(() => {
-        soundSynth.playThunder(0.95);
-        lightning.setBurst(4.0, 3.5);
-        clouds.flash(1.8);
-
-        // Rapid dual flash
-        if (flashEl) {
-          flashEl.classList.add('storm-flash--active');
-          setTimeout(() => flashEl.classList.remove('storm-flash--active'), 90);
-          setTimeout(() => flashEl.classList.add('storm-flash--active'), 160);
-          setTimeout(() => flashEl.classList.remove('storm-flash--active'), 280);
-        }
-      }, 1200)
+        introEl.classList.add('clouds-parting');
+        clouds.part();
+      }, 4160)
     );
 
-    // 3. Silky-Smooth Dissolve & Fade Out of the Title (1900ms)
+    // ─── STEP 5: Name dissolves out smoothly after all effects (4850ms) ───
     sequenceTimeouts.push(
       setTimeout(() => {
         if (titleEl) {
           titleEl.classList.add('storm-title-group--fadeout');
         }
-      }, 1900)
+      }, 4850)
     );
 
-    // 4. Clouds Part Out of Screen (2300ms)
-    sequenceTimeouts.push(
-      setTimeout(() => {
-        introEl.classList.add('clouds-parting');
-        clouds.part();
-        lightning.setBurst(1.2, 1.0);
-      }, 2300)
-    );
-
-    // 5. Reveal Fullscreen Dashboard Cleanly (3900ms)
+    // ─── STEP 6: Complete transition & release input to dashboard (5200ms, 100%) ───
     sequenceTimeouts.push(
       setTimeout(() => {
         introEl.classList.add('storm-intro--hidden');
-      }, 3900)
+      }, 5200)
     );
   }
 
