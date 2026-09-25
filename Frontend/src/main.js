@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initClock();
   initAlertBanner();
+  initPastelSwatches();
   initNavigation();
   initChipToggles();
   initTimeSlider();
@@ -21,6 +22,33 @@ document.addEventListener('DOMContentLoaded', () => {
   initHeroCountUp();
   initMapHover();
 });
+
+// ─── Pastel Palette Swatches (Sage, Oat, Lavender, Slate) ───
+function initPastelSwatches() {
+  const swatches = document.querySelectorAll('.swatch-btn');
+  if (!swatches.length) return;
+
+  const savedPastel = localStorage.getItem('atmos_pastel') || 'sage';
+  applyPastel(savedPastel);
+
+  swatches.forEach((swatch) => {
+    swatch.addEventListener('click', () => {
+      const pastel = swatch.dataset.pastel;
+      applyPastel(pastel);
+    });
+  });
+
+  function applyPastel(pastel) {
+    document.body.classList.remove('pastel-oat', 'pastel-lavender', 'pastel-slate');
+    if (pastel !== 'sage') {
+      document.body.classList.add(`pastel-${pastel}`);
+    }
+    localStorage.setItem('atmos_pastel', pastel);
+    swatches.forEach((s) => {
+      s.classList.toggle('swatch-btn--active', s.dataset.pastel === pastel);
+    });
+  }
+}
 
 // ─── Live Clock ───
 function initClock() {
@@ -163,12 +191,12 @@ function initStationMarkers() {
 }
 
 function getAqiColor(aqi) {
-  if (aqi <= 50) return '#4CAF50';
-  if (aqi <= 100) return '#8BC34A';
-  if (aqi <= 150) return '#FFC107';
-  if (aqi <= 200) return '#FF9800';
-  if (aqi <= 300) return '#F44336';
-  return '#7B1FA2';
+  if (aqi <= 50) return '#10B981';
+  if (aqi <= 100) return '#84CC16';
+  if (aqi <= 150) return '#F59E0B';
+  if (aqi <= 200) return '#F97316';
+  if (aqi <= 300) return '#EF4444';
+  return '#8B5CF6';
 }
 
 // ─── Wind Particle Animation ───
@@ -256,7 +284,7 @@ function initMapHover() {
     width: 160px;
     height: 160px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(61, 214, 245, 0.06) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
     pointer-events: none;
     transition: left 0.1s ease, top 0.1s ease;
     transform: translate(-50%, -50%);
