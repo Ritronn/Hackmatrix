@@ -17,9 +17,109 @@
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
-  <!-- Centered App Frame / Tablet Shell -->
-  <div class="shell-wrapper">
-    <div class="app-frame" id="app-frame">
+  <!-- ─── STORM CLOUDS & LIGHTNING INTRO SEQUENCE ─── -->
+  <div class="storm-intro" id="storm-intro">
+    <!-- WebGL Canvas for Realistic Lightning Shader (User Spec) -->
+    <canvas id="lightning-canvas" class="lightning-canvas"></canvas>
+
+    <!-- Canvas for Volumetric Rolling Storm Clouds -->
+    <canvas id="clouds-canvas" class="clouds-canvas"></canvas>
+
+    <!-- Prominent Volumetric Storm Cloud Banks (Covering Full Screen) -->
+    <div class="clouds-overlay" id="clouds-overlay">
+      <!-- Left Thunderhead Cloud Bank -->
+      <div class="clouds-bank clouds-bank--left" id="clouds-left">
+        <svg class="cloud-svg cloud-svg--back" viewBox="0 0 1000 800" preserveAspectRatio="none">
+          <path d="M-100,800 L-100,-100 Q150,-80 250,50 Q350,10 480,120 Q580,80 680,220 Q750,300 700,420 Q780,520 650,650 Q550,750 400,800 Z" fill="url(#grad-cloud-back)" />
+          <defs>
+            <linearGradient id="grad-cloud-back" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.96" />
+              <stop offset="55%" stop-color="#F1F5F9" stop-opacity="0.94" />
+              <stop offset="85%" stop-color="#E2E8F0" stop-opacity="0.92" />
+              <stop offset="100%" stop-color="#CBD5E1" stop-opacity="0.88" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <svg class="cloud-svg cloud-svg--front" viewBox="0 0 1000 800" preserveAspectRatio="none">
+          <path d="M-100,800 L-100,50 Q100,30 200,160 Q280,120 400,240 Q480,200 560,340 Q620,440 540,560 Q600,680 450,780 Q300,800 -100,800 Z" fill="url(#grad-cloud-front-left)" />
+          <defs>
+            <linearGradient id="grad-cloud-front-left" x1="20%" y1="0%" x2="90%" y2="100%">
+              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.98" />
+              <stop offset="45%" stop-color="#F8FAFC" stop-opacity="0.96" />
+              <stop offset="80%" stop-color="#E2E8F0" stop-opacity="0.92" />
+              <stop offset="100%" stop-color="#CBD5E1" stop-opacity="0.86" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <!-- Sculpted cumulus cloud puffs -->
+        <div class="cloud-puff cloud-puff--1"></div>
+        <div class="cloud-puff cloud-puff--2"></div>
+        <div class="cloud-puff cloud-puff--3"></div>
+        <div class="cloud-puff cloud-puff--4"></div>
+        <div class="cloud-puff cloud-puff--5"></div>
+        <div class="cloud-rim cloud-rim--left"></div>
+      </div>
+
+      <!-- Right Thunderhead Cloud Bank -->
+      <div class="clouds-bank clouds-bank--right" id="clouds-right">
+        <svg class="cloud-svg cloud-svg--back" viewBox="0 0 1000 800" preserveAspectRatio="none">
+          <path d="M1100,800 L1100,-100 Q850,-80 750,50 Q650,10 520,120 Q420,80 320,220 Q250,300 300,420 Q220,520 350,650 Q450,750 600,800 Z" fill="url(#grad-cloud-back-right)" />
+          <defs>
+            <linearGradient id="grad-cloud-back-right" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.96" />
+              <stop offset="55%" stop-color="#F1F5F9" stop-opacity="0.94" />
+              <stop offset="85%" stop-color="#E2E8F0" stop-opacity="0.92" />
+              <stop offset="100%" stop-color="#CBD5E1" stop-opacity="0.88" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <svg class="cloud-svg cloud-svg--front" viewBox="0 0 1000 800" preserveAspectRatio="none">
+          <path d="M1100,800 L1100,50 Q900,30 800,160 Q720,120 600,240 Q520,200 440,340 Q380,440 460,560 Q400,680 550,780 Q700,800 1100,800 Z" fill="url(#grad-cloud-front-right)" />
+          <defs>
+            <linearGradient id="grad-cloud-front-right" x1="80%" y1="0%" x2="10%" y2="100%">
+              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.98" />
+              <stop offset="45%" stop-color="#F8FAFC" stop-opacity="0.96" />
+              <stop offset="80%" stop-color="#E2E8F0" stop-opacity="0.92" />
+              <stop offset="100%" stop-color="#CBD5E1" stop-opacity="0.86" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <!-- Sculpted cumulus cloud puffs -->
+        <div class="cloud-puff cloud-puff--6"></div>
+        <div class="cloud-puff cloud-puff--7"></div>
+        <div class="cloud-puff cloud-puff--8"></div>
+        <div class="cloud-puff cloud-puff--9"></div>
+        <div class="cloud-puff cloud-puff--10"></div>
+        <div class="cloud-rim cloud-rim--right"></div>
+      </div>
+
+      <!-- Top storm canopy shelf -->
+      <div class="clouds-shelf" id="clouds-shelf"></div>
+      <!-- Rolling Atmospheric Storm Mist -->
+      <div class="clouds-mist" id="clouds-mist"></div>
+    </div>
+
+    <!-- Screen Flash on Thunder Strike -->
+    <div class="storm-flash" id="storm-flash"></div>
+
+    <!-- Cinematic Title Reveal (Smooth in, smooth dissolve out) -->
+    <div class="storm-title-group" id="storm-title">
+      <div class="storm-brand-logo">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2V22M2 12H22M4.93 4.93L19.07 19.07M4.93 19.07L19.07 4.93" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h1 class="storm-title-text">ATMOS TWIN</h1>
+      <p class="storm-subtitle">Environmental Intelligence Digital Twin</p>
+      <div class="storm-loading-bar">
+        <div class="storm-loading-fill" id="storm-loading-fill"></div>
+      </div>
+      <button class="storm-skip-btn" id="storm-skip">Skip Intro ➔</button>
+    </div>
+  </div>
+
+  <!-- ─── FULL SCREEN DASHBOARD ─── -->
+  <div class="app-frame" id="app-frame">
 
       <!-- ─── SLIM LEFT NAV RAIL ─── -->
       <aside class="nav-rail">
@@ -57,6 +157,9 @@
         </div>
 
         <div class="nav-rail__bottom">
+          <button class="rail-btn" id="btn-replay-storm" title="Replay Thunder & Clouds Intro">
+            <i data-lucide="zap"></i>
+          </button>
           <button class="rail-btn rail-btn--alert" id="drift-alert-trigger" title="Twin Drift: 1 Active Divergence">
             <i data-lucide="bell"></i>
             <span class="alert-badge-dot"></span>
@@ -467,7 +570,6 @@
       </main>
 
     </div>
-  </div>
 
   <script type="module" src="/src/main.js"></script>
 </body>

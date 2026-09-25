@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════
    ATMOS TWIN — Environmental Digital Twin
-   Handcrafted Bento Grid Tablet Dashboard (Reference Design)
+   Palette: #5a6882, #3c475a, #1d2938, #0c1015, #e07b5b, #efd395
    ═══════════════════════════════════════════════════════ */
 
 /* ─── Reset ─── */
@@ -10,15 +10,22 @@
   box-sizing: border-box;
 }
 
-/* ─── Global Design Tokens ─── */
+/* ─── Global Design Tokens (User-Specified Palette) ─── */
 :root {
-  /* Slate Canvas & App Frame */
-  --viewport-bg: #323640;
-  --app-frame-bg: #11141A;
-  --card-bg: #161A22;
-  --card-bg-elevated: #1C212C;
-  --card-border: rgba(255, 255, 255, 0.06);
-  --card-border-subtle: rgba(255, 255, 255, 0.04);
+  /* User-Specified Colors */
+  --c-slate-light: #5a6882;
+  --c-slate-mid: #3c475a;
+  --c-slate-dark: #1d2938;
+  --c-obsidian: #0c1015;
+  --c-coral: #e07b5b;
+  --c-gold: #efd395;
+
+  /* App Surfaces & Cards using User Palette */
+  --app-frame-bg: var(--c-obsidian);
+  --card-bg: rgba(29, 41, 56, 0.72);
+  --card-bg-elevated: rgba(60, 71, 90, 0.65);
+  --card-border: rgba(90, 104, 130, 0.22);
+  --card-border-subtle: rgba(90, 104, 130, 0.12);
 
   /* Typography / Ink */
   --ink: #FFFFFF;
@@ -28,7 +35,8 @@
 
   /* Accents */
   --accent-cyan: #38BDF8;
-  --accent-amber: #F59E0B;
+  --accent-amber: var(--c-gold);
+  --accent-coral: var(--c-coral);
   --accent-green: #34D399;
   --accent-red: #F87171;
 
@@ -45,17 +53,32 @@ html {
 }
 
 body {
-  background-color: var(--viewport-bg);
-  background-image: radial-gradient(circle at 50% 20%, #3D424D 0%, #2A2D35 100%);
+  background-color: #0c1015;
+  background-image: 
+    /* Coral dusk sunset glow (#e07b5b) at upper left and right */
+    radial-gradient(ellipse 950px 650px at 14% 12%, rgba(224, 123, 91, 0.28) 0%, rgba(224, 123, 91, 0.06) 50%, transparent 72%),
+    radial-gradient(circle 800px at 88% 82%, rgba(224, 123, 91, 0.25) 0%, rgba(224, 123, 91, 0.05) 48%, transparent 68%),
+    /* Golden twilight aura (#efd395) at top right and lower left */
+    radial-gradient(ellipse 850px 550px at 82% 10%, rgba(239, 211, 149, 0.28) 0%, rgba(239, 211, 149, 0.06) 48%, transparent 70%),
+    radial-gradient(circle 650px at 10% 92%, rgba(239, 211, 149, 0.2) 0%, transparent 60%),
+    /* Steel light slate atmospheric wash (#5a6882) across the upper center */
+    radial-gradient(ellipse 1300px 750px at 50% 28%, rgba(90, 104, 130, 0.42) 0%, rgba(90, 104, 130, 0.1) 60%, transparent 75%),
+    /* Slate mid body foundation (#3c475a) */
+    radial-gradient(ellipse 1400px 850px at 32% 65%, rgba(60, 71, 90, 0.48) 0%, transparent 72%),
+    /* Deep slate to obsidian base (#1d2938 to #0c1015) */
+    linear-gradient(168deg, #1d2938 0%, #3c475a 32%, #1d2938 68%, #0c1015 100%);
+  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 14px;
   line-height: 20px;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 30px 20px;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 button {
@@ -67,32 +90,333 @@ button {
 }
 
 /* ═══════════════════════════════════════════════════════
-   APP SHELL / TABLET FRAME (Matching Reference)
+   STORM CLOUDS & LIGHTNING INTRO SEQUENCE
    ═══════════════════════════════════════════════════════ */
-.shell-wrapper {
-  width: 100%;
-  max-width: 1340px;
+.storm-intro {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+  background: #080A0E;
   display: flex;
+  align-items: center;
   justify-content: center;
+  overflow: hidden;
+  pointer-events: auto;
+  transition: opacity 1.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 1.6s ease;
 }
 
-.app-frame {
+.storm-intro--hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* WebGL Lightning Canvas */
+.lightning-canvas {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  background: var(--app-frame-bg);
-  border-radius: 36px;
-  padding: 24px;
+  height: 100%;
+  pointer-events: none;
+  z-index: 15;
+  mix-blend-mode: screen;
+}
+
+/* Dedicated Volumetric Clouds Canvas (Draws Billowing Storm Clouds) */
+.clouds-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 8;
+  transition: opacity 2.2s cubic-bezier(0.2, 0.8, 0.2, 1), transform 2.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Prominent Storm Cloud Overlay */
+.clouds-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9;
+  overflow: hidden;
+}
+
+/* Top Storm Cloud Shelf / Ceiling (Luminous White Clouds) */
+.clouds-shelf {
+  position: absolute;
+  top: -10%;
+  left: -5%;
+  width: 110vw;
+  height: 42vh;
+  background: radial-gradient(ellipse 70% 80% at 50% 0%, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 35%, rgba(226, 232, 240, 0.9) 70%, transparent 100%);
+  filter: blur(14px);
+  pointer-events: none;
+  transition: transform 2.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 2.2s ease;
+}
+
+/* Volumetric Cloud Banks (Spanning Across the Full Screen) */
+.clouds-bank {
+  position: absolute;
+  top: -10%;
+  width: 68vw;
+  height: 125vh;
+  pointer-events: none;
+  transition: transform 2.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 2.4s ease;
+}
+
+.clouds-bank--left {
+  left: -6%;
+}
+
+.clouds-bank--right {
+  right: -6%;
+}
+
+/* SVG Cloud Thunderheads */
+.cloud-svg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.cloud-svg--back {
+  opacity: 0.95;
+  filter: blur(20px) drop-shadow(0 20px 45px rgba(0, 0, 0, 0.3));
+}
+
+.cloud-svg--front {
+  opacity: 0.98;
+  filter: blur(10px) drop-shadow(0 15px 35px rgba(0, 0, 0, 0.25));
+}
+
+/* Sculpted 3D Pure White Cumulus Cloud Puffs */
+.cloud-puff {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(12px);
+  background: radial-gradient(circle at 35% 35%, 
+    rgba(255, 255, 255, 1.0) 0%, 
+    rgba(248, 250, 252, 0.98) 35%, 
+    rgba(226, 232, 240, 0.94) 70%, 
+    rgba(203, 213, 225, 0.88) 100%
+  );
   box-shadow: 
-    0 40px 100px -20px rgba(0, 0, 0, 0.8),
-    0 20px 40px -10px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(255, 255, 255, 0.08);
+    inset -16px -16px 40px rgba(148, 163, 184, 0.45),
+    inset 14px 14px 35px rgba(255, 255, 255, 0.95),
+    0 20px 60px rgba(0, 0, 0, 0.3);
+  will-change: transform;
+}
+
+/* Left Bank Puffs */
+.cloud-puff--1 { width: 540px; height: 420px; top: 8%; left: 10%; }
+.cloud-puff--2 { width: 620px; height: 480px; top: 30%; left: 4%; }
+.cloud-puff--3 { width: 500px; height: 420px; top: 55%; left: 12%; }
+.cloud-puff--4 { width: 560px; height: 440px; top: 18%; left: 30%; }
+.cloud-puff--5 { width: 480px; height: 380px; top: 45%; left: 32%; }
+
+/* Right Bank Puffs */
+.cloud-puff--6 { width: 560px; height: 440px; top: 6%; right: 8%; }
+.cloud-puff--7 { width: 640px; height: 500px; top: 28%; right: 2%; }
+.cloud-puff--8 { width: 520px; height: 430px; top: 56%; right: 10%; }
+.cloud-puff--9 { width: 580px; height: 460px; top: 20%; right: 28%; }
+.cloud-puff--10 { width: 490px; height: 390px; top: 48%; right: 30%; }
+
+/* White Cloud Sun/Lightning Rim Glow */
+.cloud-rim {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  pointer-events: none;
+  filter: blur(28px);
+  opacity: 0.7;
+}
+
+.cloud-rim--left {
+  left: 15%;
+  background: radial-gradient(circle at 60% 40%, rgba(255, 255, 255, 0.9) 0%, rgba(239, 211, 149, 0.3) 45%, transparent 70%);
+}
+
+.cloud-rim--right {
+  right: 15%;
+  background: radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.9) 0%, rgba(224, 123, 91, 0.25) 45%, transparent 70%);
+}
+
+/* Ambient Moving Fog Mist */
+.clouds-mist {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.5) 0%, rgba(241, 245, 249, 0.35) 40%, rgba(203, 213, 225, 0.2) 70%, transparent 100%);
+  z-index: 7;
+  pointer-events: none;
+  transition: opacity 2s ease;
+}
+
+/* ─── Parting Action: Clouds move out of screen with fade effect ─── */
+.storm-intro.clouds-parting .clouds-bank--left {
+  transform: translateX(-120vw) scale(1.12);
+  opacity: 0;
+}
+
+.storm-intro.clouds-parting .clouds-bank--right {
+  transform: translateX(120vw) scale(1.12);
+  opacity: 0;
+}
+
+.storm-intro.clouds-parting .clouds-shelf {
+  transform: translateY(-110%) scale(1.05);
+  opacity: 0;
+}
+
+.storm-intro.clouds-parting .clouds-canvas {
+  opacity: 0;
+  transform: scale(1.1);
+}
+
+.storm-intro.clouds-parting .clouds-mist {
+  opacity: 0;
+}
+
+/* Lightning Flash Effect on Screen */
+.storm-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.98) 0%, rgba(239, 211, 149, 0.7) 35%, rgba(56, 189, 248, 0.5) 60%, transparent 85%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 20;
+  transition: opacity 0.08s ease;
+}
+
+.storm-flash--active {
+  opacity: 1 !important;
+}
+
+/* ─── Cinematic Title Reveal (Silky-Smooth In & Ultra-Smooth Dissolve Out) ─── */
+.storm-title-group {
+  position: relative;
+  z-index: 30;
+  text-align: center;
   display: flex;
-  gap: 22px;
-  min-height: 780px;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  transform: translateY(18px) scale(0.96);
+  filter: blur(10px);
+  transition: 
+    opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1.2s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform, filter;
+}
+
+.storm-title-group--visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0px);
+}
+
+/* Silky-smooth dissolve fade-out effect */
+.storm-title-group--fadeout {
+  opacity: 0 !important;
+  transform: translateY(-16px) scale(1.05) !important;
+  filter: blur(16px) !important;
+  transition: 
+    opacity 1.8s cubic-bezier(0.25, 0.1, 0.25, 1) !important,
+    transform 1.8s cubic-bezier(0.25, 0.1, 0.25, 1) !important,
+    filter 1.8s cubic-bezier(0.25, 0.1, 0.25, 1) !important;
+  pointer-events: none;
+}
+
+.storm-brand-logo {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.8));
+}
+
+.storm-title-text {
+  font-family: var(--font-headline);
+  font-size: 58px;
+  font-weight: 700;
+  letter-spacing: 8px;
+  color: #FFFFFF;
+  text-shadow: 
+    0 0 30px rgba(56, 189, 248, 0.8),
+    0 0 60px rgba(224, 123, 91, 0.5),
+    0 2px 10px rgba(0, 0, 0, 0.8);
+  margin-bottom: 2px;
+}
+
+.storm-subtitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-gold);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.storm-loading-bar {
+  width: 240px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-top: 18px;
+}
+
+.storm-loading-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--c-coral), var(--c-gold), var(--accent-cyan));
+  transition: width 2.4s ease-out;
+}
+
+.storm-skip-btn {
+  margin-top: 16px;
+  padding: 6px 16px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #8F9CAE;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.storm-skip-btn:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 /* ═══════════════════════════════════════════════════════
-   SLIM LEFT NAVIGATION RAIL
+   FULL SCREEN DASHBOARD
    ═══════════════════════════════════════════════════════ */
+.app-frame {
+  width: 100vw;
+  min-height: 100vh;
+  background: transparent;
+  display: flex;
+  padding: 16px 20px;
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+/* ─── Slim Left Navigation Rail ─── */
 .nav-rail {
   width: 64px;
   display: flex;
@@ -101,6 +425,9 @@ button {
   align-items: center;
   padding: 8px 0;
   flex-shrink: 0;
+  position: sticky;
+  top: 16px;
+  height: calc(100vh - 32px);
 }
 
 .nav-rail__top {
@@ -173,7 +500,7 @@ button {
 .rail-btn--active::before {
   content: '';
   position: absolute;
-  left: -12px;
+  left: -10px;
   top: 50%;
   transform: translateY(-50%);
   width: 3.5px;
@@ -187,7 +514,7 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 
 .rail-btn--alert {
@@ -202,7 +529,7 @@ button {
   height: 7px;
   border-radius: 50%;
   background: var(--accent-red);
-  border: 1.5px solid var(--app-frame-bg);
+  border: 1.5px solid var(--c-obsidian);
 }
 
 .nav-rail__avatar {
@@ -228,14 +555,17 @@ button {
   display: grid;
   grid-template-columns: 320px 1fr;
   gap: 20px;
+  min-height: calc(100vh - 32px);
 }
 
-/* ─── Universal Bento Card ─── */
+/* ─── Universal Bento Card (Glass over User Palette) ─── */
 .bento-card {
   background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--card-border);
   border-radius: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   position: relative;
 }
 
@@ -294,12 +624,12 @@ button {
 
 /* ─── 1. Hero Weather / AQI Card ─── */
 .hero-card {
-  background: linear-gradient(165deg, #1A2232 0%, #111520 100%);
+  background: linear-gradient(165deg, rgba(60, 71, 90, 0.5) 0%, rgba(29, 41, 56, 0.85) 100%);
   padding: 22px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(90, 104, 130, 0.28);
 }
 
 .hero-card__header {
@@ -315,8 +645,8 @@ button {
   gap: 6px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--accent-cyan);
-  background: rgba(56, 189, 248, 0.12);
+  color: var(--c-gold);
+  background: rgba(239, 211, 149, 0.12);
   padding: 4px 10px;
   border-radius: 9999px;
   letter-spacing: 0.02em;
@@ -326,8 +656,8 @@ button {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--accent-cyan);
-  box-shadow: 0 0 8px var(--accent-cyan);
+  background: var(--c-gold);
+  box-shadow: 0 0 8px var(--c-gold);
   animation: pulse 2s infinite;
 }
 
@@ -377,7 +707,7 @@ button {
   left: 30px;
   width: 70px;
   height: 70px;
-  background: radial-gradient(circle, rgba(245, 158, 11, 0.35) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(224, 123, 91, 0.45) 0%, transparent 70%);
   filter: blur(15px);
   pointer-events: none;
 }
@@ -425,7 +755,7 @@ button {
 .hero-card__cond-icon {
   width: 16px;
   height: 16px;
-  color: var(--accent-amber);
+  color: var(--c-coral);
 }
 
 .hero-card__divider {
@@ -502,9 +832,9 @@ button {
   height: 16px;
 }
 
-.forecast-icon-box--poor { color: var(--accent-amber); }
+.forecast-icon-box--poor { color: var(--c-coral); }
 .forecast-icon-box--severe { color: var(--accent-red); }
-.forecast-icon-box--moderate { color: var(--accent-cyan); }
+.forecast-icon-box--moderate { color: var(--c-gold); }
 
 .forecast-row__aqi {
   font-family: var(--font-headline);
@@ -534,8 +864,8 @@ button {
 
 /* Simulation Mini Box */
 .sim-preview-box {
-  background: #11141B;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(12, 16, 21, 0.85);
+  border: 1px solid var(--card-border);
   border-radius: 14px;
   padding: 12px 14px;
   display: flex;
@@ -561,7 +891,7 @@ button {
   font-family: var(--font-headline);
   font-size: 17px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--c-gold);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -736,7 +1066,7 @@ button {
 .legend-bar-track {
   height: 5px;
   border-radius: 9999px;
-  background: linear-gradient(90deg, #F87171 0%, #FB923C 30%, #FBBF24 60%, #38BDF8 100%);
+  background: linear-gradient(90deg, #F87171 0%, var(--c-coral) 30%, var(--c-gold) 60%, var(--accent-cyan) 100%);
   margin: 5px 0 4px;
   width: 140px;
 }
@@ -753,8 +1083,9 @@ button {
   position: absolute;
   inset: 0;
   background: 
-    radial-gradient(ellipse at 70% 50%, rgba(56, 189, 248, 0.15) 0%, transparent 60%),
-    radial-gradient(ellipse at 40% 30%, rgba(245, 158, 11, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 50%, rgba(90, 104, 130, 0.35) 0%, transparent 60%),
+    radial-gradient(ellipse at 40% 30%, rgba(224, 123, 91, 0.22) 0%, transparent 55%),
+    radial-gradient(ellipse at 20% 70%, rgba(239, 211, 149, 0.15) 0%, transparent 55%),
     #0E1219;
 }
 
@@ -823,7 +1154,7 @@ button {
 
 .bubble-meta {
   font-size: 10.5px;
-  color: var(--accent-cyan);
+  color: var(--c-gold);
 }
 
 .station-pill {
@@ -880,7 +1211,7 @@ button {
 .loc-chip--active {
   background: rgba(30, 41, 59, 0.95);
   color: #FFFFFF;
-  border-color: rgba(56, 189, 248, 0.4);
+  border-color: var(--c-coral);
 }
 
 .loc-chip i {
@@ -940,13 +1271,14 @@ button {
 @media (max-width: 980px) {
   .app-frame {
     flex-direction: column;
-    padding: 16px;
-    border-radius: 24px;
+    padding: 12px;
   }
   .nav-rail {
     width: 100%;
     flex-direction: row;
     height: auto;
+    position: relative;
+    top: 0;
     padding: 0 0 12px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   }
