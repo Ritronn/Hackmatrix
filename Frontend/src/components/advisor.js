@@ -66,13 +66,15 @@ export function initAIAdvisor() {
   // ── Offline fallback ──────────────────────────────────────────────────────
   function fallbackResponse(q) {
     const l = q.toLowerCase();
+    const aqi = window._currentAqi ? `${Math.round(window._currentAqi)} AQI` : 'current AQI';
+    const city = window._currentCity ?? 'the city';
     if (l.includes('school') || l.includes('close'))
-      return 'The digital twin forecasts AQI reaching <strong>185+ in Akurdi and Bhosari industrial corridors</strong> tomorrow morning. Under MPCB guidelines, outdoor sports and morning assemblies should be suspended in PCMC schools.';
+      return `The digital twin is currently showing elevated pollution levels in ${city}. Under MPCB guidelines, outdoor sports and morning assemblies should be suspended when AQI exceeds 200 in PCMC schools.`;
     if (l.includes('akurdi') || l.includes('bhosari') || l.includes('anand') || l.includes('spike'))
-      return 'Akurdi and Bhosari spiked to <strong>188–192 AQI (+28% divergence)</strong> due to cold night-time boundary layer compression trapping foundry emissions and NH48 freight diesel exhaust.';
+      return `Industrial corridors in ${city} show elevated readings due to cold night-time boundary layer compression trapping foundry emissions and highway freight diesel exhaust. Check live station data for exact values.`;
     if (l.includes('traffic') || l.includes('restrict'))
-      return 'A <strong>30% freight restriction along the Pune-Mumbai Expressway and NH48 bypass</strong> removes ~16 AQI points and saves <strong>₹12.4 Crore</strong> in healthcare costs at ~₹9.5 Cr intervention cost.';
-    return `Maharashtra urban twin AQI is currently <strong>${window._currentAqi ?? 142} (Moderate to Poor)</strong>. Vehicular and industrial transit drives 44% of particulate load. Anti-smog mist guns in Bhosari and Akurdi offer the best immediate ROI.`;
+      return `A freight restriction along major corridors in ${city} can reduce AQI by 10–20 points and deliver significant healthcare cost savings. Scenario simulator can model exact impact.`;
+    return `${city} air quality is currently <strong>${aqi}</strong>. Vehicular and industrial transit are the primary drivers of particulate load. Anti-smog mist guns and traffic management offer the best immediate ROI. (Note: AI advisor is in offline mode — live Gemini responses are unavailable.)`;
   }
 
   // ── Send query to Gemini backend ──────────────────────────────────────────

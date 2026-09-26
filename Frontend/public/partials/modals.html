@@ -1,0 +1,122 @@
+<!-- 1. Twin Drift Alert Modal -->
+<div class="modal-backdrop" id="modal-drift-backdrop">
+  <div class="modal-card modal-card--drift" id="modal-drift">
+    <div class="modal-header">
+      <div class="modal-header__title">
+        <span class="alert-icon-ring"><i data-lucide="alert-triangle"></i></span>
+        <div>
+          <h3>Twin Drift: Active Divergence Detected</h3>
+          <span class="label-xs muted">Digital Twin Anomaly Flag • Station Level</span>
+        </div>
+      </div>
+      <button class="modal-close-btn" id="btn-close-drift">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="drift-stat-grid">
+        <div class="drift-box">
+          <span class="drift-box__lbl">Affected Station</span>
+          <strong class="drift-box__val">Bhosari MIDC / Akurdi, PCMC</strong>
+        </div>
+        <div class="drift-box">
+          <span class="drift-box__lbl">Observed Sensor</span>
+          <strong class="drift-box__val text-red">192 µg/m³ PM2.5</strong>
+        </div>
+        <div class="drift-box">
+          <span class="drift-box__lbl">Forecast Model</span>
+          <strong class="drift-box__val text-gold">142 µg/m³</strong>
+        </div>
+        <div class="drift-box">
+          <span class="drift-box__lbl">Divergence</span>
+          <strong class="drift-box__val text-coral">+35.2% (Anomaly)</strong>
+        </div>
+      </div>
+      <div class="drift-cause-card">
+        <h4><i data-lucide="info"></i> Root Cause Diagnosis:</h4>
+        <p>Unscheduled metal foundry casting emissions along Old Pune-Mumbai Highway, exacerbated by night-time boundary layer compression trapping particulate matter in the Pawana river basin.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-dismiss-drift">Acknowledge Alert</button>
+      <button class="btn-primary-action" id="btn-recalibrate">
+        <i data-lucide="refresh-cw"></i>
+        <span>Trigger Kalman Recalibration</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. City Search Modal -->
+<div class="modal-backdrop" id="modal-search-backdrop">
+  <div class="modal-card modal-card--search" id="modal-search">
+    <div class="search-input-wrap">
+      <i data-lucide="search" class="search-icon"></i>
+      <input type="text" id="station-search-input" placeholder="Search city or monitoring station (e.g., Akurdi, Pune, Mumbai, Nashik)..." autofocus />
+      <button class="modal-close-btn" id="btn-close-search">&times;</button>
+    </div>
+    <div class="search-results-list" id="search-results">
+      <div class="search-item" data-station="anand" data-city="pune">
+        <div class="search-item__main"><strong>Akurdi PCMC</strong><span>PCMC Industrial Corridor • Live Sensor</span></div>
+        <span class="badge-status search-item__aqi-badge">— AQI</span>
+      </div>
+      <div class="search-item" data-station="ito" data-city="pune">
+        <div class="search-item__main"><strong>Shivaji Nagar</strong><span>Central Pune • Urban Core IMD</span></div>
+        <span class="badge-status search-item__aqi-badge">— AQI</span>
+      </div>
+      <div class="search-item" data-station="dwarka" data-city="pune">
+        <div class="search-item__main"><strong>Bhosari MIDC</strong><span>PCMC Manufacturing Cluster</span></div>
+        <span class="badge-status search-item__aqi-badge">— AQI</span>
+      </div>
+      <div class="search-item" data-station="lodhi" data-city="pune">
+        <div class="search-item__main"><strong>Pashan Bio-Observatory</strong><span>West Pune • IISER Green Belt</span></div>
+        <span class="badge-status search-item__aqi-badge">— AQI</span>
+      </div>
+      <div class="search-item" data-city="mumbai">
+        <div class="search-item__main"><strong>Bandra Kurla Complex (Mumbai)</strong><span>Commercial Hub • Maharashtra Twin</span></div>
+        <span class="badge-status search-item__aqi-badge">— AQI</span>
+      </div>
+      <div class="search-item" data-city="nashik">
+        <div class="search-item__main"><strong>Satpur MIDC (Nashik)</strong><span>Industrial Corridor • North Maharashtra</span></div>
+        <span class="badge-status search-item__aqi-badge">— AQI</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Daily Briefing Modal -->
+<div class="modal-backdrop" id="modal-briefing-backdrop">
+  <div class="modal-card modal-card--briefing" id="modal-briefing">
+    <div class="modal-header">
+      <div class="modal-header__title">
+        <i data-lucide="file-text" class="text-gold"></i>
+        <div>
+          <h3>Urban Environmental Daily Intelligence Briefing</h3>
+          <span class="label-xs muted">Automated Digital Twin Synthesis • Maharashtra Urban Centers</span>
+        </div>
+      </div>
+      <button class="modal-close-btn" id="btn-close-briefing">&times;</button>
+    </div>
+    <div class="modal-body briefing-content" id="briefing-content">
+      <div class="briefing-meta">
+        <span><strong>Date:</strong> 25 Sept, 2026</span>
+        <span><strong>Forecast Horizon:</strong> 72 Hours</span>
+        <span><strong>Model Confidence:</strong> 92.4%</span>
+      </div>
+      <div class="briefing-section">
+        <h4>1. Executive Summary</h4>
+        <p>Air quality across Maharashtra urban corridors currently sits at <strong>— AQI</strong>. Western Ghats valley inversion and industrial transit entrapment prevent vertical dispersion.</p>
+      </div>
+      <div class="briefing-section">
+        <h4>2. Source Attribution Breakdown</h4>
+        <p>Real-time SHAP analysis attributes <strong>44%</strong> of particulate mass to vehicular and freight exhaust, <strong>26%</strong> to industrial manufacturing (MIDC Bhosari / Akurdi / Chembur), and <strong>20%</strong> to road dust re-suspension.</p>
+      </div>
+      <div class="briefing-section">
+        <h4>3. Recommended Interventions</h4>
+        <p>A <strong>30% freight restriction</strong> coupled with <strong>45 anti-smog mist units</strong> yields an immediate <strong>-38 AQI reduction</strong>, avoiding an estimated <strong>110 respiratory ER admissions</strong> over 48 hours.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="btn-copy-briefing"><i data-lucide="copy"></i> Copy Briefing</button>
+      <button class="btn-primary-action" id="btn-print-briefing"><i data-lucide="printer"></i> Print / Save PDF</button>
+    </div>
+  </div>
+</div>

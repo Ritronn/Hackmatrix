@@ -5,6 +5,8 @@
  */
 import { getCityAQI } from '../api/aqi.js';
 import { getWeather }  from '../api/weather.js';
+import * as maptilersdk from '@maptiler/sdk';
+import '@maptiler/sdk/dist/maptiler-sdk.css';
 
 // ── AQI band → CSS class ──────────────────────────────────────────────────────
 const BAND_CLASS = {
@@ -16,11 +18,22 @@ const BAND_CLASS = {
   'Severe':       'badge-status--severe',
 };
 
+// ── City centre coordinates (shared with map.js) ──────────────────────────────
+const CITY_CENTRES = {
+  pune:    [73.8567, 18.5204],
+  mumbai:  [72.8777, 19.0760],
+  delhi:   [77.2090, 28.6139],
+  nashik:  [73.7898, 19.9975],
+  thane:   [72.9781, 19.2183],
+  nagpur:  [79.0882, 21.1458],
+  akurdi:  [73.7741, 18.6480],
+};
+
 /**
  * Animate the hero AQI number to targetVal.
  * Exposed globally so settings/modals can call window.initHeroCountUp().
  */
-export function initHeroCountUp(targetVal = 187) {
+export function initHeroCountUp(targetVal) {
   const aqiEl = document.getElementById('hero-aqi');
   if (!aqiEl) return;
   const duration = 1000;
@@ -55,7 +68,11 @@ function applyAQIData(data) {
 
   // Live badge dot tooltip
   const liveBadge = document.querySelector('.hero-card__badge-live span:last-child');
-  if (liveBadge) liveBadge.textContent = 'Live Sensor Twin';
+  if (liveBadge) {
+    liveBadge.textContent = data.data_source === 'replayed'
+      ? 'Cached Sensor Data'
+      : 'Live Sensor Twin';
+  }
 
   // Timestamp
   const dateEl = document.getElementById('hero-date');
@@ -70,6 +87,29 @@ function applyAQIData(data) {
   // Store current city AQI globally for advisor context
   window._currentAqi  = data.avg_aqi;
   window._currentCity = data.city;
+
+  // ── Radar bubble / station pill updates on dashboard mini-map ────────────
+  const RADAR_KEYWORDS = {
+    'radar-aqi-ito':    ['Shivaji', 'Shivajinagar', 'Swargate', 'Pune'],
+    'radar-pill-anand': ['Akurdi', 'Nigdi', 'Pimpri', 'Chinchwad'],
+    'radar-pill-dwarka':['Bhosari', 'Chakan', 'MIDC', 'Alandi'],
+  };
+
+  for (const [elId, keywords] of Object.entries(RADAR_KEYWORDS)) {
+    const el = document.getElementById(elId);
+    if (!el) continue;
+    const matched = data.stations.find((s) =>
+      keywords.some((kw) => s.station_name.toLowerCase().includes(kw.toLowerCase()))
+    );
+    const aqi = matched ? matched.aqi : Math.round(data.avg_aqi);
+    if (elId === 'radar-aqi-ito') {
+      el.textContent = `${aqi}°`;
+    } else {
+      // station-pill span: keep the label prefix, update the value
+      const label = elId === 'radar-pill-anand' ? 'Akurdi PCMC' : 'Bhosari MIDC';
+      el.textContent = `${label} ${aqi}°`;
+    }
+  }
 }
 
 /** Update hero card with live weather data. */
@@ -103,6 +143,16 @@ function applyWeatherData(data) {
 
 /** Load live data for a given city and update the hero card. */
 export async function loadCityData(city = 'Pune') {
+  // Show loading state
+  const aqiEl = document.getElementById('hero-aqi');
+  if (aqiEl) aqiEl.textContent = '—';
+  const condEl = document.querySelector('.hero-card__condition span');
+  if (condEl) condEl.textContent = 'Fetching live data…';
+
+  // Clear station name so it doesn't show last city's name during load
+  const stationEl = document.getElementById('hero-station');
+  if (stationEl) stationEl.textContent = `${city}…`;
+
   try {
     const [aqiData, weatherData] = await Promise.all([
       getCityAQI(city),
@@ -111,16 +161,38 @@ export async function loadCityData(city = 'Pune') {
     applyAQIData(aqiData);
     applyWeatherData(weatherData);
   } catch (err) {
-    console.warn('[dashboard] Backend unreachable, using static fallback.', err);
-    // Static fallback — keeps default values
-    initHeroCountUp(142);
-    window._currentAqi  = 142;
+    console.error('[dashboard] Failed to fetch live AQI data.', err);
+    if (aqiEl) aqiEl.textContent = 'N/A';
+    if (condEl) condEl.textContent = `No sensor data available for ${city}`;
+    if (stationEl) stationEl.textContent = `${city} — no station data`;
     window._currentCity = city;
   }
 }
 
-/** Mini-map location chips + zoom controls. */
+/** Mini-map (real MapTiler) + location chips + zoom controls. */
 export function initMapControls() {
+  // ── MapTiler mini-map setup ─────────────────────────────────────────────────
+  const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY ?? '';
+  if (!maptilersdk.config.apiKey) maptilersdk.config.apiKey = MAPTILER_KEY;
+
+  let miniMap = null;
+  const container = document.getElementById('dashboard-minimap');
+  if (container) {
+    miniMap = new maptilersdk.Map({
+      container: 'dashboard-minimap',
+      style: maptilersdk.MapStyle.DATAVIZ.DARK,
+      center: CITY_CENTRES.pune,
+      zoom: 10,
+      pitch: 0,
+      interactive: true,
+      attributionControl: false,
+    });
+    miniMap.addControl(new maptilersdk.AttributionControl({ compact: true }), 'bottom-right');
+    // Expose for city switches
+    window._dashboardMiniMap = miniMap;
+  }
+
+  // ── Location chips ────────────────────────────────────────────────────────
   const chips       = document.querySelectorAll('.loc-chip');
   const heroStation = document.getElementById('hero-station');
 
@@ -132,30 +204,32 @@ export function initMapControls() {
       // Parse "Pune, MH" → "Pune"
       const cityName = name.split(',')[0].trim();
       if (heroStation) heroStation.textContent = name;
+
+      // Fly minimap to city
+      if (miniMap) {
+        const centre = CITY_CENTRES[cityName.toLowerCase()] ?? CITY_CENTRES.pune;
+        miniMap.flyTo({ center: centre, zoom: 10, speed: 1.2 });
+      }
+
       await loadCityData(cityName);
     });
   });
 
-  // Zoom controls
-  const mapSurface = document.getElementById('map-surface');
-  let zoomLevel = 1;
-
+  // ── Zoom controls (operate on real map) ─────────────────────────────────
   document.getElementById('ctrl-zoom-in')?.addEventListener('click', () => {
-    if (zoomLevel < 1.3) {
-      zoomLevel = parseFloat((zoomLevel + 0.1).toFixed(1));
-      if (mapSurface) { mapSurface.style.transform = `scale(${zoomLevel})`; mapSurface.style.transition = 'transform 0.3s ease'; }
-    }
+    if (miniMap) miniMap.zoomIn({ duration: 300 });
   });
 
   document.getElementById('ctrl-zoom-out')?.addEventListener('click', () => {
-    if (zoomLevel > 0.9) {
-      zoomLevel = parseFloat((zoomLevel - 0.1).toFixed(1));
-      if (mapSurface) { mapSurface.style.transform = `scale(${zoomLevel})`; mapSurface.style.transition = 'transform 0.3s ease'; }
-    }
+    if (miniMap) miniMap.zoomOut({ duration: 300 });
   });
 
   document.getElementById('ctrl-locate')?.addEventListener('click', () => {
-    zoomLevel = 1;
-    if (mapSurface) { mapSurface.style.transform = 'scale(1)'; mapSurface.style.transition = 'transform 0.3s ease'; }
+    if (miniMap) {
+      const city = (window._currentCity ?? 'Pune').toLowerCase();
+      const centre = CITY_CENTRES[city] ?? CITY_CENTRES.pune;
+      miniMap.flyTo({ center: centre, zoom: 10, speed: 1.2 });
+    }
   });
 }
+

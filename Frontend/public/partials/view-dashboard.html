@@ -1,0 +1,300 @@
+<div class="app-view app-view--active" id="view-dashboard">
+  <main class="dashboard-body">
+
+    <!-- COLUMN 1: LEFT SIDE (Hero + Forecast) -->
+    <div class="col-left">
+
+      <!-- 1. Hero AQI Weather Card -->
+      <div class="bento-card hero-card">
+        <div class="hero-card__header">
+          <div class="hero-card__badge-live">
+            <span class="pulse-dot"></span>
+            <span>Live Sensor Twin</span>
+          </div>
+          <button class="circle-btn" id="city-search-btn" title="Search City / Station">
+            <i data-lucide="search"></i>
+          </button>
+        </div>
+
+        <div class="hero-card__illustration-wrap">
+          <div class="weather-art">
+            <div class="weather-art__glow"></div>
+            <svg width="120" height="96" viewBox="0 0 120 96" fill="none" class="weather-art__svg">
+              <circle cx="74" cy="38" r="22" fill="url(#sun-grad)"/>
+              <circle cx="74" cy="38" r="28" stroke="rgba(245, 158, 11, 0.3)" stroke-width="2" stroke-dasharray="4 4"/>
+              <path d="M30 74H84C93.94 74 102 65.94 102 56C102 46.54 94.7 38.78 85.4 38.08C83.2 24.36 71.3 14 57 14C45.3 14 35.3 20.8 30.8 30.6C21.4 31.8 14 39.9 14 49.8C14 63.1 24.8 74 38 74H30Z" fill="url(#cloud-grad)"/>
+              <path d="M52 74L45 88H54L50 96L62 82H53L58 74H52Z" fill="#FBBF24"/>
+              <defs>
+                <radialGradient id="sun-grad" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(74 38) rotate(90) scale(22)">
+                  <stop stop-color="#FDE047"/>
+                  <stop offset="1" stop-color="#F59E0B"/>
+                </radialGradient>
+                <linearGradient id="cloud-grad" x1="14" y1="14" x2="90" y2="74" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#E2E8F0"/>
+                  <stop offset="1" stop-color="#94A3B8"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+        </div>
+
+        <div class="hero-card__value-group">
+          <div class="hero-card__temp-wrap">
+            <span class="hero-card__value" id="hero-aqi">—</span>
+            <span class="hero-card__unit">AQI</span>
+          </div>
+          <div class="hero-card__condition">
+            <i data-lucide="cloud-fog" class="hero-card__cond-icon"></i>
+            <span>Loading live data…</span>
+          </div>
+        </div>
+
+        <div class="hero-card__divider"></div>
+
+        <div class="hero-card__footer">
+          <div class="hero-card__loc">
+            <i data-lucide="map-pin" class="hero-card__loc-icon"></i>
+            <span id="hero-station">Fetching station…</span>
+          </div>
+          <div class="hero-card__date">
+            <i data-lucide="calendar" class="hero-card__date-icon"></i>
+            <span id="hero-date">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Forecast Card -->
+      <div class="bento-card forecast-box">
+        <div class="bento-card__title-bar">
+          <h2 class="card-heading">3-Day AQI Forecast</h2>
+          <div class="filter-dropdown">
+            <span>3 day</span>
+            <i data-lucide="chevron-down"></i>
+          </div>
+        </div>
+        <div class="forecast-list">
+          <div class="forecast-row">
+            <div class="forecast-row__left">
+              <div class="forecast-icon-box forecast-icon-box--poor"><i data-lucide="cloud-rain"></i></div>
+              <div class="forecast-row__aqi"><span class="forecast-aqi-high">187</span><span class="forecast-aqi-low">/160</span></div>
+            </div>
+            <div class="forecast-row__date">Today</div>
+            <div class="forecast-row__day">Thursday</div>
+          </div>
+          <div class="forecast-row">
+            <div class="forecast-row__left">
+              <div class="forecast-icon-box forecast-icon-box--severe"><i data-lucide="cloud-lightning"></i></div>
+              <div class="forecast-row__aqi"><span class="forecast-aqi-high">203</span><span class="forecast-aqi-low">/178</span></div>
+            </div>
+            <div class="forecast-row__date">26 Sept</div>
+            <div class="forecast-row__day">Friday</div>
+          </div>
+          <div class="forecast-row">
+            <div class="forecast-row__left">
+              <div class="forecast-icon-box forecast-icon-box--poor"><i data-lucide="cloud-sun"></i></div>
+              <div class="forecast-row__aqi"><span class="forecast-aqi-high">175</span><span class="forecast-aqi-low">/148</span></div>
+            </div>
+            <div class="forecast-row__date">27 Sept</div>
+            <div class="forecast-row__day">Saturday</div>
+          </div>
+          <div class="forecast-row">
+            <div class="forecast-row__left">
+              <div class="forecast-icon-box forecast-icon-box--moderate"><i data-lucide="sun"></i></div>
+              <div class="forecast-row__aqi"><span class="forecast-aqi-high">152</span><span class="forecast-aqi-low">/125</span></div>
+            </div>
+            <div class="forecast-row__date">28 Sept</div>
+            <div class="forecast-row__day">Sunday</div>
+          </div>
+        </div>
+        <div class="sim-preview-box">
+          <div class="sim-preview__meta">
+            <span class="label-xs muted">SCENARIO IMPACT</span>
+            <span class="sim-preview__stat">-32 AQI</span>
+            <span class="label-xs" style="color: #34D399;">30% Traffic Restriction</span>
+          </div>
+          <div class="sim-preview__chart">
+            <svg width="90" height="34" viewBox="0 0 90 34" fill="none">
+              <path d="M2 24C15 28 25 10 38 18C52 26 65 6 88 12" stroke="#38BDF8" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="88" cy="12" r="3.5" fill="#38BDF8" stroke="#12151B" stroke-width="1.5"/>
+              <circle cx="38" cy="18" r="2.5" fill="#F59E0B"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMN 2: RIGHT SIDE (Highlights + Map) -->
+    <div class="col-right">
+
+      <!-- Today's Highlight — 3 Metric Cards -->
+      <div class="highlights-section">
+        <h2 class="section-title">Today's Highlight</h2>
+        <div class="highlights-grid">
+
+          <!-- Card 1: Wind & Dispersion -->
+          <div class="bento-card highlight-card">
+            <span class="highlight-card__title">Wind & Dispersion</span>
+            <div class="wave-chart-container">
+              <svg width="100%" height="48" viewBox="0 0 200 48" preserveAspectRatio="none">
+                <path d="M0 24C30 38 50 12 80 20C110 28 140 8 170 18C185 24 195 20 200 22" fill="none" stroke="#38BDF8" stroke-width="2"/>
+                <rect x="10" y="32" width="3" height="12" rx="1.5" fill="#38BDF8" opacity="0.3"/>
+                <rect x="22" y="28" width="3" height="16" rx="1.5" fill="#38BDF8" opacity="0.5"/>
+                <rect x="34" y="36" width="3" height="8" rx="1.5" fill="#38BDF8" opacity="0.3"/>
+                <rect x="46" y="24" width="3" height="20" rx="1.5" fill="#38BDF8" opacity="0.7"/>
+                <rect x="58" y="20" width="3" height="24" rx="1.5" fill="#38BDF8" opacity="0.9"/>
+                <rect x="70" y="30" width="3" height="14" rx="1.5" fill="#38BDF8" opacity="0.5"/>
+                <rect x="82" y="26" width="3" height="18" rx="1.5" fill="#38BDF8" opacity="0.6"/>
+                <rect x="94" y="22" width="3" height="22" rx="1.5" fill="#38BDF8" opacity="0.8"/>
+                <rect x="106" y="34" width="3" height="10" rx="1.5" fill="#38BDF8" opacity="0.4"/>
+                <rect x="118" y="28" width="3" height="16" rx="1.5" fill="#38BDF8" opacity="0.6"/>
+                <rect x="130" y="20" width="3" height="24" rx="1.5" fill="#38BDF8" opacity="0.9"/>
+                <rect x="142" y="26" width="3" height="18" rx="1.5" fill="#38BDF8" opacity="0.7"/>
+                <rect x="154" y="32" width="3" height="12" rx="1.5" fill="#38BDF8" opacity="0.5"/>
+                <rect x="166" y="24" width="3" height="20" rx="1.5" fill="#38BDF8" opacity="0.8"/>
+                <rect x="178" y="36" width="3" height="8" rx="1.5" fill="#38BDF8" opacity="0.3"/>
+                <rect x="190" y="30" width="3" height="14" rx="1.5" fill="#38BDF8" opacity="0.5"/>
+              </svg>
+            </div>
+            <div class="highlight-main-val">
+              <span class="highlight-num" id="wind-speed-val">—</span>
+              <span class="highlight-unit" id="wind-dir-val">km/h</span>
+              <span class="highlight-time" id="wind-time-val">—</span>
+            </div>
+            <div class="highlight-sub-row">
+              <div class="sub-metric">
+                <span class="sub-metric__label">Humidity</span>
+                <span class="sub-metric__val" id="humidity-val">—</span>
+              </div>
+              <div class="sub-metric">
+                <span class="sub-metric__label">Traffic Share</span>
+                <span class="sub-metric__val" id="traffic-share-val">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Health Risk Gauge -->
+          <div class="bento-card highlight-card">
+            <span class="highlight-card__title">Health Risk Gauge</span>
+            <div class="gauge-container">
+              <svg width="150" height="80" viewBox="0 0 150 80">
+                <path d="M 15 75 A 60 60 0 0 1 135 75" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="12" stroke-linecap="round"/>
+                <path d="M 15 75 A 60 60 0 0 1 108 26" fill="none" stroke="url(#gauge-grad)" stroke-width="12" stroke-linecap="round"/>
+                <path d="M 24 75 A 51 51 0 0 1 126 75" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="2 6"/>
+                <defs>
+                  <linearGradient id="gauge-grad" x1="0" y1="0" x2="1" y2="0">
+                    <stop stop-color="#38BDF8"/>
+                    <stop offset="60%" stop-color="#60A5FA"/>
+                    <stop offset="100%" stop-color="#F59E0B"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <div class="highlight-main-val highlight-main-val--center">
+              <span class="highlight-num">5.50</span>
+              <span class="highlight-unit">INDEX</span>
+            </div>
+            <div class="highlight-sub-row">
+              <div class="sub-metric"><span class="sub-metric__label">Est. ER Visits</span><span class="sub-metric__val">+340</span></div>
+              <div class="sub-metric"><span class="sub-metric__label">Advisory</span><span class="sub-metric__val" style="color: #F87171;">Mask Advised</span></div>
+            </div>
+          </div>
+
+          <!-- Card 3: Model Confidence Band -->
+          <div class="bento-card highlight-card">
+            <span class="highlight-card__title">Model Confidence Band</span>
+            <div class="arc-container">
+              <svg width="150" height="80" viewBox="0 0 150 80">
+                <path d="M 18 75 A 57 57 0 0 1 132 75" fill="none" stroke="#FBBF24" stroke-width="2" stroke-dasharray="3 4" opacity="0.6"/>
+                <path d="M 18 75 A 57 57 0 0 1 95 24 L 95 75 Z" fill="url(#sun-beam)" opacity="0.25"/>
+                <circle cx="95" cy="24" r="6" fill="#FBBF24" filter="url(#glow-filter)"/>
+                <circle cx="95" cy="24" r="3" fill="#FFFFFF"/>
+                <defs>
+                  <linearGradient id="sun-beam" x1="0" y1="0" x2="0" y2="1">
+                    <stop stop-color="#FBBF24" stop-opacity="0.8"/>
+                    <stop offset="1" stop-color="#FBBF24" stop-opacity="0"/>
+                  </linearGradient>
+                  <filter id="glow-filter" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="3" result="blur"/>
+                    <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                  </filter>
+                </defs>
+              </svg>
+              <div class="arc-labels">
+                <div class="arc-lbl"><span class="arc-lbl__icon">📉</span><span class="arc-lbl__text">Lower: 160</span></div>
+                <div class="arc-lbl"><span class="arc-lbl__icon">📈</span><span class="arc-lbl__text">Upper: 210</span></div>
+              </div>
+            </div>
+            <div class="highlight-sub-row" style="margin-top: 14px;">
+              <div class="sub-metric"><span class="sub-metric__label">Observed Actual</span><span class="sub-metric__val">187 AQI</span></div>
+              <div class="sub-metric"><span class="sub-metric__label">7-Day Accuracy</span><span class="sub-metric__val" style="color: #34D399;">84.2%</span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Environmental Condition Map -->
+      <div class="map-section">
+        <div class="map-section__title-bar">
+          <h2 class="section-title">Environmental condition map</h2>
+          <div class="filter-dropdown"><span>24 hr</span><i data-lucide="chevron-down"></i></div>
+        </div>
+        <div class="bento-card map-card" id="map-card">
+          <div class="map-card__legend">
+            <span class="legend-header">Pollution Severity</span>
+            <div class="legend-bar-track"></div>
+            <div class="legend-scale-labels">
+              <span>Severe</span><span>Very Poor</span><span>Moderate</span><span>Good</span>
+            </div>
+          </div>
+          <div class="map-canvas-surface" id="map-surface">
+            <!-- Real MapTiler mini-map renders here -->
+            <div id="dashboard-minimap" style="position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;z-index:0;"></div>
+            <div class="map-heat-blob map-heat-blob--1"></div>
+            <div class="map-heat-blob map-heat-blob--2"></div>
+            <div class="map-heat-blob map-heat-blob--3"></div>
+
+            <!-- Station Radar Markers -->
+            <div class="radar-station radar-station--ito" style="top: 48%; left: 62%;">
+              <div class="radar-ring"></div>
+              <div class="station-bubble">
+                <span class="bubble-city">Shivaji Nagar</span>
+                <span class="bubble-val" id="radar-aqi-ito">—°</span>
+                <span class="bubble-meta">💨 — km/h • —%</span>
+              </div>
+            </div>
+            <div class="radar-station radar-station--anand" style="top: 26%; left: 38%;">
+              <div class="station-pill">
+                <span class="station-dot" style="background:#EF4444"></span>
+                <span id="radar-pill-anand">Akurdi PCMC —°</span>
+              </div>
+            </div>
+            <div class="radar-station radar-station--dwarka" style="top: 72%; left: 45%;">
+              <div class="station-pill">
+                <span class="station-dot" style="background:#F59E0B"></span>
+                <span id="radar-pill-dwarka">Bhosari MIDC —°</span>
+              </div>
+            </div>
+
+            <!-- Location Chips -->
+            <div class="map-floating-pills">
+              <button class="loc-chip loc-chip--active"><i data-lucide="cloud"></i><span>Pune, MH</span></button>
+              <button class="loc-chip"><i data-lucide="cloud"></i><span>Mumbai, MH</span></button>
+              <button class="loc-chip"><i data-lucide="cloud"></i><span>Nashik, MH</span></button>
+              <button class="loc-chip"><i data-lucide="sun"></i><span>Akurdi, MH</span></button>
+            </div>
+
+            <!-- Zoom Controls -->
+            <div class="map-floating-controls">
+              <button class="map-ctrl-btn" id="ctrl-zoom-in" title="Zoom In"><i data-lucide="plus"></i></button>
+              <button class="map-ctrl-btn" id="ctrl-zoom-out" title="Zoom Out"><i data-lucide="minus"></i></button>
+              <button class="map-ctrl-btn" id="ctrl-locate" title="Recenter"><i data-lucide="crosshair"></i></button>
+              <button class="map-ctrl-btn" id="ctrl-layers" title="Toggle Dispersion Layer"><i data-lucide="layers"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>

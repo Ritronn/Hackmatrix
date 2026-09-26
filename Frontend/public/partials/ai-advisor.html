@@ -1,0 +1,50 @@
+<div class="ai-advisor-wrapper" id="ai-advisor-wrapper">
+  <!-- Floating Trigger Button (FAB) -->
+  <button class="ai-advisor-fab" id="ai-advisor-toggle" title="Open AI Environmental Advisor">
+    <div class="ai-fab-glow"></div>
+    <i data-lucide="sparkles"></i>
+    <span>Ask AI Advisor</span>
+  </button>
+
+  <!-- Glassmorphic Chat Drawer -->
+  <div class="ai-chat-window" id="ai-chat-window">
+    <div class="ai-chat-header">
+      <div class="ai-chat-title">
+        <span class="ai-pulse-dot"></span>
+        <div>
+          <h4>Atmos AI Advisor</h4>
+          <span class="label-xs muted">Grounded in Live Model Telemetry</span>
+        </div>
+      </div>
+      <div class="ai-lang-switcher" id="ai-lang-switcher">
+        <button class="lang-btn lang-btn--active" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="hi">हिंदी</button>
+        <button class="lang-btn" data-lang="mr">मराठी</button>
+      </div>
+      <button class="ai-close-btn" id="ai-chat-close">&times;</button>
+    </div>
+
+    <div class="ai-messages-log" id="ai-messages-log">
+      <div class="ai-msg ai-msg--bot">
+        <div class="ai-avatar"><i data-lucide="bot"></i></div>
+        <div class="ai-bubble">
+          <p>Hello! I am your <strong>Atmos Environmental Advisor</strong>. I answer questions directly using our digital twin's live sensor data, Gaussian Process spatial plumes, and predictive models for Maharashtra cities.</p>
+          <span class="ai-time">Just now</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ai-quick-prompts">
+      <button class="prompt-chip" data-prompt="Should PCMC schools restrict outdoor sports tomorrow?">🏫 Should PCMC schools restrict outdoor sports?</button>
+      <button class="prompt-chip" data-prompt="Why did Akurdi and Bhosari spike today?">🚨 Why did Akurdi and Bhosari spike?</button>
+      <button class="prompt-chip" data-prompt="What happens if we restrict freight on Pune-Mumbai highway by 30%?">🚗 What if we restrict highway freight by 30%?</button>
+    </div>
+
+    <form class="ai-input-bar" id="ai-chat-form">
+      <input type="text" id="ai-input-field" placeholder="Ask about air quality, policy interventions, or health risks..." autocomplete="off" />
+      <button type="submit" class="ai-send-btn" id="ai-send-btn">
+        <i data-lucide="send"></i>
+      </button>
+    </form>
+  </div>
+</div>

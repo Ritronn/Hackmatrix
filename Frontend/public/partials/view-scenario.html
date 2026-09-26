@@ -1,0 +1,215 @@
+<div class="app-view" id="view-scenario">
+  <div class="view-header">
+    <div class="view-header__left">
+      <div class="view-tag"><span class="pulse-dot"></span> Decision Support Engine</div>
+      <h1 class="view-title">Policy Intervention Simulator & Mayor Mode</h1>
+      <p class="view-desc">Simulate hypothetical interventions, re-forecast environmental outcomes, and optimize municipal budget allocation.</p>
+    </div>
+    <div class="view-header__right">
+      <div class="mode-switcher">
+        <button class="mode-btn mode-btn--active" id="btn-mode-sim">Standard What-If</button>
+        <button class="mode-btn" id="btn-mode-mayor"><i data-lucide="award"></i> Mayor Mode (₹50 Cr)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mayor Mode Budget Tracker -->
+  <div class="bento-card mayor-budget-card" id="mayor-budget-deck" style="display: none;">
+    <div class="mayor-budget__header">
+      <div>
+        <span class="label-xs text-gold">MUNICIPAL POLICY SANDBOX</span>
+        <h3 class="card-heading">Civic Action Budget Allocation</h3>
+      </div>
+      <div class="mayor-score-badge">
+        <span>Mayor Score:</span>
+        <strong id="mayor-score-val">88/100 (Grade A)</strong>
+      </div>
+    </div>
+    <div class="mayor-budget__bar-wrap">
+      <div class="mayor-budget__progress">
+        <div class="mayor-budget__fill" id="mayor-budget-fill" style="width: 72%;"></div>
+      </div>
+      <div class="mayor-budget__nums">
+        <span>Budget Allocated: <strong id="budget-allocated">₹36.0 Cr</strong></span>
+        <span>Remaining: <strong id="budget-remaining">₹14.0 Cr</strong> of ₹50.0 Cr Total</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2-Column Scenario Layout -->
+  <div class="scenario-grid">
+    <!-- Left: Policy Levers -->
+    <div class="bento-card scenario-controls-card">
+      <div class="scenario-controls__header">
+        <div>
+          <h2 class="card-heading">Active Intervention Levers</h2>
+          <span class="label-xs muted">Adjust levers to re-run predictive model</span>
+        </div>
+        <button class="btn-text-action" id="btn-reset-scenario">Reset Baseline</button>
+      </div>
+
+      <div class="control-lever">
+        <div class="lever-top">
+          <div class="lever-title-group">
+            <i data-lucide="car" class="lever-icon text-coral"></i>
+            <div>
+              <span class="lever-name">Odd-Even & Heavy Vehicle Restricton</span>
+              <span class="lever-desc">Ration personal vehicles & divert interstate heavy transit</span>
+            </div>
+          </div>
+          <span class="lever-val-display" id="val-traffic">30% restriction</span>
+        </div>
+        <input type="range" class="custom-range lever-slider" id="slider-traffic" min="0" max="50" value="30" step="5" />
+        <div class="lever-foot"><span>0% (Status Quo)</span><span class="text-coral">Cost: ~₹12 Cr / month</span><span>50% Max</span></div>
+      </div>
+
+      <div class="control-lever">
+        <div class="lever-top">
+          <div class="lever-title-group">
+            <i data-lucide="factory" class="lever-icon text-amber"></i>
+            <div>
+              <span class="lever-name">Industrial Kiln & Furnace Curtailment</span>
+              <span class="lever-desc">Cap output in Mayapuri, Wazirpur, and Badli industrial zones</span>
+            </div>
+          </div>
+          <span class="lever-val-display" id="val-industry">20% curtailment</span>
+        </div>
+        <input type="range" class="custom-range lever-slider" id="slider-industry" min="0" max="40" value="20" step="5" />
+        <div class="lever-foot"><span>0%</span><span class="text-gold">Cost: ~₹15 Cr compensation</span><span>40% Max</span></div>
+      </div>
+
+      <div class="control-lever">
+        <div class="lever-top">
+          <div class="lever-title-group">
+            <i data-lucide="droplets" class="lever-icon text-cyan"></i>
+            <div>
+              <span class="lever-name">Anti-Smog Mist Guns & Road Sweepers</span>
+              <span class="lever-desc">Deploy high-pressure misting along arterial corridors</span>
+            </div>
+          </div>
+          <span class="lever-val-display" id="val-mist">45 units active</span>
+        </div>
+        <input type="range" class="custom-range lever-slider" id="slider-mist" min="0" max="100" value="45" step="5" />
+        <div class="lever-foot"><span>0 Units</span><span class="text-cyan">Cost: ~₹6.5 Cr deployment</span><span>100 Units</span></div>
+      </div>
+
+      <div class="control-lever">
+        <div class="lever-top">
+          <div class="lever-title-group">
+            <i data-lucide="hard-hat" class="lever-icon text-gold"></i>
+            <div>
+              <span class="lever-name">Construction & Demolition Halt</span>
+              <span class="lever-desc">Enforce stop-work orders on major infrastructure projects</span>
+            </div>
+          </div>
+          <span class="lever-val-display" id="val-const">50% halted</span>
+        </div>
+        <input type="range" class="custom-range lever-slider" id="slider-const" min="0" max="100" value="50" step="10" />
+        <div class="lever-foot"><span>0%</span><span class="muted">Cost: ~₹8 Cr civic penalty</span><span>100% Total Halt</span></div>
+      </div>
+
+      <div class="toggles-row">
+        <label class="toggle-card">
+          <input type="checkbox" id="toggle-metro" checked />
+          <div class="toggle-card__inner">
+            <i data-lucide="train"></i>
+            <div><strong>Free Metro & EV Bus Fares</strong><span>Incentivize mode shift during peak inversion</span></div>
+          </div>
+        </label>
+        <label class="toggle-card">
+          <input type="checkbox" id="toggle-stubble" checked />
+          <div class="toggle-card__inner">
+            <i data-lucide="flame"></i>
+            <div><strong>Stubble Drone Interception</strong><span>Bio-decomposer deployment in buffer wards</span></div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Right: Impact & ROI -->
+    <div class="scenario-results-col">
+      <div class="bento-card scenario-impact-card">
+        <span class="label-xs text-gold">RE-FORECASTED PREDICTIVE OUTCOME</span>
+        <div class="impact-kpi-row">
+          <div class="impact-kpi-box">
+            <span class="impact-label">Current Baseline</span>
+            <span class="impact-number impact-number--baseline">187 <small>AQI</small></span>
+            <span class="badge-status badge-status--poor">Poor Air Quality</span>
+          </div>
+          <div class="impact-arrow">➔</div>
+          <div class="impact-kpi-box">
+            <span class="impact-label">Simulated Outcome</span>
+            <span class="impact-number impact-number--sim" id="sim-aqi-result">142 <small>AQI</small></span>
+            <span class="badge-status badge-status--moderate" id="sim-badge-result">Moderate Air Quality</span>
+          </div>
+          <div class="impact-diff-box">
+            <span class="impact-label">Predicted Reduction</span>
+            <span class="impact-diff-val" id="sim-diff-val">▼ -45 AQI</span>
+            <span class="impact-diff-pct" id="sim-diff-pct">-24.1% Overall</span>
+          </div>
+        </div>
+        <div class="impact-health-row">
+          <div class="health-kpi">
+            <i data-lucide="heart-pulse" class="text-coral"></i>
+            <div><strong id="sim-er-avoided">125 Avoided / Day</strong><span>Hospital ER Respiratory Visits</span></div>
+          </div>
+          <div class="health-kpi">
+            <i data-lucide="trending-down" class="text-green"></i>
+            <div><strong id="sim-econ-saved">₹14.2 Crore Saved</strong><span>Estimated Healthcare & Productivity Gain</span></div>
+          </div>
+          <div class="health-kpi">
+            <i data-lucide="shield-check" class="text-cyan"></i>
+            <div><strong>84.5% Confidence</strong><span>Statistical Model Certainty</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bento-card roi-leaderboard-card">
+        <div class="bento-card__title-bar">
+          <div>
+            <h3 class="card-heading">Intervention ROI Leaderboard</h3>
+            <span class="label-xs muted">Ranked by AQI reduction per unit cost & feasibility</span>
+          </div>
+          <span class="badge-pill">Decision Matrix</span>
+        </div>
+        <div class="roi-table-wrap">
+          <table class="roi-table">
+            <thead>
+              <tr><th>Rank</th><th>Intervention Strategy</th><th>AQI Drop</th><th>Cost</th><th>ROI (Drop / ₹ Cr)</th><th>Feasibility</th></tr>
+            </thead>
+            <tbody id="roi-table-body">
+              <tr class="roi-row--top">
+                <td><span class="rank-badge rank-1">#1</span></td>
+                <td><strong>Anti-Smog Mist Guns</strong></td>
+                <td class="text-green">-10 AQI</td><td>₹6.5 Cr</td>
+                <td><strong class="text-gold">+1.54 / Cr</strong></td>
+                <td><span class="badge-tag badge-tag--high">High</span></td>
+              </tr>
+              <tr>
+                <td><span class="rank-badge rank-2">#2</span></td>
+                <td><strong>Odd-Even Traffic Rationing</strong></td>
+                <td class="text-green">-18 AQI</td><td>₹12.0 Cr</td>
+                <td><strong class="text-gold">+1.50 / Cr</strong></td>
+                <td><span class="badge-tag badge-tag--med">Medium</span></td>
+              </tr>
+              <tr>
+                <td><span class="rank-badge rank-3">#3</span></td>
+                <td><strong>Industrial Kiln Curtailment</strong></td>
+                <td class="text-green">-14 AQI</td><td>₹15.0 Cr</td>
+                <td><strong class="text-gold">+0.93 / Cr</strong></td>
+                <td><span class="badge-tag badge-tag--low">Low</span></td>
+              </tr>
+              <tr>
+                <td><span class="rank-badge">#4</span></td>
+                <td><strong>Construction Halting</strong></td>
+                <td class="text-green">-8 AQI</td><td>₹8.0 Cr</td>
+                <td><strong class="text-gold">+1.00 / Cr</strong></td>
+                <td><span class="badge-tag badge-tag--med">Medium</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

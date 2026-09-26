@@ -5,6 +5,8 @@
  */
 import { getDailyBriefing } from '../api/advisor.js';
 import { getDriftStatus }   from '../api/drift.js';
+import { loadCityData }     from '../views/dashboard.js';
+import { getCityAQI }       from '../api/aqi.js';
 
 function openModal(id) {
   document.getElementById(id)?.classList.add('modal-backdrop--active');
@@ -85,9 +87,65 @@ export function initGlobalModals() {
   const searchInput    = document.getElementById('station-search-input');
   const searchItems    = document.querySelectorAll('.search-item');
 
+  // Pre-load live AQI into search item badges
+  async function loadSearchBadges() {
+    // Fetch Pune data once for the station-level items (all 4 pins are Pune stations)
+    let puneData = null;
+    try { puneData = await getCityAQI('Pune'); } catch (_) {}
+
+    // Keywords per pin ID to match against live station names
+    const kwMap = {
+      anand:  ['Akurdi', 'Nigdi', 'Pimpri'],
+      ito:    ['Shivaji', 'Swargate', 'Pune'],
+      dwarka: ['Bhosari', 'MIDC'],
+      lodhi:  ['Pashan', 'IISER', 'Aundh'],
+    };
+
+    for (const item of searchItems) {
+      const badgeEl  = item.querySelector('.search-item__aqi-badge');
+      if (!badgeEl) continue;
+      const station = item.getAttribute('data-station');
+      const cityKey = item.getAttribute('data-city');
+
+      try {
+        let aqi = null;
+
+        if (station && puneData) {
+          // Match this pin to the closest live station by keyword
+          const kws     = kwMap[station] ?? [];
+          const matched = puneData.stations.find((s) =>
+            kws.some((kw) => s.station_name.toLowerCase().includes(kw.toLowerCase()))
+          );
+          aqi = matched ? matched.aqi : Math.round(puneData.avg_aqi);
+        } else if (cityKey && cityKey !== 'pune') {
+          // Non-Pune city items — fetch their own data
+          const cityNameMap = { mumbai: 'Mumbai', nashik: 'Nashik', delhi: 'Delhi', thane: 'Thane' };
+          const cityName = cityNameMap[cityKey] ?? cityKey;
+          const data = await getCityAQI(cityName);
+          aqi = Math.round(data.avg_aqi);
+        } else if (cityKey === 'pune' && puneData) {
+          aqi = Math.round(puneData.avg_aqi);
+        }
+
+        if (aqi !== null) {
+          badgeEl.textContent = `${aqi} AQI`;
+          const cls = aqi > 300 ? 'badge-status--severe'
+                    : aqi > 200 ? 'badge-status--poor'
+                    : aqi > 100 ? 'badge-status--moderate'
+                    : 'badge-status--good';
+          badgeEl.className = `badge-status ${cls}`;
+        }
+      } catch (_) {
+        badgeEl.textContent = 'N/A';
+      }
+    }
+  }
+
+  let searchBadgesLoaded = false;
   citySearchBtn?.addEventListener('click', () => {
     openModal('modal-search-backdrop');
     setTimeout(() => searchInput?.focus(), 100);
+    if (!searchBadgesLoaded) { searchBadgesLoaded = true; loadSearchBadges(); }
   });
 
   searchInput?.addEventListener('input', (e) => {
@@ -98,16 +156,33 @@ export function initGlobalModals() {
   });
 
   searchItems.forEach((item) => {
-    item.addEventListener('click', () => {
-      const station = item.querySelector('strong')?.textContent;
-      const aqiStr  = item.querySelector('.badge-status')?.textContent;
-      const heroEl  = document.getElementById('hero-station');
-      if (station && heroEl) heroEl.textContent = station;
-      if (aqiStr) {
-        const num = parseInt(aqiStr, 10);
-        if (!isNaN(num) && window.initHeroCountUp) window.initHeroCountUp(num);
-      }
+    item.addEventListener('click', async () => {
       closeModal('modal-search-backdrop');
+
+      const cityKey   = item.getAttribute('data-city');
+      const stationId = item.getAttribute('data-station');
+
+      // Map the search item to a city name the backend understands
+      const cityMap = {
+        pune:    'Pune',
+        mumbai:  'Mumbai',
+        nashik:  'Nashik',
+        delhi:   'Delhi',
+        thane:   'Thane',
+        nagpur:  'Nagpur',
+        akurdi:  'Akurdi',
+      };
+
+      // Items with data-station are all Pune-area stations
+      const city = stationId ? 'Pune' : (cityMap[cityKey] ?? cityKey ?? 'Pune');
+
+      // Update station label immediately
+      const stationName = item.querySelector('strong')?.textContent;
+      const heroEl = document.getElementById('hero-station');
+      if (stationName && heroEl) heroEl.textContent = stationName;
+
+      // Fetch live data for the resolved city
+      await loadCityData(city);
     });
   });
 

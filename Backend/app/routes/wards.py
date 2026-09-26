@@ -1,75 +1,140 @@
 """
 app/routes/wards.py
 Ward-level analytics endpoints.
-Ward data is seeded from the Kaggle dataset + WAQI live readings.
+Ward metadata (names, zones, drivers, actions) is seeded from the Kaggle dataset.
+AQI values are fetched live from WAQI and matched to the nearest station per ward.
 """
 from fastapi import APIRouter, HTTPException, Query
 from app.models.schemas import WardsResponse, WardEntry
+from app.services.aqi_service import fetch_city_aqi, get_band
 
 router = APIRouter(prefix="/wards", tags=["Wards"])
 
-# Ward data for Maharashtra urban centers
-_PUNE_WARDS: list[WardEntry] = [
-    WardEntry(ward_name="Bhosari MIDC",        zone="PCMC Industrial", aqi=192, pm25=126, dominant_driver="Industrial Emissions + Metal Dust",  recommended_action="Stack Scrubber Audit & Dust Collector Mandate",      category="severe"),
-    WardEntry(ward_name="Akurdi Chowk",         zone="PCMC Central",    aqi=184, pm25=118, dominant_driver="Highway Freight + SME Engineering", recommended_action="Anti-Smog Mist Cannons & Heavy Transit Diversion",  category="severe"),
-    WardEntry(ward_name="Katraj Bypass",        zone="South Pune",      aqi=168, pm25=106, dominant_driver="Diesel Truck Corridor",             recommended_action="Night Heavy Vehicle Windows & EV Freight Corridors", category="moderate"),
-    WardEntry(ward_name="Shivaji Nagar",        zone="Central Pune",    aqi=158, pm25=98,  dominant_driver="Vehicular Congestion",              recommended_action="Traffic Signal Synchronization & PMPML Bus Priority", category="moderate"),
-    WardEntry(ward_name="Hadapsar / Magarpatta",zone="East Pune",       aqi=148, pm25=92,  dominant_driver="IT Commute + Road Re-suspension",   recommended_action="Mechanized Vacuum Sweepers on Kharadi-Hadapsar Road", category="moderate"),
-    WardEntry(ward_name="Wakad / Hinjawadi",    zone="PCMC / IT Park",  aqi=138, pm25=84,  dominant_driver="Construction Dust & Commute",       recommended_action="Construction Site Enclosures & Tech-Park Shuttles",  category="moderate"),
-    WardEntry(ward_name="Kothrud / Paud Road",  zone="West Pune",       aqi=126, pm25=74,  dominant_driver="Valley Basin Inversion",            recommended_action="Low-Emission Neighborhood Zone Enforcement",         category="moderate"),
-    WardEntry(ward_name="Viman Nagar",          zone="North East Pune", aqi=120, pm25=70,  dominant_driver="Airport Transit + Civil Works",     recommended_action="Dust Suppression Misting along Nagar Road",          category="moderate"),
-    WardEntry(ward_name="Pashan / IISER Belt",  zone="West Green Zone", aqi=84,  pm25=46,  dominant_driver="Ambient Background",                recommended_action="Urban Forest Canopy Protection & Bio-Monitoring",    category="good"),
+
+# ── Ward metadata: only structural/contextual fields — NO static AQI ─────────
+# aqi and pm25 are placeholders; they get overwritten by live WAQI data.
+_PUNE_META = [
+    dict(ward_name="Bhosari MIDC",         zone="PCMC Industrial",  dominant_driver="Industrial Emissions + Metal Dust",  recommended_action="Stack Scrubber Audit & Dust Collector Mandate",       keywords=["Bhosari", "Chakan", "MIDC", "Alandi"]),
+    dict(ward_name="Akurdi Chowk",          zone="PCMC Central",     dominant_driver="Highway Freight + SME Engineering",  recommended_action="Anti-Smog Mist Cannons & Heavy Transit Diversion",   keywords=["Akurdi", "Nigdi", "Pimpri", "Chinchwad"]),
+    dict(ward_name="Katraj Bypass",         zone="South Pune",       dominant_driver="Diesel Truck Corridor",              recommended_action="Night Heavy Vehicle Windows & EV Freight Corridors",  keywords=["Katraj", "Dhankawadi", "Kondhwa"]),
+    dict(ward_name="Shivaji Nagar",         zone="Central Pune",     dominant_driver="Vehicular Congestion",               recommended_action="Traffic Signal Synchronization & PMPML Bus Priority",  keywords=["Shivaji", "Shivajinagar", "Swargate", "Pune"]),
+    dict(ward_name="Hadapsar / Magarpatta", zone="East Pune",        dominant_driver="IT Commute + Road Re-suspension",    recommended_action="Mechanized Vacuum Sweepers on Kharadi-Hadapsar Road", keywords=["Hadapsar", "Magarpatta", "Kharadi"]),
+    dict(ward_name="Wakad / Hinjawadi",     zone="PCMC / IT Park",   dominant_driver="Construction Dust & Commute",        recommended_action="Construction Site Enclosures & Tech-Park Shuttles",   keywords=["Wakad", "Hinjawadi", "Baner"]),
+    dict(ward_name="Kothrud / Paud Road",   zone="West Pune",        dominant_driver="Valley Basin Inversion",             recommended_action="Low-Emission Neighborhood Zone Enforcement",          keywords=["Kothrud", "Karve", "Erandwane"]),
+    dict(ward_name="Viman Nagar",           zone="North East Pune",  dominant_driver="Airport Transit + Civil Works",      recommended_action="Dust Suppression Misting along Nagar Road",           keywords=["Viman", "Nagar Road", "Airport"]),
+    dict(ward_name="Pashan / IISER Belt",   zone="West Green Zone",  dominant_driver="Ambient Background",                 recommended_action="Urban Forest Canopy Protection & Bio-Monitoring",    keywords=["Pashan", "IISER", "Bavdhan", "Aundh"]),
 ]
 
-_AKURDI_WARDS: list[WardEntry] = [
-    WardEntry(ward_name="Akurdi Khandoba Mal",  zone="MIDC Sector",     aqi=188, pm25=122, dominant_driver="Automotive & Foundry Emissions",    recommended_action="Deploy Mobile Mist Guns + Industrial Stack Checks",   category="severe"),
-    WardEntry(ward_name="Thergaon / Dange Chowk",zone="PCMC Chokepoint", aqi=178, pm25=112, dominant_driver="Peak Traffic Choke + Bus Transit",  recommended_action="Flyover Traffic Flow Decongestion & Sweeper Deployment",category="moderate"),
-    WardEntry(ward_name="Akurdi Railway Station",zone="Transit Hub",    aqi=162, pm25=102, dominant_driver="Auto-Rickshaw Idling & Rail Dust",  recommended_action="Shared EV Feeder Fleets & Anti-Idling Enforcement",  category="moderate"),
-    WardEntry(ward_name="Nigdi Pradhikaran",    zone="NH48 Corridor",   aqi=142, pm25=88,  dominant_driver="Highway Transit Dust",              recommended_action="Green Acoustic & Particulate Barrier Plantation",    category="moderate"),
-    WardEntry(ward_name="Pradhikaran Sector 24",zone="Residential",     aqi=88,  pm25=48,  dominant_driver="Ambient Background",                recommended_action="Maintain Tree Cover Density & Rooftop Sensors",      category="good"),
+_MUMBAI_META = [
+    dict(ward_name="Deonar / Chembur",      zone="Eastern Suburbs",  dominant_driver="Refinery Emissions + Landfill VOCs", recommended_action="VOC Leak Detection & Waste Capping Interventions",   keywords=["Deonar", "Chembur", "Trombay"]),
+    dict(ward_name="Andheri East",          zone="Western Suburbs",  dominant_driver="Metro Works + Airport Traffic",      recommended_action="Mechanized Sweeping & Construction Barricading",      keywords=["Andheri", "Chakala", "SEEPZ"]),
+    dict(ward_name="Bandra Kurla Complex",  zone="Central Business", dominant_driver="Commercial Commute Fleet",           recommended_action="Mandatory Zero-Emission Commercial Shuttles",          keywords=["Bandra", "Kurla", "BKC"]),
+    dict(ward_name="Sion / Kurla Junction", zone="Central Mumbai",   dominant_driver="EEH Highway Diesel Traffic",         recommended_action="High-Pressure Anti-Smog Guns on Flyover Corridors",   keywords=["Sion", "Kurla", "Dharavi"]),
+    dict(ward_name="Borivali West",         zone="North Suburbs",    dominant_driver="Ambient Background (Sanjay Gandhi NP)", recommended_action="National Park Eco-Buffer Zone Safeguarding",     keywords=["Borivali", "Kandivali", "Dahisar"]),
+    dict(ward_name="Worli Sea Face",        zone="South Central",    dominant_driver="Marine Boundary Dispersion",         recommended_action="Continuous Coastal Baseline Air Station Tracking",    keywords=["Worli", "Prabhadevi", "Dadar"]),
+    dict(ward_name="Colaba",                zone="South Mumbai",     dominant_driver="Coastal Sea Breeze Dilution",        recommended_action="Heritage Area Pedestrianization & Canopy Care",       keywords=["Colaba", "Cuffe Parade", "Nariman"]),
 ]
 
-_MUMBAI_WARDS: list[WardEntry] = [
-    WardEntry(ward_name="Deonar / Chembur",     zone="Eastern Suburbs", aqi=196, pm25=130, dominant_driver="Refinery Emissions + Landfill VOCs",recommended_action="VOC Leak Detection & Waste Capping Interventions", category="severe"),
-    WardEntry(ward_name="Andheri East",         zone="Western Suburbs", aqi=174, pm25=110, dominant_driver="Metro Works + Airport Traffic",     recommended_action="Mechanized Sweeping & Construction Barricading",     category="moderate"),
-    WardEntry(ward_name="Bandra Kurla Complex", zone="Central Business",aqi=152, pm25=94,  dominant_driver="Commercial Commute Fleet",          recommended_action="Mandatory Zero-Emission Commercial Shuttles",         category="moderate"),
-    WardEntry(ward_name="Sion / Kurla Junction",zone="Central Mumbai",  aqi=164, pm25=104, dominant_driver="EEH Highway Diesel Traffic",        recommended_action="High-Pressure Anti-Smog Guns on Flyover Corridors",  category="moderate"),
-    WardEntry(ward_name="Borivali West",        zone="North Suburbs",   aqi=94,  pm25=54,  dominant_driver="Ambient Background (Sanjay Gandhi NP)",recommended_action="National Park Eco-Buffer Zone Safeguarding",      category="good"),
-    WardEntry(ward_name="Worli Sea Face",       zone="South Central",   aqi=76,  pm25=42,  dominant_driver="Marine Boundary Dispersion",        recommended_action="Continuous Coastal Baseline Air Station Tracking",   category="good"),
-    WardEntry(ward_name="Colaba",               zone="South Mumbai",    aqi=64,  pm25=34,  dominant_driver="Coastal Sea Breeze Dilution",       recommended_action="Heritage Area Pedestrianization & Canopy Care",      category="good"),
+_NASHIK_META = [
+    dict(ward_name="Satpur MIDC",           zone="Industrial West",  dominant_driver="Engineering Ancillaries + Dust",    recommended_action="Industrial Zone Emission Scrubbing Audits",           keywords=["Satpur", "MIDC", "Ambad"]),
+    dict(ward_name="Nashik Road Station",   zone="Rail Corridor",    dominant_driver="Inter-City Bus & Diesel Transit",   recommended_action="EV Feeder Buses & Clean Transit Terminal Policy",      keywords=["Nashik Road", "Deolali", "Panchavati"]),
+    dict(ward_name="Panchavati",            zone="Godavari Basin",   dominant_driver="River Basin Atmospheric Inversion", recommended_action="Low-Emission Heritage Zone & Sweeping",               keywords=["Panchavati", "Godavari", "Nashik City"]),
+    dict(ward_name="Gangapur Road",         zone="North West Green", dominant_driver="Ambient Background",                recommended_action="Green Corridor Maintenance & Urban Forest Expansion", keywords=["Gangapur", "Nashik"]),
 ]
 
-_NASHIK_WARDS: list[WardEntry] = [
-    WardEntry(ward_name="Satpur MIDC",          zone="Industrial West", aqi=158, pm25=98,  dominant_driver="Engineering Ancillaries + Dust",    recommended_action="Industrial Zone Emission Scrubbing Audits",          category="moderate"),
-    WardEntry(ward_name="Ambad MIDC",           zone="Industrial South",aqi=152, pm25=94,  dominant_driver="Heavy Truck Transit & Warehousing",  recommended_action="Paved Shoulder Sweeping on Mumbai-Agra Highway",     category="moderate"),
-    WardEntry(ward_name="Nashik Road Station",  zone="Rail Corridor",   aqi=140, pm25=86,  dominant_driver="Inter-City Bus & Diesel Transit",   recommended_action="EV Feeder Buses & Clean Transit Terminal Policy",    category="moderate"),
-    WardEntry(ward_name="Panchavati",           zone="Godavari Basin",  aqi=124, pm25=74,  dominant_driver="River Basin Atmospheric Inversion",  recommended_action="Low-Emission Heritage Zone & Sweeping",             category="moderate"),
-    WardEntry(ward_name="Gangapur Road",        zone="North West Green",aqi=78,  pm25=44,  dominant_driver="Ambient Background",                recommended_action="Green Corridor Maintenance & Urban Forest Expansion",category="good"),
+_THANE_META = [
+    dict(ward_name="Wagle Estate",          zone="Industrial Thane", dominant_driver="Chemical & Small Industrial Units", recommended_action="Stack Air Filter Mandates & Inspection Patrols",      keywords=["Wagle", "Thane", "Majiwada"]),
+    dict(ward_name="Ghodbunder Road",       zone="Freight Transit",  dominant_driver="Interstate Heavy Truck Traffic",    recommended_action="Heavy Freight Speed Management & Mist Guns",           keywords=["Ghodbunder", "Thane", "Kapurbawdi"]),
+    dict(ward_name="Upvan Lake Belt",       zone="Yeoor Foothills",  dominant_driver="Ambient Background",                recommended_action="Eco-Sensitive Zone Preservation",                      keywords=["Upvan", "Yeoor", "Thane West"]),
 ]
 
-_THANE_WARDS: list[WardEntry] = [
-    WardEntry(ward_name="Wagle Estate",         zone="Industrial Thane",aqi=176, pm25=112, dominant_driver="Chemical & Small Industrial Units", recommended_action="Stack Air Filter Mandates & Inspection Patrols",    category="moderate"),
-    WardEntry(ward_name="Ghodbunder Road",      zone="Freight Transit", aqi=166, pm25=104, dominant_driver="Interstate Heavy Truck Traffic",    recommended_action="Heavy Freight Speed Management & Mist Guns",         category="moderate"),
-    WardEntry(ward_name="Upvan Lake Belt",      zone="Yeoor Foothills", aqi=82,  pm25=46,  dominant_driver="Ambient Background",                recommended_action="Eco-Sensitive Zone Preservation",                    category="good"),
+_DELHI_META = [
+    dict(ward_name="Anand Vihar",           zone="East Delhi",       dominant_driver="Transport + Stubble",               recommended_action="Deploy Mist Cannons + Heavy Truck Ban",               keywords=["Anand Vihar", "Kaushambi", "Patparganj"]),
+    dict(ward_name="ITO Junction",          zone="Central Delhi",    dominant_driver="Traffic Congestion",                recommended_action="Traffic Signal Synchronization + Metro Subsidy",      keywords=["ITO", "Pragati Maidan", "Mandi House"]),
+    dict(ward_name="Lodhi Road",            zone="South Delhi",      dominant_driver="Ambient Background",                recommended_action="Green Canopy Maintenance & Monitoring",               keywords=["Lodhi", "Safdarjung", "Lutyens"]),
 ]
 
-_DELHI_WARDS: list[WardEntry] = [
-    WardEntry(ward_name="Anand Vihar",          zone="East Delhi",      aqi=218, pm25=142, dominant_driver="Transport + Stubble",               recommended_action="Deploy 12 Mist Cannons + Heavy Truck Ban",          category="severe"),
-    WardEntry(ward_name="ITO Junction",         zone="Central Delhi",   aqi=187, pm25=118, dominant_driver="Traffic Congestion",                 recommended_action="Traffic Signal Synchronization + Metro Subsidy",    category="severe"),
-    WardEntry(ward_name="Lodhi Road",           zone="South Delhi",     aqi=118, pm25=65,  dominant_driver="Ambient Background",                 recommended_action="Green Canopy Maintenance & Monitoring",            category="good"),
+_AKURDI_META = [
+    dict(ward_name="Akurdi Khandoba Mal",   zone="MIDC Sector",      dominant_driver="Automotive & Foundry Emissions",    recommended_action="Deploy Mobile Mist Guns + Industrial Stack Checks",   keywords=["Akurdi", "Khandoba", "PCMC"]),
+    dict(ward_name="Thergaon / Dange Chowk",zone="PCMC Chokepoint",  dominant_driver="Peak Traffic Choke + Bus Transit",  recommended_action="Flyover Traffic Flow Decongestion & Sweeper Deployment", keywords=["Thergaon", "Dange", "Rahatani"]),
+    dict(ward_name="Akurdi Railway Station",zone="Transit Hub",       dominant_driver="Auto-Rickshaw Idling & Rail Dust",  recommended_action="Shared EV Feeder Fleets & Anti-Idling Enforcement",   keywords=["Akurdi", "Railway", "Station"]),
+    dict(ward_name="Nigdi Pradhikaran",     zone="NH48 Corridor",    dominant_driver="Highway Transit Dust",              recommended_action="Green Acoustic & Particulate Barrier Plantation",     keywords=["Nigdi", "Pradhikaran", "NH48"]),
+    dict(ward_name="Pradhikaran Sector 24", zone="Residential",      dominant_driver="Ambient Background",                recommended_action="Maintain Tree Cover Density & Rooftop Sensors",       keywords=["Pradhikaran", "Sector 24", "Akurdi"]),
 ]
 
-_CITY_WARDS: dict[str, list[WardEntry]] = {
-    "pune":             _PUNE_WARDS,
-    "akurdi":           _AKURDI_WARDS,
-    "pcmc":             _AKURDI_WARDS,
-    "pimpri-chinchwad": _AKURDI_WARDS,
-    "mumbai":           _MUMBAI_WARDS,
-    "nashik":           _NASHIK_WARDS,
-    "thane":            _THANE_WARDS,
-    "maharashtra":      _PUNE_WARDS,
-    "delhi":            _DELHI_WARDS,
+_CITY_META: dict[str, list[dict]] = {
+    "pune":             _PUNE_META,
+    "akurdi":           _AKURDI_META,
+    "pcmc":             _AKURDI_META,
+    "pimpri-chinchwad": _AKURDI_META,
+    "mumbai":           _MUMBAI_META,
+    "nashik":           _NASHIK_META,
+    "thane":            _THANE_META,
+    "maharashtra":      _PUNE_META,
+    "delhi":            _DELHI_META,
 }
+
+
+def _aqi_category(aqi: float) -> str:
+    if aqi > 300:
+        return "severe"
+    if aqi > 200:
+        return "poor"
+    if aqi > 100:
+        return "moderate"
+    return "good"
+
+
+def _badge_category(aqi: float) -> str:
+    """Map AQI to coarse 3-tier category used by filter pills."""
+    if aqi > 200:
+        return "severe"
+    if aqi > 100:
+        return "moderate"
+    return "good"
+
+
+async def _build_wards_with_live_aqi(city: str, meta_list: list[dict]) -> list[WardEntry]:
+    """
+    Fetch live AQI from WAQI for the city, then match each ward to the closest
+    station by keyword. Wards with no keyword match get the city average AQI.
+    """
+    try:
+        city_data = await fetch_city_aqi(city)
+        stations  = city_data.stations
+        city_avg  = city_data.avg_aqi
+    except Exception:
+        # If WAQI is unreachable return an empty list — caller raises 502
+        raise
+
+    wards: list[WardEntry] = []
+    for ward_meta in meta_list:
+        keywords = ward_meta.get("keywords", [])
+
+        # Find best matching station by keyword scan
+        matched = None
+        for kw in keywords:
+            matched = next(
+                (s for s in stations if kw.lower() in s.station_name.lower()),
+                None,
+            )
+            if matched:
+                break
+
+        aqi_val = float(matched.aqi) if matched else city_avg
+        pm25_val = float(matched.pm25) if (matched and matched.pm25 is not None) else round(aqi_val * 0.6, 1)
+
+        wards.append(WardEntry(
+            ward_name=ward_meta["ward_name"],
+            zone=ward_meta["zone"],
+            aqi=round(aqi_val, 1),
+            pm25=round(pm25_val, 1),
+            dominant_driver=ward_meta["dominant_driver"],
+            recommended_action=ward_meta["recommended_action"],
+            category=_badge_category(aqi_val),
+        ))
+
+    return wards
 
 
 @router.get("/{city}", response_model=WardsResponse)
@@ -79,23 +144,25 @@ async def get_wards(
 ):
     """
     Return ward-level AQI rankings for a city.
+    AQI values are fetched live from WAQI and matched to ward locations by keyword.
     Optional filter by category: severe | moderate | good | all.
-    Falls back gracefully to Pune / Maharashtra baseline if city not explicitly seeded.
+    Falls back gracefully to Pune metadata if city not explicitly configured.
     """
-    key = city.lower().strip()
-    wards = _CITY_WARDS.get(key)
-    if wards is None:
-        # Fallback to Pune dataset labeled for the requested city
-        wards = _PUNE_WARDS
+    key       = city.lower().strip()
+    meta_list = _CITY_META.get(key, _PUNE_META)
+
+    try:
+        wards = await _build_wards_with_live_aqi(city, meta_list)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Failed to fetch live AQI for wards: {e}")
 
     filtered = wards if category == "all" else [w for w in wards if w.category == category]
 
-    highest = max(wards, key=lambda w: w.aqi)
+    highest  = max(wards, key=lambda w: w.aqi)
     cleanest = min(wards, key=lambda w: w.aqi)
 
-    # Determine city-level primary driver (most common dominant_driver)
     from collections import Counter
-    driver_counts = Counter(w.dominant_driver.split("+")[0].strip() for w in wards)
+    driver_counts  = Counter(w.dominant_driver.split("+")[0].strip() for w in wards)
     primary_driver = driver_counts.most_common(1)[0][0]
 
     return WardsResponse(

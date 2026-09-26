@@ -1,0 +1,80 @@
+<div class="app-view" id="view-settings">
+  <div class="view-header">
+    <div class="view-header__left">
+      <div class="view-tag"><span class="pulse-dot"></span> System Configuration</div>
+      <h1 class="view-title">Digital Twin Settings & Multi-City Switcher</h1>
+      <p class="view-desc">Switch urban digital twins, configure simulated streaming speed, and manage anomaly detection sensitivity.</p>
+    </div>
+  </div>
+
+  <!-- Multi-City Switcher -->
+  <div class="bento-card settings-section-card">
+    <h3 class="card-heading">Select Active Urban Digital Twin</h3>
+    <span class="label-xs muted">Tested across 26 Indian CPCB cities from Kaggle Dataset</span>
+    <div class="city-selector-grid">
+      <div class="city-card city-card--active" data-city="pune">
+        <div class="city-card__top"><span class="city-name">Pune</span><span class="badge-status city-card__aqi-badge">— AQI</span></div>
+        <div class="city-card__meta"><span>18 Active Stations</span><span>Valley Inversion & High Transit</span></div>
+        <span class="active-indicator">● Active Twin</span>
+      </div>
+      <div class="city-card" data-city="mumbai">
+        <div class="city-card__top"><span class="city-name">Mumbai</span><span class="badge-status city-card__aqi-badge">— AQI</span></div>
+        <div class="city-card__meta"><span>22 Active Stations</span><span>Marine Boundary Layer & Coastal</span></div>
+      </div>
+      <div class="city-card" data-city="nashik">
+        <div class="city-card__top"><span class="city-name">Nashik</span><span class="badge-status city-card__aqi-badge">— AQI</span></div>
+        <div class="city-card__meta"><span>8 Active Stations</span><span>Godavari Basin & Industrial MIDC</span></div>
+      </div>
+      <div class="city-card" data-city="akurdi">
+        <div class="city-card__top"><span class="city-name">Akurdi (PCMC)</span><span class="badge-status city-card__aqi-badge">— AQI</span></div>
+        <div class="city-card__meta"><span>12 Active Stations</span><span>Automotive & Foundry Sector</span></div>
+      </div>
+      <div class="city-card" data-city="thane">
+        <div class="city-card__top"><span class="city-name">Thane</span><span class="badge-status city-card__aqi-badge">— AQI</span></div>
+        <div class="city-card__meta"><span>14 Active Stations</span><span>Chemical Hub & Heavy Freight</span></div>
+      </div>
+      <div class="city-card" data-city="nagpur">
+        <div class="city-card__top"><span class="city-name">Nagpur</span><span class="badge-status city-card__aqi-badge">— AQI</span></div>
+        <div class="city-card__meta"><span>10 Active Stations</span><span>Central Maharashtra Transit Belt</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Streaming & Anomaly Settings -->
+  <div class="settings-two-col">
+    <div class="bento-card settings-box">
+      <h3 class="card-heading">Redis Stream Simulation Speed</h3>
+      <p class="settings-desc">Controls row-by-row playback speed of replayed sensor readings to simulate live incoming data streams.</p>
+      <div class="radio-pill-group">
+        <label class="radio-pill"><input type="radio" name="sim-speed" value="1" checked /><span>Real-time (1x)</span></label>
+        <label class="radio-pill"><input type="radio" name="sim-speed" value="5" /><span>5x Accelerated</span></label>
+        <label class="radio-pill"><input type="radio" name="sim-speed" value="15" /><span>15x Fast Forward</span></label>
+      </div>
+    </div>
+    <div class="bento-card settings-box">
+      <h3 class="card-heading">Twin Drift Anomaly Sensitivity</h3>
+      <p class="settings-desc">Threshold for flagging divergence between real-time sensor observations and forecast model predictions.</p>
+      <div class="slider-control-group">
+        <div class="slider-meta">
+          <span>Residual Divergence Trigger</span>
+          <strong class="text-gold" id="drift-thresh-display">25% Divergence</strong>
+        </div>
+        <input type="range" class="custom-range" id="drift-thresh-slider" min="10" max="50" value="25" step="5" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Open API -->
+  <div class="bento-card open-api-card">
+    <div class="bento-card__title-bar">
+      <div>
+        <h3 class="card-heading">Civic Open Data & Decision Support API</h3>
+        <span class="label-xs muted">Open endpoints for city administrators and civic developers</span>
+      </div>
+      <button class="btn-text-action" id="btn-copy-apikey"><i data-lucide="copy"></i> Copy Demo API Key</button>
+    </div>
+    <pre class="code-block"><code>GET  /api/v1/twin/pune/forecast?horizon=72h
+POST /api/v1/twin/pune/simulate { "traffic_curb": 0.30, "mist_units": 45 }
+GET  /api/v1/twin/akurdi/attribution</code></pre>
+  </div>
+</div>

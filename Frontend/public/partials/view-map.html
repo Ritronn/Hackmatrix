@@ -1,0 +1,122 @@
+<div class="app-view" id="view-map">
+  <div class="view-header">
+    <div class="view-header__left">
+      <div class="view-tag"><span class="pulse-dot"></span> Spatial Digital Twin</div>
+      <h1 class="view-title">City-Wide Environmental Heatmap & Dispersion</h1>
+      <p class="view-desc">Live AQI station markers, wind vector particles, and pollution heatmap powered by MapTiler Cloud.</p>
+    </div>
+    <div class="view-header__right">
+      <button class="action-pill-btn" id="btn-open-briefing-map">
+        <i data-lucide="file-text"></i><span>Daily Briefing</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Time-Scrub Control Deck -->
+  <div class="bento-card time-scrub-deck">
+    <div class="time-scrub__left">
+      <button class="time-play-btn" id="time-scrub-play" title="Play / Pause Replay">
+        <i data-lucide="play" id="play-icon"></i>
+      </button>
+      <div class="time-scrub__label-group">
+        <span class="time-scrub__title" id="scrub-time-display">Now • Live Stream</span>
+        <span class="time-scrub__sub">Time-Scrub: Replay 7 Days Historical ➔ 3 Days Forecast</span>
+      </div>
+    </div>
+    <div class="time-scrub__slider-wrap">
+      <input type="range" id="time-scrub-slider" min="0" max="100" value="70" class="custom-range" />
+      <div class="time-ticks">
+        <span>-7d</span><span>-3d</span><span>-1d</span>
+        <span class="tick-live">Live Now</span>
+        <span>+24h</span><span>+48h</span><span>+72h</span>
+      </div>
+    </div>
+    <div class="time-scrub__speed">
+      <button class="speed-btn speed-btn--active" data-speed="1">1x</button>
+      <button class="speed-btn" data-speed="5">5x</button>
+      <button class="speed-btn" data-speed="15">15x</button>
+    </div>
+  </div>
+
+  <!-- Map & Station Inspector Grid -->
+  <div class="map-view-grid">
+
+    <!-- MapTiler Map Container -->
+    <div class="bento-card full-map-card" id="full-map-container">
+
+      <!-- Real MapTiler GL map renders here -->
+      <div id="maptiler-map" style="width:100%;height:100%;border-radius:inherit;"></div>
+
+      <!-- Wind particle canvas overlaid on top of the map -->
+      <canvas id="wind-particles-canvas" class="wind-particles-canvas"></canvas>
+
+      <!-- Layer Toggle Pills -->
+      <div class="map-layer-toggles">
+        <button class="layer-pill layer-pill--active" id="toggle-particles" title="Toggle Wind Particles">
+          <i data-lucide="wind"></i><span id="wind-pill-label">Wind Vectors</span>
+        </button>
+        <button class="layer-pill layer-pill--active" id="toggle-heatmap" title="Toggle AQI Heatmap">
+          <i data-lucide="thermometer"></i><span>AQI Heatmap</span>
+        </button>
+        <button class="layer-pill" id="toggle-confidence" title="Toggle Confidence Overlay">
+          <i data-lucide="shield-check"></i><span>Uncertainty Veil</span>
+        </button>
+      </div>
+
+      <!-- AQI Legend -->
+      <div class="map-view-legend">
+        <span class="legend-header">AQI Scale</span>
+        <div class="legend-bar-track"></div>
+        <div class="legend-scale-labels">
+          <span>Good 0</span><span>Moderate 100</span><span>Poor 200</span><span>Severe 300+</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Station Telemetry Inspector -->
+    <div class="bento-card station-inspector-card" id="station-inspector">
+      <div class="inspector-header">
+        <div>
+          <span class="label-xs text-gold">STATION TELEMETRY</span>
+          <h3 class="inspector-title" id="inspect-name">Click a station pin</h3>
+          <span class="inspector-zone" id="inspect-zone">—</span>
+        </div>
+        <span class="badge-status" id="inspect-badge">— AQI</span>
+      </div>
+      <div class="inspector-metrics-grid">
+        <div class="mini-stat-card"><span class="mini-stat-label">PM2.5</span><span class="mini-stat-val" id="inspect-pm25">—</span></div>
+        <div class="mini-stat-card"><span class="mini-stat-label">PM10</span><span class="mini-stat-val" id="inspect-pm10">—</span></div>
+        <div class="mini-stat-card"><span class="mini-stat-label">NO2</span><span class="mini-stat-val" id="inspect-no2">—</span></div>
+        <div class="mini-stat-card"><span class="mini-stat-label">Wind</span><span class="mini-stat-val" id="inspect-wind">—</span></div>
+      </div>
+      <div class="inspector-attribution">
+        <div class="section-title-sm">Localized Source Attribution</div>
+        <div class="attr-bar">
+          <div class="attr-segment attr-segment--traffic" style="width: 48%;" title="Traffic 48%"></div>
+          <div class="attr-segment attr-segment--biomass" style="width: 24%;" title="Biomass 24%"></div>
+          <div class="attr-segment attr-segment--industry" style="width: 16%;" title="Industry 16%"></div>
+          <div class="attr-segment attr-segment--dust" style="width: 12%;" title="Dust 12%"></div>
+        </div>
+        <div class="attr-legend">
+          <span><i class="dot dot-coral"></i> Traffic (48%)</span>
+          <span><i class="dot dot-gold"></i> Biomass (24%)</span>
+          <span><i class="dot dot-cyan"></i> Industry (16%)</span>
+        </div>
+      </div>
+      <div class="inspector-model-box">
+        <div class="section-title-sm">90% Confidence Interval</div>
+        <div class="conf-band-visual">
+          <span class="conf-num" id="conf-lower">— AQI</span>
+          <div class="conf-bar"><div class="conf-point" id="conf-point" style="left: 50%;"></div></div>
+          <span class="conf-num" id="conf-upper">— AQI</span>
+        </div>
+        <span class="conf-note">Model certainty: High (Dense sensor coverage)</span>
+      </div>
+      <button class="action-btn-primary" id="btn-simulate-station">
+        <i data-lucide="sliders-horizontal"></i>
+        <span>Simulate Policy Interventions Here</span>
+      </button>
+    </div>
+
+  </div>
+</div>

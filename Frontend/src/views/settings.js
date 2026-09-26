@@ -1,8 +1,18 @@
 /**
  * views/settings.js
  * Multi-city switcher — clicking a card fetches real live data for that city.
+ * Also pre-loads AQI badges for all city cards on init.
  */
 import { loadCityData } from './dashboard.js';
+import { getCityAQI }   from '../api/aqi.js';
+
+// AQI value → badge CSS modifier
+function aqiBadgeClass(aqi) {
+  if (aqi > 300) return 'badge-status--severe';
+  if (aqi > 200) return 'badge-status--poor';
+  if (aqi > 100) return 'badge-status--moderate';
+  return 'badge-status--good';
+}
 
 export function initSettingsAndCities() {
   const cityCards   = document.querySelectorAll('.city-card');
@@ -19,6 +29,22 @@ export function initSettingsAndCities() {
     nagpur:    'Nagpur',
     delhi:     'Delhi',
   };
+
+  // ── Pre-load AQI badges for all city cards ────────────────────────────────
+  cityCards.forEach(async (card) => {
+    const key     = card.getAttribute('data-city');
+    const apiName = CITY_API_NAME[key] ?? key;
+    const badgeEl = card.querySelector('.city-card__aqi-badge');
+    if (!badgeEl) return;
+    try {
+      const data = await getCityAQI(apiName);
+      const aqi  = Math.round(data.avg_aqi);
+      badgeEl.textContent = `${aqi} AQI`;
+      badgeEl.className   = `badge-status ${aqiBadgeClass(aqi)}`;
+    } catch (_) {
+      badgeEl.textContent = 'N/A';
+    }
+  });
 
   cityCards.forEach((card) => {
     card.addEventListener('click', async () => {

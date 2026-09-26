@@ -1,0 +1,109 @@
+<div class="app-view" id="view-wards">
+  <div class="view-header">
+    <div class="view-header__left">
+      <div class="view-tag"><span class="pulse-dot"></span> Neighborhood Analytics</div>
+      <h1 class="view-title">Ward-Level Ranking & Source Attribution</h1>
+      <p class="view-desc">Granular ward comparisons across Maharashtra urban centers (Pune, Mumbai, Nashik, Akurdi / PCMC), identifying primary pollution drivers and targeted interventions.</p>
+    </div>
+    <div class="view-header__right">
+      <div class="filter-pills-row" id="ward-filter-group">
+        <button class="filter-pill filter-pill--active" data-filter="all">All Wards (32)</button>
+        <button class="filter-pill" data-filter="severe">Severe & Poor (&gt;170)</button>
+        <button class="filter-pill" data-filter="moderate">Moderate (&lt;160)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ward Summary Metrics -->
+  <div class="wards-summary-grid">
+    <div class="bento-card ward-stat-card">
+      <span class="label-xs muted">TOTAL WARDS MONITORED</span>
+      <strong class="ward-stat-num">32 Wards</strong>
+      <span class="ward-stat-sub text-cyan">Across Maharashtra Urban Centers</span>
+    </div>
+    <div class="bento-card ward-stat-card">
+      <span class="label-xs text-red">HIGHEST SEVERITY WARD</span>
+      <strong class="ward-stat-num text-red">—</strong>
+      <span class="ward-stat-sub text-red">Foundry & Industrial Cluster</span>
+    </div>
+    <div class="bento-card ward-stat-card">
+      <span class="label-xs text-green">CLEANEST WARD</span>
+      <strong class="ward-stat-num text-green">—</strong>
+      <span class="ward-stat-sub text-green">Coastal & Protected Green Belt</span>
+    </div>
+    <div class="bento-card ward-stat-card">
+      <span class="label-xs text-gold">PRIMARY EMISSION DRIVER</span>
+      <strong class="ward-stat-num text-gold">Vehicular (44%)</strong>
+      <span class="ward-stat-sub">Followed by MIDC Industry (26%)</span>
+    </div>
+  </div>
+
+  <!-- Ward Table & Attribution Grid -->
+  <div class="wards-main-grid">
+    <div class="bento-card ward-table-card">
+      <div class="bento-card__title-bar">
+        <h3 class="card-heading">Ward Pollution Severity Index</h3>
+        <span class="label-xs muted">Sorted by AQI severity</span>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table" id="wards-table">
+          <thead>
+            <tr>
+              <th>Ward / Station</th><th>Zone</th><th>AQI</th>
+              <th>PM2.5</th><th>Dominant Driver</th><th>Recommended Civic Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="6" style="text-align:center;color:var(--muted);padding:1.5rem;">
+                Loading live ward data…
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SHAP Attribution Breakdown -->
+    <div class="bento-card ward-attribution-card">
+      <div class="bento-card__title-bar">
+        <h3 class="card-heading">Explainable Attribution Model</h3>
+        <span class="badge-pill">SHAP Decomposition</span>
+      </div>
+      <div class="shap-breakdown-list">
+        <div class="shap-item">
+          <div class="shap-item__meta">
+            <span class="shap-title"><i class="dot dot-coral"></i> Vehicular & Transit Exhaust</span>
+            <strong class="shap-pct">42% (78.5 AQI)</strong>
+          </div>
+          <div class="shap-bar"><div class="shap-fill" style="width: 42%; background: var(--c-coral);"></div></div>
+          <span class="shap-desc">Peak rush hours (08:30–11:00 AM & 18:00–21:00 PM) create boundary-layer spikes.</span>
+        </div>
+        <div class="shap-item">
+          <div class="shap-item__meta">
+            <span class="shap-title"><i class="dot dot-gold"></i> Agricultural Biomass / Stubble</span>
+            <strong class="shap-pct">28% (52.3 AQI)</strong>
+          </div>
+          <div class="shap-bar"><div class="shap-fill" style="width: 28%; background: var(--c-gold);"></div></div>
+          <span class="shap-desc">Carried by sustained 8 km/h North-West wind trajectory from Punjab & Haryana.</span>
+        </div>
+        <div class="shap-item">
+          <div class="shap-item__meta">
+            <span class="shap-title"><i class="dot dot-cyan"></i> Industrial Furnaces & Kilns</span>
+            <strong class="shap-pct">18% (33.6 AQI)</strong>
+          </div>
+          <div class="shap-bar"><div class="shap-fill" style="width: 18%; background: var(--accent-cyan);"></div></div>
+          <span class="shap-desc">Concentrated in North-West industrial belts (Wazirpur, Mayapuri, Anand Parbat).</span>
+        </div>
+        <div class="shap-item">
+          <div class="shap-item__meta">
+            <span class="shap-title"><i class="dot dot-muted"></i> Road Dust & Thermal Trapping</span>
+            <strong class="shap-pct">12% (22.6 AQI)</strong>
+          </div>
+          <div class="shap-bar"><div class="shap-fill" style="width: 12%; background: var(--muted);"></div></div>
+          <span class="shap-desc">Nocturnal thermal inversion layer traps particulate matter within 300m of ground.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
