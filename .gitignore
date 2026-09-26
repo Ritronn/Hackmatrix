@@ -1,1 +1,32 @@
+# ── Secrets ──────────────────────────────────────────────
 .env
+*.env
+
+# ── Python ───────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+
+# ── Data (large files — download separately from Kaggle) ─
+Backend/data/*.csv
+Backend/data/*.parquet
+
+# ── Node / Frontend ───────────────────────────────────────
+node_modules/
+Frontend/dist/
+Frontend/.vite/
+
+# ── OS ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
