@@ -176,8 +176,14 @@
         </div>
       </aside>
 
-      <!-- ─── MAIN BENTO DASHBOARD ─── -->
-      <main class="dashboard-body">
+      <!-- ─── VIEWS WRAPPER ─── -->
+      <div class="views-wrapper" id="views-wrapper">
+
+        <!-- ══════════════════════════════════════
+             VIEW 1: DASHBOARD (Overview)
+             ══════════════════════════════════════ -->
+        <div class="app-view app-view--active" id="view-dashboard">
+          <main class="dashboard-body">
 
         <!-- COLUMN 1: LEFT SIDE (Hero + Forecast) -->
         <div class="col-left">
@@ -574,7 +580,1087 @@
         </div>
 
       </main>
+        </div>
 
+        <!-- ══════════════════════════════════════
+             VIEW 2: DIGITAL TWIN MAP (Full Bleed)
+             ══════════════════════════════════════ -->
+        <div class="app-view" id="view-map">
+          <div class="view-header">
+            <div class="view-header__left">
+              <div class="view-tag"><span class="pulse-dot"></span> Spatial Digital Twin</div>
+              <h1 class="view-title">City-Wide Environmental Heatmap & Dispersion</h1>
+              <p class="view-desc">Continuous Gaussian Process spatial interpolation across monitoring stations with wind vector particle dispersion.</p>
+            </div>
+            <div class="view-header__right">
+              <button class="action-pill-btn" id="btn-open-briefing-map">
+                <i data-lucide="file-text"></i>
+                <span>Daily Briefing</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Time-Scrub Control Deck (7 Days Past -> 3 Days Forecast) -->
+          <div class="bento-card time-scrub-deck">
+            <div class="time-scrub__left">
+              <button class="time-play-btn" id="time-scrub-play" title="Play / Pause Replay">
+                <i data-lucide="play" id="play-icon"></i>
+              </button>
+              <div class="time-scrub__label-group">
+                <span class="time-scrub__title" id="scrub-time-display">Now • 25 Sept, 05:00 PM (Live Stream)</span>
+                <span class="time-scrub__sub">Time-Scrub: Replay 7 Days Historical ➔ 3 Days Forecast</span>
+              </div>
+            </div>
+            <div class="time-scrub__slider-wrap">
+              <input type="range" id="time-scrub-slider" min="0" max="100" value="70" class="custom-range" />
+              <div class="time-ticks">
+                <span>-7d</span>
+                <span>-3d</span>
+                <span>-1d</span>
+                <span class="tick-live">Live Now</span>
+                <span>+24h</span>
+                <span>+48h</span>
+                <span>+72h</span>
+              </div>
+            </div>
+            <div class="time-scrub__speed">
+              <button class="speed-btn speed-btn--active" data-speed="1">1x</button>
+              <button class="speed-btn" data-speed="5">5x</button>
+              <button class="speed-btn" data-speed="15">15x</button>
+            </div>
+          </div>
+
+          <!-- Map & Station Inspector Grid -->
+          <div class="map-view-grid">
+            <!-- Full Interactive Digital Twin Map Container -->
+            <div class="bento-card full-map-card" id="full-map-container">
+              <!-- Wind Vector Particle Canvas -->
+              <canvas id="wind-particles-canvas" class="wind-particles-canvas"></canvas>
+
+              <!-- Map Ambient Heatmap Plumes -->
+              <div class="map-grid-layer"></div>
+              <div class="plume plume--anand"></div>
+              <div class="plume plume--ito"></div>
+              <div class="plume plume--wazirpur"></div>
+              <div class="plume plume--dwarka"></div>
+
+              <!-- Confidence / Uncertainty Veil -->
+              <div class="confidence-overlay" id="confidence-overlay"></div>
+
+              <!-- Station Radar Markers -->
+              <div class="map-station-pin map-station-pin--active" style="top: 45%; left: 58%;" data-station="ito">
+                <div class="pin-ring"></div>
+                <div class="pin-core"></div>
+                <div class="pin-label">ITO Junction (187 AQI)</div>
+              </div>
+
+              <div class="map-station-pin" style="top: 25%; left: 36%;" data-station="anand">
+                <div class="pin-ring pin-ring--severe"></div>
+                <div class="pin-core pin-core--severe"></div>
+                <div class="pin-label">Anand Vihar (218 AQI ⚠️)</div>
+              </div>
+
+              <div class="map-station-pin" style="top: 68%; left: 42%;" data-station="dwarka">
+                <div class="pin-ring pin-ring--moderate"></div>
+                <div class="pin-core pin-core--moderate"></div>
+                <div class="pin-label">Dwarka Sec-8 (165 AQI)</div>
+              </div>
+
+              <div class="map-station-pin" style="top: 22%; left: 66%;" data-station="wazirpur">
+                <div class="pin-ring pin-ring--poor"></div>
+                <div class="pin-core pin-core--poor"></div>
+                <div class="pin-label">Wazirpur (182 AQI)</div>
+              </div>
+
+              <div class="map-station-pin" style="top: 75%; left: 68%;" data-station="lodhi">
+                <div class="pin-ring pin-ring--good"></div>
+                <div class="pin-core pin-core--good"></div>
+                <div class="pin-label">Lodhi Road (118 AQI)</div>
+              </div>
+
+              <!-- Floating Map Layer Toolbar -->
+              <div class="map-layer-toggles">
+                <button class="layer-pill layer-pill--active" id="toggle-particles" title="Toggle Wind Particles">
+                  <i data-lucide="wind"></i>
+                  <span>Wind Vectors (NW 8 km/h)</span>
+                </button>
+                <button class="layer-pill layer-pill--active" id="toggle-heatmap" title="Toggle GP Heatmap">
+                  <i data-lucide="thermometer"></i>
+                  <span>Pollution Heatmap</span>
+                </button>
+                <button class="layer-pill" id="toggle-confidence" title="Toggle Confidence Overlay">
+                  <i data-lucide="shield-check"></i>
+                  <span>Trust / Uncertainty Veil</span>
+                </button>
+              </div>
+
+              <!-- Map Legend in Map View -->
+              <div class="map-view-legend">
+                <span class="legend-header">AQI Dispersion</span>
+                <div class="legend-bar-track"></div>
+                <div class="legend-scale-labels">
+                  <span>Severe 200+</span>
+                  <span>Poor 160</span>
+                  <span>Moderate 100</span>
+                  <span>Good 50</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Station Telemetry Inspector Card -->
+            <div class="bento-card station-inspector-card" id="station-inspector">
+              <div class="inspector-header">
+                <div>
+                  <span class="label-xs text-gold">STATION TELEMETRY</span>
+                  <h3 class="inspector-title" id="inspect-name">ITO Monitoring Station</h3>
+                  <span class="inspector-zone" id="inspect-zone">Central Delhi • Zone 4 Sensor</span>
+                </div>
+                <span class="badge-status badge-status--poor" id="inspect-badge">187 AQI</span>
+              </div>
+
+              <div class="inspector-metrics-grid">
+                <div class="mini-stat-card">
+                  <span class="mini-stat-label">PM2.5</span>
+                  <span class="mini-stat-val" id="inspect-pm25">118 µg/m³</span>
+                </div>
+                <div class="mini-stat-card">
+                  <span class="mini-stat-label">PM10</span>
+                  <span class="mini-stat-val" id="inspect-pm10">210 µg/m³</span>
+                </div>
+                <div class="mini-stat-card">
+                  <span class="mini-stat-label">NO2</span>
+                  <span class="mini-stat-val" id="inspect-no2">64 ppb</span>
+                </div>
+                <div class="mini-stat-card">
+                  <span class="mini-stat-label">Wind</span>
+                  <span class="mini-stat-val" id="inspect-wind">7.9 km/h NW</span>
+                </div>
+              </div>
+
+              <!-- Localized Attribution -->
+              <div class="inspector-attribution">
+                <div class="section-title-sm">Localized Source Attribution</div>
+                <div class="attr-bar">
+                  <div class="attr-segment attr-segment--traffic" style="width: 48%;" title="Traffic 48%"></div>
+                  <div class="attr-segment attr-segment--biomass" style="width: 24%;" title="Biomass 24%"></div>
+                  <div class="attr-segment attr-segment--industry" style="width: 16%;" title="Industry 16%"></div>
+                  <div class="attr-segment attr-segment--dust" style="width: 12%;" title="Dust 12%"></div>
+                </div>
+                <div class="attr-legend">
+                  <span><i class="dot dot-coral"></i> Traffic (48%)</span>
+                  <span><i class="dot dot-gold"></i> Biomass (24%)</span>
+                  <span><i class="dot dot-cyan"></i> Industry (16%)</span>
+                </div>
+              </div>
+
+              <div class="inspector-model-box">
+                <div class="section-title-sm">90% Confidence Interval</div>
+                <div class="conf-band-visual">
+                  <span class="conf-num">160 AQI</span>
+                  <div class="conf-bar"><div class="conf-point" style="left: 54%;"></div></div>
+                  <span class="conf-num">210 AQI</span>
+                </div>
+                <span class="conf-note">Model certainty: High (Dense sensor coverage)</span>
+              </div>
+
+              <button class="action-btn-primary" id="btn-simulate-station">
+                <i data-lucide="sliders-horizontal"></i>
+                <span>Simulate Policy Interventions Here</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+             VIEW 3: SCENARIO SIMULATION & MAYOR MODE
+             ══════════════════════════════════════ -->
+        <div class="app-view" id="view-scenario">
+          <div class="view-header">
+            <div class="view-header__left">
+              <div class="view-tag"><span class="pulse-dot"></span> Decision Support Engine</div>
+              <h1 class="view-title">Policy Intervention Simulator & Mayor Mode</h1>
+              <p class="view-desc">Simulate hypothetical interventions, re-forecast environmental outcomes, and optimize municipal budget allocation.</p>
+            </div>
+            <div class="view-header__right">
+              <!-- Mode Switcher -->
+              <div class="mode-switcher">
+                <button class="mode-btn mode-btn--active" id="btn-mode-sim">Standard What-If</button>
+                <button class="mode-btn" id="btn-mode-mayor"><i data-lucide="award"></i> Mayor Mode (₹50 Cr)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mayor Mode Budget Tracker (Hidden by default, shown in Mayor Mode) -->
+          <div class="bento-card mayor-budget-card" id="mayor-budget-deck" style="display: none;">
+            <div class="mayor-budget__header">
+              <div>
+                <span class="label-xs text-gold">MUNICIPAL POLICY SANDBOX</span>
+                <h3 class="card-heading">Civic Action Budget Allocation</h3>
+              </div>
+              <div class="mayor-score-badge">
+                <span>Mayor Score:</span>
+                <strong id="mayor-score-val">88/100 (Grade A)</strong>
+              </div>
+            </div>
+            <div class="mayor-budget__bar-wrap">
+              <div class="mayor-budget__progress">
+                <div class="mayor-budget__fill" id="mayor-budget-fill" style="width: 72%;"></div>
+              </div>
+              <div class="mayor-budget__nums">
+                <span>Budget Allocated: <strong id="budget-allocated">₹36.0 Cr</strong></span>
+                <span>Remaining: <strong id="budget-remaining">₹14.0 Cr</strong> of ₹50.0 Cr Total</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2-Column Scenario Layout -->
+          <div class="scenario-grid">
+            <!-- Left Column: Policy Intervention Controls -->
+            <div class="bento-card scenario-controls-card">
+              <div class="scenario-controls__header">
+                <div>
+                  <h2 class="card-heading">Active Intervention Levers</h2>
+                  <span class="label-xs muted">Adjust levers to re-run predictive model</span>
+                </div>
+                <button class="btn-text-action" id="btn-reset-scenario">Reset Baseline</button>
+              </div>
+
+              <!-- Lever 1: Traffic Rationing -->
+              <div class="control-lever">
+                <div class="lever-top">
+                  <div class="lever-title-group">
+                    <i data-lucide="car" class="lever-icon text-coral"></i>
+                    <div>
+                      <span class="lever-name">Odd-Even & Heavy Vehicle Restricton</span>
+                      <span class="lever-desc">Ration personal vehicles & divert interstate heavy transit</span>
+                    </div>
+                  </div>
+                  <span class="lever-val-display" id="val-traffic">30% restriction</span>
+                </div>
+                <input type="range" class="custom-range lever-slider" id="slider-traffic" min="0" max="50" value="30" step="5" />
+                <div class="lever-foot">
+                  <span>0% (Status Quo)</span>
+                  <span class="text-coral">Cost: ~₹12 Cr / month</span>
+                  <span>50% Max</span>
+                </div>
+              </div>
+
+              <!-- Lever 2: Industrial Curtailment -->
+              <div class="control-lever">
+                <div class="lever-top">
+                  <div class="lever-title-group">
+                    <i data-lucide="factory" class="lever-icon text-amber"></i>
+                    <div>
+                      <span class="lever-name">Industrial Kiln & Furnace Curtailment</span>
+                      <span class="lever-desc">Cap output in Mayapuri, Wazirpur, and Badli industrial zones</span>
+                    </div>
+                  </div>
+                  <span class="lever-val-display" id="val-industry">20% curtailment</span>
+                </div>
+                <input type="range" class="custom-range lever-slider" id="slider-industry" min="0" max="40" value="20" step="5" />
+                <div class="lever-foot">
+                  <span>0%</span>
+                  <span class="text-gold">Cost: ~₹15 Cr compensation</span>
+                  <span>40% Max</span>
+                </div>
+              </div>
+
+              <!-- Lever 3: Mist Guns & Dust Suppression -->
+              <div class="control-lever">
+                <div class="lever-top">
+                  <div class="lever-title-group">
+                    <i data-lucide="droplets" class="lever-icon text-cyan"></i>
+                    <div>
+                      <span class="lever-name">Anti-Smog Mist Guns & Road Sweepers</span>
+                      <span class="lever-desc">Deploy high-pressure misting along arterial corridors</span>
+                    </div>
+                  </div>
+                  <span class="lever-val-display" id="val-mist">45 units active</span>
+                </div>
+                <input type="range" class="custom-range lever-slider" id="slider-mist" min="0" max="100" value="45" step="5" />
+                <div class="lever-foot">
+                  <span>0 Units</span>
+                  <span class="text-cyan">Cost: ~₹6.5 Cr deployment</span>
+                  <span>100 Units</span>
+                </div>
+              </div>
+
+              <!-- Lever 4: Construction Halting -->
+              <div class="control-lever">
+                <div class="lever-top">
+                  <div class="lever-title-group">
+                    <i data-lucide="hard-hat" class="lever-icon text-gold"></i>
+                    <div>
+                      <span class="lever-name">Construction & Demolition Halt</span>
+                      <span class="lever-desc">Enforce stop-work orders on major infrastructure projects</span>
+                    </div>
+                  </div>
+                  <span class="lever-val-display" id="val-const">50% halted</span>
+                </div>
+                <input type="range" class="custom-range lever-slider" id="slider-const" min="0" max="100" value="50" step="10" />
+                <div class="lever-foot">
+                  <span>0%</span>
+                  <span class="muted">Cost: ~₹8 Cr civic penalty</span>
+                  <span>100% Total Halt</span>
+                </div>
+              </div>
+
+              <!-- Lever 5: Toggles -->
+              <div class="toggles-row">
+                <label class="toggle-card">
+                  <input type="checkbox" id="toggle-metro" checked />
+                  <div class="toggle-card__inner">
+                    <i data-lucide="train"></i>
+                    <div>
+                      <strong>Free Metro & EV Bus Fares</strong>
+                      <span>Incentivize mode shift during peak inversion</span>
+                    </div>
+                  </div>
+                </label>
+                <label class="toggle-card">
+                  <input type="checkbox" id="toggle-stubble" checked />
+                  <div class="toggle-card__inner">
+                    <i data-lucide="flame"></i>
+                    <div>
+                      <strong>Stubble Drone Interception</strong>
+                      <span>Bio-decomposer deployment in buffer wards</span>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Right Column: Decision Impact & ROI Leaderboard -->
+            <div class="scenario-results-col">
+              <!-- Big Impact Hero Card -->
+              <div class="bento-card scenario-impact-card">
+                <span class="label-xs text-gold">RE-FORECASTED PREDICTIVE OUTCOME</span>
+                <div class="impact-kpi-row">
+                  <div class="impact-kpi-box">
+                    <span class="impact-label">Current Baseline</span>
+                    <span class="impact-number impact-number--baseline">187 <small>AQI</small></span>
+                    <span class="badge-status badge-status--poor">Poor Air Quality</span>
+                  </div>
+                  <div class="impact-arrow">➔</div>
+                  <div class="impact-kpi-box">
+                    <span class="impact-label">Simulated Outcome</span>
+                    <span class="impact-number impact-number--sim" id="sim-aqi-result">142 <small>AQI</small></span>
+                    <span class="badge-status badge-status--moderate" id="sim-badge-result">Moderate Air Quality</span>
+                  </div>
+                  <div class="impact-diff-box">
+                    <span class="impact-label">Predicted Reduction</span>
+                    <span class="impact-diff-val" id="sim-diff-val">▼ -45 AQI</span>
+                    <span class="impact-diff-pct" id="sim-diff-pct">-24.1% Overall</span>
+                  </div>
+                </div>
+
+                <div class="impact-health-row">
+                  <div class="health-kpi">
+                    <i data-lucide="heart-pulse" class="text-coral"></i>
+                    <div>
+                      <strong id="sim-er-avoided">125 Avoided / Day</strong>
+                      <span>Hospital ER Respiratory Visits</span>
+                    </div>
+                  </div>
+                  <div class="health-kpi">
+                    <i data-lucide="trending-down" class="text-green"></i>
+                    <div>
+                      <strong id="sim-econ-saved">₹14.2 Crore Saved</strong>
+                      <span>Estimated Healthcare & Productivity Gain</span>
+                    </div>
+                  </div>
+                  <div class="health-kpi">
+                    <i data-lucide="shield-check" class="text-cyan"></i>
+                    <div>
+                      <strong>84.5% Confidence</strong>
+                      <span>Statistical Model Certainty</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Intervention ROI Leaderboard -->
+              <div class="bento-card roi-leaderboard-card">
+                <div class="bento-card__title-bar">
+                  <div>
+                    <h3 class="card-heading">Intervention ROI Leaderboard</h3>
+                    <span class="label-xs muted">Ranked by AQI reduction per unit cost & feasibility</span>
+                  </div>
+                  <span class="badge-pill">Decision Matrix</span>
+                </div>
+
+                <div class="roi-table-wrap">
+                  <table class="roi-table">
+                    <thead>
+                      <tr>
+                        <th>Rank</th>
+                        <th>Intervention Strategy</th>
+                        <th>AQI Drop</th>
+                        <th>Cost</th>
+                        <th>ROI (Drop / ₹ Cr)</th>
+                        <th>Feasibility</th>
+                      </tr>
+                    </thead>
+                    <tbody id="roi-table-body">
+                      <tr class="roi-row--top">
+                        <td><span class="rank-badge rank-1">#1</span></td>
+                        <td><strong>Anti-Smog Mist Guns</strong></td>
+                        <td class="text-green">-10 AQI</td>
+                        <td>₹6.5 Cr</td>
+                        <td><strong class="text-gold">+1.54 / Cr</strong></td>
+                        <td><span class="badge-tag badge-tag--high">High</span></td>
+                      </tr>
+                      <tr>
+                        <td><span class="rank-badge rank-2">#2</span></td>
+                        <td><strong>Odd-Even Traffic Rationing</strong></td>
+                        <td class="text-green">-18 AQI</td>
+                        <td>₹12.0 Cr</td>
+                        <td><strong class="text-gold">+1.50 / Cr</strong></td>
+                        <td><span class="badge-tag badge-tag--med">Medium</span></td>
+                      </tr>
+                      <tr>
+                        <td><span class="rank-badge rank-3">#3</span></td>
+                        <td><strong>Industrial Kiln Curtailment</strong></td>
+                        <td class="text-green">-14 AQI</td>
+                        <td>₹15.0 Cr</td>
+                        <td><strong class="text-gold">+0.93 / Cr</strong></td>
+                        <td><span class="badge-tag badge-tag--low">Low</span></td>
+                      </tr>
+                      <tr>
+                        <td><span class="rank-badge">#4</span></td>
+                        <td><strong>Construction Halting</strong></td>
+                        <td class="text-green">-8 AQI</td>
+                        <td>₹8.0 Cr</td>
+                        <td><strong class="text-gold">+1.00 / Cr</strong></td>
+                        <td><span class="badge-tag badge-tag--med">Medium</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+             VIEW 4: ANALYTICS & WARDS
+             ══════════════════════════════════════ -->
+        <div class="app-view" id="view-wards">
+          <div class="view-header">
+            <div class="view-header__left">
+              <div class="view-tag"><span class="pulse-dot"></span> Neighborhood Analytics</div>
+              <h1 class="view-title">Ward-Level Ranking & Source Attribution</h1>
+              <p class="view-desc">Granular ward comparisons across Delhi NCR, identifying primary pollution drivers and targeted interventions.</p>
+            </div>
+            <div class="view-header__right">
+              <div class="filter-pills-row" id="ward-filter-group">
+                <button class="filter-pill filter-pill--active" data-filter="all">All Wards (32)</button>
+                <button class="filter-pill" data-filter="severe">Severe & Poor (>180)</button>
+                <button class="filter-pill" data-filter="moderate">Moderate (&lt;170)</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ward Summary Metrics -->
+          <div class="wards-summary-grid">
+            <div class="bento-card ward-stat-card">
+              <span class="label-xs muted">TOTAL WARDS MONITORED</span>
+              <strong class="ward-stat-num">32 Wards</strong>
+              <span class="ward-stat-sub text-cyan">Across 11 Delhi Districts</span>
+            </div>
+            <div class="bento-card ward-stat-card">
+              <span class="label-xs text-red">HIGHEST SEVERITY WARD</span>
+              <strong class="ward-stat-num text-red">Anand Vihar (218)</strong>
+              <span class="ward-stat-sub text-red">Active Divergence Spike</span>
+            </div>
+            <div class="bento-card ward-stat-card">
+              <span class="label-xs text-green">CLEANEST WARD</span>
+              <strong class="ward-stat-num text-green">Lodhi Road (118)</strong>
+              <span class="ward-stat-sub text-green">Protected Green Corridor</span>
+            </div>
+            <div class="bento-card ward-stat-card">
+              <span class="label-xs text-gold">PRIMARY EMISSION DRIVER</span>
+              <strong class="ward-stat-num text-gold">Vehicular (42%)</strong>
+              <span class="ward-stat-sub">Followed by Biomass (28%)</span>
+            </div>
+          </div>
+
+          <!-- Ward Table & Explainable Attribution Grid -->
+          <div class="wards-main-grid">
+            <!-- Ward Ranking Table -->
+            <div class="bento-card ward-table-card">
+              <div class="bento-card__title-bar">
+                <h3 class="card-heading">Ward Pollution Severity Index</h3>
+                <span class="label-xs muted">Sorted by AQI severity</span>
+              </div>
+              <div class="table-responsive">
+                <table class="data-table" id="wards-table">
+                  <thead>
+                    <tr>
+                      <th>Ward / Station</th>
+                      <th>Zone</th>
+                      <th>AQI</th>
+                      <th>PM2.5</th>
+                      <th>Dominant Driver</th>
+                      <th>Recommended Civic Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="ward-row ward-row--severe" data-category="severe">
+                      <td><strong>Anand Vihar</strong></td>
+                      <td>East Delhi</td>
+                      <td><span class="badge-status badge-status--severe">218 AQI</span></td>
+                      <td>142 µg/m³</td>
+                      <td><span class="driver-tag driver-tag--traffic">Transport + Stubble</span></td>
+                      <td>Deploy 12 Mist Cannons + Heavy Truck Ban</td>
+                    </tr>
+                    <tr class="ward-row ward-row--severe" data-category="severe">
+                      <td><strong>Jahangirpuri</strong></td>
+                      <td>North Delhi</td>
+                      <td><span class="badge-status badge-status--severe">198 AQI</span></td>
+                      <td>128 µg/m³</td>
+                      <td><span class="driver-tag driver-tag--industry">Industrial Dust</span></td>
+                      <td>Halt Construction + Night Industrial Inspection</td>
+                    </tr>
+                    <tr class="ward-row ward-row--poor" data-category="severe">
+                      <td><strong>ITO Junction</strong></td>
+                      <td>Central Delhi</td>
+                      <td><span class="badge-status badge-status--poor">187 AQI</span></td>
+                      <td>118 µg/m³</td>
+                      <td><span class="driver-tag driver-tag--traffic">Traffic Congestion</span></td>
+                      <td>Traffic Signal Synchronization + Metro Subsidy</td>
+                    </tr>
+                    <tr class="ward-row ward-row--poor" data-category="severe">
+                      <td><strong>Wazirpur</strong></td>
+                      <td>North West</td>
+                      <td><span class="badge-status badge-status--poor">182 AQI</span></td>
+                      <td>114 µg/m³</td>
+                      <td><span class="driver-tag driver-tag--industry">Metal Furnaces</span></td>
+                      <td>20% Industrial Emission Curtailment</td>
+                    </tr>
+                    <tr class="ward-row ward-row--moderate" data-category="moderate">
+                      <td><strong>Dwarka Sector-8</strong></td>
+                      <td>South West</td>
+                      <td><span class="badge-status badge-status--moderate">165 AQI</span></td>
+                      <td>98 µg/m³</td>
+                      <td><span class="driver-tag driver-tag--dust">Road & Construction Dust</span></td>
+                      <td>Mechanized Vacuum Sweeping</td>
+                    </tr>
+                    <tr class="ward-row ward-row--good" data-category="moderate">
+                      <td><strong>Lodhi Road</strong></td>
+                      <td>South Delhi</td>
+                      <td><span class="badge-status badge-status--good">118 AQI</span></td>
+                      <td>65 µg/m³</td>
+                      <td><span class="driver-tag driver-tag--ambient">Ambient Background</span></td>
+                      <td>Green Canopy Maintenance & Monitoring</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Explainable Attribution & SHAP Breakdown Card -->
+            <div class="bento-card ward-attribution-card">
+              <div class="bento-card__title-bar">
+                <h3 class="card-heading">Explainable Attribution Model</h3>
+                <span class="badge-pill">SHAP Decomposition</span>
+              </div>
+
+              <!-- Visual Pie / Segment Bars -->
+              <div class="shap-breakdown-list">
+                <div class="shap-item">
+                  <div class="shap-item__meta">
+                    <span class="shap-title"><i class="dot dot-coral"></i> Vehicular & Transit Exhaust</span>
+                    <strong class="shap-pct">42% (78.5 AQI)</strong>
+                  </div>
+                  <div class="shap-bar"><div class="shap-fill" style="width: 42%; background: var(--c-coral);"></div></div>
+                  <span class="shap-desc">Peak rush hours (08:30 - 11:00 AM & 18:00 - 21:00 PM) create boundary-layer spikes.</span>
+                </div>
+
+                <div class="shap-item">
+                  <div class="shap-item__meta">
+                    <span class="shap-title"><i class="dot dot-gold"></i> Agricultural Biomass / Stubble</span>
+                    <strong class="shap-pct">28% (52.3 AQI)</strong>
+                  </div>
+                  <div class="shap-bar"><div class="shap-fill" style="width: 28%; background: var(--c-gold);"></div></div>
+                  <span class="shap-desc">Carried by sustained 8 km/h North-West wind trajectory from Punjab & Haryana.</span>
+                </div>
+
+                <div class="shap-item">
+                  <div class="shap-item__meta">
+                    <span class="shap-title"><i class="dot dot-cyan"></i> Industrial Furnaces & Kilns</span>
+                    <strong class="shap-pct">18% (33.6 AQI)</strong>
+                  </div>
+                  <div class="shap-bar"><div class="shap-fill" style="width: 18%; background: var(--accent-cyan);"></div></div>
+                  <span class="shap-desc">Concentrated in North-West industrial belts (Wazirpur, Mayapuri, Anand Parbat).</span>
+                </div>
+
+                <div class="shap-item">
+                  <div class="shap-item__meta">
+                    <span class="shap-title"><i class="dot dot-muted"></i> Road Dust & Thermal Trapping</span>
+                    <strong class="shap-pct">12% (22.6 AQI)</strong>
+                  </div>
+                  <div class="shap-bar"><div class="shap-fill" style="width: 12%; background: var(--muted);"></div></div>
+                  <span class="shap-desc">Nocturnal thermal inversion layer traps particulate matter within 300m of ground.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+             VIEW 5: MODEL ACCURACY & SELF-HONESTY
+             ══════════════════════════════════════ -->
+        <div class="app-view" id="view-accuracy">
+          <div class="view-header">
+            <div class="view-header__left">
+              <div class="view-tag"><span class="pulse-dot"></span> Trust & Transparency</div>
+              <h1 class="view-title">Model Accuracy & Self-Honesty Tracker</h1>
+              <p class="view-desc">A digital twin must be honest about its limits. Public historical validation against official CPCB ground truth.</p>
+            </div>
+            <div class="view-header__right">
+              <span class="badge-tag badge-tag--high">Verified on Held-out CPCB Data</span>
+            </div>
+          </div>
+
+          <!-- 4 Scorecards -->
+          <div class="accuracy-metrics-grid">
+            <div class="bento-card acc-card">
+              <span class="label-xs text-gold">7-DAY MEAN ABSOLUTE ERROR</span>
+              <strong class="acc-metric-num">14.2 <small>AQI</small></strong>
+              <span class="acc-metric-sub text-green">Target: &lt; 20 AQI (Outperforming)</span>
+            </div>
+            <div class="bento-card acc-card">
+              <span class="label-xs text-cyan">ROOT MEAN SQUARED ERROR</span>
+              <strong class="acc-metric-num">18.6 <small>RMSE</small></strong>
+              <span class="acc-metric-sub">Quantile Regression Loss</span>
+            </div>
+            <div class="bento-card acc-card">
+              <span class="label-xs text-coral">CORRELATION METRIC (R²)</span>
+              <strong class="acc-metric-num">0.88</strong>
+              <span class="acc-metric-sub">High Agreement with CPCB</span>
+            </div>
+            <div class="bento-card acc-card">
+              <span class="label-xs text-green">90% CONFIDENCE INTERVAL COVERAGE</span>
+              <strong class="acc-metric-num">92.4%</strong>
+              <span class="acc-metric-sub text-green">Well-Calibrated Uncertainty</span>
+            </div>
+          </div>
+
+          <!-- Forecast vs Actual Timeline Chart -->
+          <div class="bento-card validation-chart-card">
+            <div class="bento-card__title-bar">
+              <div>
+                <h3 class="card-heading">14-Day Forecast vs CPCB Ground Truth Validation</h3>
+                <span class="label-xs muted">Visualizing prediction confidence band vs observed sensor data</span>
+              </div>
+              <div class="chart-legend">
+                <span><i class="legend-line legend-line--actual"></i> CPCB Actual</span>
+                <span><i class="legend-line legend-line--pred"></i> Model Forecast</span>
+                <span><i class="legend-box legend-box--ci"></i> 90% Confidence Interval</span>
+              </div>
+            </div>
+
+            <!-- SVG Validation Chart -->
+            <div class="svg-chart-container">
+              <svg width="100%" height="220" viewBox="0 0 800 220" preserveAspectRatio="none">
+                <!-- 90% Confidence Shaded Area -->
+                <path d="M 20 140 Q 80 120 150 130 T 280 110 T 420 90 T 560 70 T 700 85 L 700 135 T 560 125 T 420 150 T 280 160 T 150 170 T 20 180 Z" fill="rgba(239, 211, 149, 0.15)"/>
+                <!-- Model Forecast (Dotted Gold Line) -->
+                <path d="M 20 160 Q 80 145 150 150 T 280 135 T 420 120 T 560 98 T 700 110" fill="none" stroke="#efd395" stroke-width="2.5" stroke-dasharray="4 4"/>
+                <!-- CPCB Ground Truth Actual (Solid Cyan Line) -->
+                <path d="M 20 165 Q 80 140 150 155 T 280 130 T 420 115 T 560 75 T 700 108" fill="none" stroke="#38BDF8" stroke-width="2.5"/>
+                <!-- Anomaly Spike at Day 11 (Twin Drift Flag) -->
+                <circle cx="560" cy="75" r="5" fill="#F87171" stroke="#FFFFFF" stroke-width="1.5"/>
+                <text x="540" y="58" fill="#F87171" font-size="11" font-weight="600">Twin Drift Anomaly (218 AQI)</text>
+              </svg>
+            </div>
+            <div class="chart-dates-axis">
+              <span>12 Sept</span>
+              <span>14 Sept</span>
+              <span>16 Sept</span>
+              <span>18 Sept</span>
+              <span>20 Sept</span>
+              <span>22 Sept</span>
+              <span>24 Sept (Now)</span>
+            </div>
+          </div>
+
+          <!-- ML Architecture Pipeline -->
+          <div class="bento-card pipeline-card">
+            <h3 class="card-heading">End-to-End Digital Twin Architecture</h3>
+            <div class="pipeline-flow">
+              <div class="pipeline-step">
+                <span class="step-num">01</span>
+                <strong>CPCB Sensor Stream</strong>
+                <span>Historical Kaggle 2015-2020 + Live Feeds</span>
+              </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step">
+                <span class="step-num">02</span>
+                <strong>Redis Streams</strong>
+                <span>Decoupled Ingestion & Time-Series Queue</span>
+              </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step">
+                <span class="step-num">03</span>
+                <strong>LightGBM + Quantiles</strong>
+                <span>Multi-day forecast + 90% Confidence Bands</span>
+              </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step">
+                <span class="step-num">04</span>
+                <strong>Gaussian Process</strong>
+                <span>Continuous Spatial Interpolation & Plumes</span>
+              </div>
+              <div class="pipeline-arrow">➔</div>
+              <div class="pipeline-step">
+                <span class="step-num">05</span>
+                <strong>Decision API</strong>
+                <span>Scenario Optimizer & LLM Advisor</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════
+             VIEW 6: SETTINGS & MULTI-CITY
+             ══════════════════════════════════════ -->
+        <div class="app-view" id="view-settings">
+          <div class="view-header">
+            <div class="view-header__left">
+              <div class="view-tag"><span class="pulse-dot"></span> System Configuration</div>
+              <h1 class="view-title">Digital Twin Settings & Multi-City Switcher</h1>
+              <p class="view-desc">Switch urban digital twins, configure simulated streaming speed, and manage anomaly detection sensitivity.</p>
+            </div>
+          </div>
+
+          <!-- Multi-City Switcher Grid -->
+          <div class="bento-card settings-section-card">
+            <h3 class="card-heading">Select Active Urban Digital Twin</h3>
+            <span class="label-xs muted">Tested across 26 Indian CPCB cities from Kaggle Dataset</span>
+
+            <div class="city-selector-grid">
+              <div class="city-card city-card--active" data-city="delhi">
+                <div class="city-card__top">
+                  <span class="city-name">Delhi NCR</span>
+                  <span class="badge-status badge-status--poor">187 AQI</span>
+                </div>
+                <div class="city-card__meta">
+                  <span>24 Active Stations</span>
+                  <span>Primary: Transport / Biomass</span>
+                </div>
+                <span class="active-indicator">● Active Twin</span>
+              </div>
+
+              <div class="city-card" data-city="mumbai">
+                <div class="city-card__top">
+                  <span class="city-name">Mumbai</span>
+                  <span class="badge-status badge-status--good">92 AQI</span>
+                </div>
+                <div class="city-card__meta">
+                  <span>14 Active Stations</span>
+                  <span>Marine Boundary Layer</span>
+                </div>
+              </div>
+
+              <div class="city-card" data-city="bengaluru">
+                <div class="city-card__top">
+                  <span class="city-name">Bengaluru</span>
+                  <span class="badge-status badge-status--good">74 AQI</span>
+                </div>
+                <div class="city-card__meta">
+                  <span>10 Active Stations</span>
+                  <span>High Elevation Dispersion</span>
+                </div>
+              </div>
+
+              <div class="city-card" data-city="kolkata">
+                <div class="city-card__top">
+                  <span class="city-name">Kolkata</span>
+                  <span class="badge-status badge-status--poor">168 AQI</span>
+                </div>
+                <div class="city-card__meta">
+                  <span>12 Active Stations</span>
+                  <span>Industrial + Heavy Transit</span>
+                </div>
+              </div>
+
+              <div class="city-card" data-city="lucknow">
+                <div class="city-card__top">
+                  <span class="city-name">Lucknow</span>
+                  <span class="badge-status badge-status--severe">204 AQI</span>
+                </div>
+                <div class="city-card__meta">
+                  <span>8 Active Stations</span>
+                  <span>Indo-Gangetic Plain Inversion</span>
+                </div>
+              </div>
+
+              <div class="city-card" data-city="hyderabad">
+                <div class="city-card__top">
+                  <span class="city-name">Hyderabad</span>
+                  <span class="badge-status badge-status--moderate">112 AQI</span>
+                </div>
+                <div class="city-card__meta">
+                  <span>11 Active Stations</span>
+                  <span>Moderate Industrial Profile</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Streaming Engine & Anomaly Thresholds -->
+          <div class="settings-two-col">
+            <div class="bento-card settings-box">
+              <h3 class="card-heading">Redis Stream Simulation Speed</h3>
+              <p class="settings-desc">Controls row-by-row playback speed of replayed sensor readings to simulate live incoming data streams.</p>
+              <div class="radio-pill-group">
+                <label class="radio-pill">
+                  <input type="radio" name="sim-speed" value="1" checked />
+                  <span>Real-time (1x)</span>
+                </label>
+                <label class="radio-pill">
+                  <input type="radio" name="sim-speed" value="5" />
+                  <span>5x Accelerated</span>
+                </label>
+                <label class="radio-pill">
+                  <input type="radio" name="sim-speed" value="15" />
+                  <span>15x Fast Forward</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="bento-card settings-box">
+              <h3 class="card-heading">Twin Drift Anomaly Sensitivity</h3>
+              <p class="settings-desc">Threshold for flagging divergence between real-time sensor observations and forecast model predictions.</p>
+              <div class="slider-control-group">
+                <div class="slider-meta">
+                  <span>Residual Divergence Trigger</span>
+                  <strong class="text-gold" id="drift-thresh-display">25% Divergence</strong>
+                </div>
+                <input type="range" class="custom-range" id="drift-thresh-slider" min="10" max="50" value="25" step="5" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Public API & Open Data -->
+          <div class="bento-card open-api-card">
+            <div class="bento-card__title-bar">
+              <div>
+                <h3 class="card-heading">Civic Open Data & Decision Support API</h3>
+                <span class="label-xs muted">Open endpoints for city administrators and civic developers</span>
+              </div>
+              <button class="btn-text-action" id="btn-copy-apikey"><i data-lucide="copy"></i> Copy Demo API Key</button>
+            </div>
+            <pre class="code-block"><code>GET  /api/v1/twin/delhi/forecast?horizon=72h
+POST /api/v1/twin/delhi/simulate { "traffic_curb": 0.30, "mist_units": 45 }
+GET  /api/v1/twin/anand_vihar/attribution</code></pre>
+          </div>
+        </div>
+
+      </div> <!-- /views-wrapper -->
+
+    </div> <!-- /app-frame -->
+
+    <!-- ══════════════════════════════════════
+         GLOBAL MODALS & DRAWERS
+         ══════════════════════════════════════ -->
+
+    <!-- 1. Twin Drift Alert Modal -->
+    <div class="modal-backdrop" id="modal-drift-backdrop">
+      <div class="modal-card modal-card--drift" id="modal-drift">
+        <div class="modal-header">
+          <div class="modal-header__title">
+            <span class="alert-icon-ring"><i data-lucide="alert-triangle"></i></span>
+            <div>
+              <h3>Twin Drift: Active Divergence Detected</h3>
+              <span class="label-xs muted">Digital Twin Anomaly Flag • Station Level</span>
+            </div>
+          </div>
+          <button class="modal-close-btn" id="btn-close-drift">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="drift-stat-grid">
+            <div class="drift-box">
+              <span class="drift-box__lbl">Affected Station</span>
+              <strong class="drift-box__val">Anand Vihar, Delhi</strong>
+            </div>
+            <div class="drift-box">
+              <span class="drift-box__lbl">Observed Sensor</span>
+              <strong class="drift-box__val text-red">218 µg/m³ PM2.5</strong>
+            </div>
+            <div class="drift-box">
+              <span class="drift-box__lbl">Forecast Model</span>
+              <strong class="drift-box__val text-gold">165 µg/m³</strong>
+            </div>
+            <div class="drift-box">
+              <span class="drift-box__lbl">Divergence</span>
+              <strong class="drift-box__val text-coral">+32.1% (Anomaly)</strong>
+            </div>
+          </div>
+
+          <div class="drift-cause-card">
+            <h4><i data-lucide="info"></i> Root Cause Diagnosis:</h4>
+            <p>Localized crop residue burning plume transported via low-altitude NW wind vector, exacerbated by early evening thermal inversion layer trapping particulate matter at ground level.</p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" id="btn-dismiss-drift">Acknowledge Alert</button>
+          <button class="btn-primary-action" id="btn-recalibrate">
+            <i data-lucide="refresh-cw"></i>
+            <span>Trigger Kalman Recalibration</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. City Search Modal -->
+    <div class="modal-backdrop" id="modal-search-backdrop">
+      <div class="modal-card modal-card--search" id="modal-search">
+        <div class="search-input-wrap">
+          <i data-lucide="search" class="search-icon"></i>
+          <input type="text" id="station-search-input" placeholder="Search city or monitoring station (e.g., Anand Vihar, Mumbai, Lodhi)..." autofocus />
+          <button class="modal-close-btn" id="btn-close-search">&times;</button>
+        </div>
+        <div class="search-results-list" id="search-results">
+          <div class="search-item" data-station="ito" data-city="delhi">
+            <div class="search-item__main">
+              <strong>ITO Junction</strong>
+              <span>Central Delhi • Live Sensor</span>
+            </div>
+            <span class="badge-status badge-status--poor">187 AQI</span>
+          </div>
+          <div class="search-item" data-station="anand" data-city="delhi">
+            <div class="search-item__main">
+              <strong>Anand Vihar</strong>
+              <span>East Delhi • Severe Zone</span>
+            </div>
+            <span class="badge-status badge-status--severe">218 AQI</span>
+          </div>
+          <div class="search-item" data-station="dwarka" data-city="delhi">
+            <div class="search-item__main">
+              <strong>Dwarka Sector-8</strong>
+              <span>South West Delhi</span>
+            </div>
+            <span class="badge-status badge-status--moderate">165 AQI</span>
+          </div>
+          <div class="search-item" data-station="lodhi" data-city="delhi">
+            <div class="search-item__main">
+              <strong>Lodhi Road</strong>
+              <span>South Delhi • Green Belt</span>
+            </div>
+            <span class="badge-status badge-status--good">118 AQI</span>
+          </div>
+          <div class="search-item" data-city="mumbai">
+            <div class="search-item__main">
+              <strong>Mumbai (Colaba & BKC)</strong>
+              <span>Maharashtra Twin</span>
+            </div>
+            <span class="badge-status badge-status--good">92 AQI</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Daily Briefing Generator Modal -->
+    <div class="modal-backdrop" id="modal-briefing-backdrop">
+      <div class="modal-card modal-card--briefing" id="modal-briefing">
+        <div class="modal-header">
+          <div class="modal-header__title">
+            <i data-lucide="file-text" class="text-gold"></i>
+            <div>
+              <h3>Urban Environmental Daily Intelligence Briefing</h3>
+              <span class="label-xs muted">Automated Digital Twin Synthesis • Delhi NCR</span>
+            </div>
+          </div>
+          <button class="modal-close-btn" id="btn-close-briefing">&times;</button>
+        </div>
+
+        <div class="modal-body briefing-content" id="briefing-content">
+          <div class="briefing-meta">
+            <span><strong>Date:</strong> 25 Sept, 2026</span>
+            <span><strong>Forecast Horizon:</strong> 72 Hours</span>
+            <span><strong>Model Confidence:</strong> 92.4%</span>
+          </div>
+          <div class="briefing-section">
+            <h4>1. Executive Summary</h4>
+            <p>Air quality across Delhi NCR currently sits at <strong>187 AQI (Poor)</strong>, with a forecasted peak reaching <strong>203 AQI</strong> tomorrow evening. Surface atmospheric stagnation and a low inversion ceiling prevent vertical dispersion.</p>
+          </div>
+          <div class="briefing-section">
+            <h4>2. Source Attribution Breakdown</h4>
+            <p>Real-time SHAP analysis attributes <strong>42%</strong> of particulate mass to vehicular exhaust, <strong>28%</strong> to transboundary agricultural residue plumes from the North-West corridor, and <strong>18%</strong> to industrial manufacturing furnaces.</p>
+          </div>
+          <div class="briefing-section">
+            <h4>3. Recommended Interventions & Decision Matrix</h4>
+            <p>Simulation models predict that implementing a <strong>30% traffic restriction</strong> coupled with <strong>45 anti-smog mist units</strong> in Anand Vihar and Jahangirpuri will yield an immediate <strong>-42 AQI reduction</strong>, avoiding an estimated <strong>135 respiratory ER admissions</strong> over the next 48 hours.</p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" id="btn-copy-briefing"><i data-lucide="copy"></i> Copy Briefing</button>
+          <button class="btn-primary-action" id="btn-print-briefing"><i data-lucide="printer"></i> Print / Save PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         FLOATING AI ADVISOR CHAT WIDGET
+         ══════════════════════════════════════ -->
+    <div class="ai-advisor-wrapper" id="ai-advisor-wrapper">
+      <!-- Floating Trigger Button (FAB) -->
+      <button class="ai-advisor-fab" id="ai-advisor-toggle" title="Open AI Environmental Advisor">
+        <div class="ai-fab-glow"></div>
+        <i data-lucide="sparkles"></i>
+        <span>Ask AI Advisor</span>
+      </button>
+
+      <!-- Glassmorphic Chat Drawer -->
+      <div class="ai-chat-window" id="ai-chat-window">
+        <div class="ai-chat-header">
+          <div class="ai-chat-title">
+            <span class="ai-pulse-dot"></span>
+            <div>
+              <h4>Atmos AI Advisor</h4>
+              <span class="label-xs muted">Grounded in Live Model Telemetry</span>
+            </div>
+          </div>
+          <div class="ai-lang-switcher" id="ai-lang-switcher">
+            <button class="lang-btn lang-btn--active" data-lang="en">EN</button>
+            <button class="lang-btn" data-lang="hi">हिंदी</button>
+            <button class="lang-btn" data-lang="mr">मराठी</button>
+          </div>
+          <button class="ai-close-btn" id="ai-chat-close">&times;</button>
+        </div>
+
+        <!-- Chat messages log -->
+        <div class="ai-messages-log" id="ai-messages-log">
+          <div class="ai-msg ai-msg--bot">
+            <div class="ai-avatar"><i data-lucide="bot"></i></div>
+            <div class="ai-bubble">
+              <p>Hello! I am your <strong>Atmos Environmental Advisor</strong>. I answer questions directly using our digital twin's live sensor data, Gaussian Process spatial plumes, and predictive models.</p>
+              <span class="ai-time">Just now</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Prompt Chips -->
+        <div class="ai-quick-prompts">
+          <button class="prompt-chip" data-prompt="Should schools close tomorrow?">🏫 Should schools close tomorrow?</button>
+          <button class="prompt-chip" data-prompt="Why did Anand Vihar spike today?">🚨 Why did Anand Vihar spike?</button>
+          <button class="prompt-chip" data-prompt="What happens if we restrict traffic by 30%?">🚗 What if we restrict traffic by 30%?</button>
+        </div>
+
+        <!-- Chat input bar -->
+        <form class="ai-input-bar" id="ai-chat-form">
+          <input type="text" id="ai-input-field" placeholder="Ask about air quality, policy interventions, or health risks..." autocomplete="off" />
+          <button type="submit" class="ai-send-btn" id="ai-send-btn">
+            <i data-lucide="send"></i>
+          </button>
+        </form>
+      </div>
     </div>
 
   <script type="module" src="/src/main.js"></script>

@@ -1,0 +1,282 @@
+/**
+ * styles/base.css
+ * Reset, CSS custom properties (design tokens), body/html base styles.
+ * Imported by the root style.css.
+ */
+
+/* ─── Reset ─── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ─── Design Tokens ─── */
+:root {
+  --c-slate-light: #5a6882;
+  --c-slate-mid:   #3c475a;
+  --c-slate-dark:  #1d2938;
+  --c-obsidian:    #0c1015;
+  --c-coral:       #e07b5b;
+  --c-gold:        #efd395;
+
+  --app-frame-bg:       var(--c-obsidian);
+  --card-bg:            rgba(29, 41, 56, 0.72);
+  --card-bg-elevated:   rgba(60, 71, 90, 0.65);
+  --card-border:        rgba(90, 104, 130, 0.22);
+  --card-border-subtle: rgba(90, 104, 130, 0.12);
+
+  --ink:           #FFFFFF;
+  --ink-secondary: #CBD5E1;
+  --muted:         #8F9CAE;
+  --muted-dark:    #5B6878;
+
+  --accent-cyan:   #38BDF8;
+  --accent-amber:  var(--c-gold);
+  --accent-coral:  var(--c-coral);
+  --accent-green:  #34D399;
+  --accent-red:    #F87171;
+
+  --font-headline: 'Space Grotesk', -apple-system, sans-serif;
+  --font-body:     'Inter', -apple-system, sans-serif;
+  --font-mono:     'JetBrains Mono', monospace;
+}
+
+html {
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: #0c1015;
+  background-image:
+    radial-gradient(ellipse 950px 650px at 14% 12%, rgba(224,123,91,0.28) 0%, rgba(224,123,91,0.06) 50%, transparent 72%),
+    radial-gradient(circle 800px at 88% 82%, rgba(224,123,91,0.25) 0%, rgba(224,123,91,0.05) 48%, transparent 68%),
+    radial-gradient(ellipse 850px 550px at 82% 10%, rgba(239,211,149,0.28) 0%, rgba(239,211,149,0.06) 48%, transparent 70%),
+    radial-gradient(circle 650px at 10% 92%, rgba(239,211,149,0.2) 0%, transparent 60%),
+    radial-gradient(ellipse 1300px 750px at 50% 28%, rgba(90,104,130,0.42) 0%, rgba(90,104,130,0.1) 60%, transparent 75%),
+    radial-gradient(ellipse 1400px 850px at 32% 65%, rgba(60,71,90,0.48) 0%, transparent 72%),
+    linear-gradient(168deg, #1d2938 0%, #3c475a 32%, #1d2938 68%, #0c1015 100%);
+  background-attachment: fixed;
+  background-size: cover;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 20px;
+  min-height: 100vh;
+  width: 100vw;
+  overflow-x: hidden;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+}
+
+/* ─── Utility color helpers ─── */
+.text-gold    { color: var(--c-gold); }
+.text-coral   { color: var(--c-coral); }
+.text-cyan    { color: var(--accent-cyan); }
+.text-green   { color: var(--accent-green); }
+.text-red     { color: var(--accent-red); }
+.text-amber   { color: var(--c-gold); }
+.muted        { color: var(--muted); }
+
+/* ─── Shared badge components ─── */
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.badge-status--good        { background: rgba(76,175,80,0.2);    color: #4CAF50; }
+.badge-status--moderate    { background: rgba(255,193,7,0.2);    color: #FFC107; }
+.badge-status--poor        { background: rgba(255,152,0,0.2);    color: #FF9800; }
+.badge-status--severe      { background: rgba(244,67,54,0.2);    color: #F44336; }
+
+.badge-pill {
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  background: rgba(255,255,255,0.06);
+  color: var(--muted);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.badge-tag {
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+.badge-tag--high { background: rgba(52,211,153,0.15); color: #34D399; }
+.badge-tag--med  { background: rgba(239,211,149,0.15); color: #efd395; }
+.badge-tag--low  { background: rgba(248,113,113,0.15); color: #F87171; }
+
+/* ─── Dots used in legend / attribution ─── */
+.dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.dot-coral  { background: var(--c-coral); }
+.dot-gold   { background: var(--c-gold); }
+.dot-cyan   { background: var(--accent-cyan); }
+.dot-muted  { background: var(--muted); }
+
+/* ─── Shared view layout ─── */
+.app-view {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.app-view--active {
+  display: flex;
+}
+
+/* ─── View headers ─── */
+.view-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 8px 0;
+}
+.view-header__left { display: flex; flex-direction: column; gap: 6px; }
+.view-header__right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.view-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.view-title {
+  font-family: var(--font-headline);
+  font-size: 22px;
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.2;
+}
+.view-desc {
+  font-size: 12.5px;
+  color: var(--muted);
+  max-width: 540px;
+  line-height: 1.45;
+}
+
+/* ─── Shared form range sliders ─── */
+.custom-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.08);
+  outline: none;
+  cursor: pointer;
+}
+.custom-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  border: 2px solid #0c1015;
+  box-shadow: 0 0 10px rgba(56,189,248,0.45);
+  cursor: pointer;
+}
+.custom-range::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  border: 2px solid #0c1015;
+  cursor: pointer;
+}
+
+/* ─── Spin animation for recalibrate ─── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spin-animation {
+  animation: spin 0.7s linear infinite;
+}
+
+/* ─── Action buttons ─── */
+.action-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--c-coral), var(--c-gold));
+  border: none;
+  color: #0c1015;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  margin-top: auto;
+}
+.action-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(224,123,91,0.45);
+}
+
+.action-pill-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--ink-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.action-pill-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: #FFFFFF;
+}
+
+.btn-text-action {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  cursor: pointer;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-text-action:hover { opacity: 0.75; }
+
+/* ─── Shared label-xs ─── */
+.label-xs {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
