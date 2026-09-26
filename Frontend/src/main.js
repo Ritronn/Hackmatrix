@@ -19,7 +19,7 @@ import { initGlobalModals }     from './components/modals.js';
 import { initAIAdvisor }        from './components/advisor.js';
 
 // ── View Controllers ────────────────────────────────────
-import { initHeroCountUp, initMapControls } from './views/dashboard.js';
+import { initHeroCountUp, initMapControls, loadCityData } from './views/dashboard.js';
 import { initDigitalTwinMap }               from './views/map.js';
 import { initScenarioSimulator }            from './views/scenario.js';
 import { initWardsAnalytics }               from './views/wards.js';
@@ -36,9 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Navigation & routing ────────────────────────────
   initNavRail();
 
-  // ── Dashboard ───────────────────────────────────────
-  initHeroCountUp(187);
+  // ── Dashboard — boot with static value, then fetch live data ──
+  initHeroCountUp(142);   // shows immediately while fetch is in-flight
   initMapControls();
+  loadCityData('Pune');   // replaces with real WAQI + OWM data async
 
   // ── Digital Twin Map ────────────────────────────────
   initDigitalTwinMap();

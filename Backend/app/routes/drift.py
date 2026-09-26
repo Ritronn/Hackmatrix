@@ -12,7 +12,7 @@ router = APIRouter(prefix="/drift", tags=["Twin Drift"])
 
 @router.get("/status", response_model=DriftStatusResponse)
 async def get_drift_status(
-    city: str = Query("Delhi"),
+    city: str = Query("Pune"),
     threshold_pct: float = Query(25.0, ge=5, le=100),
 ):
     """

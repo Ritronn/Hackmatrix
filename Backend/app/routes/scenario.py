@@ -26,8 +26,8 @@ async def simulate_scenario(inp: ScenarioInput):
 
 @router.get("/roi-leaderboard", response_model=ROILeaderboardResponse)
 async def get_roi_leaderboard(
-    city: str = Query("Delhi"),
-    baseline_aqi: float = Query(187.0, ge=0),
+    city: str = Query("Pune"),
+    baseline_aqi: float = Query(158.0, ge=0),
 ):
     """
     Return interventions ranked by AQI reduction per ₹ Crore (ROI).

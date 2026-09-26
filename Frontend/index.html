@@ -170,7 +170,7 @@
             <i data-lucide="bell"></i>
             <span class="alert-badge-dot"></span>
           </button>
-          <div class="nav-rail__avatar" title="City Admin: Delhi NCR">
+          <div class="nav-rail__avatar" title="City Admin: Maharashtra Twin (Pune / Mumbai / PCMC)">
             <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" alt="Admin Avatar" />
           </div>
         </div>
@@ -230,12 +230,12 @@
             <!-- Big Metric & Status -->
             <div class="hero-card__value-group">
               <div class="hero-card__temp-wrap">
-                <span class="hero-card__value" id="hero-aqi">187</span>
+                <span class="hero-card__value" id="hero-aqi">—</span>
                 <span class="hero-card__unit">AQI</span>
               </div>
               <div class="hero-card__condition">
                 <i data-lucide="cloud-fog" class="hero-card__cond-icon"></i>
-                <span>Poor Air Quality • Haze</span>
+                <span>Loading live data…</span>
               </div>
             </div>
 
@@ -245,11 +245,11 @@
             <div class="hero-card__footer">
               <div class="hero-card__loc">
                 <i data-lucide="map-pin" class="hero-card__loc-icon"></i>
-                <span id="hero-station">ITO, Delhi, IN</span>
+                <span id="hero-station">Fetching station…</span>
               </div>
               <div class="hero-card__date">
                 <i data-lucide="calendar" class="hero-card__date-icon"></i>
-                <span id="hero-date">25 Sept, 2026 • 5:01 PM</span>
+                <span id="hero-date">—</span>
               </div>
             </div>
           </div>
@@ -382,19 +382,19 @@
                 </div>
 
                 <div class="highlight-main-val">
-                  <span class="highlight-num">7.90</span>
-                  <span class="highlight-unit">km/h NW</span>
-                  <span class="highlight-time">5:01 AM</span>
+                  <span class="highlight-num" id="wind-speed-val">—</span>
+                  <span class="highlight-unit" id="wind-dir-val">km/h</span>
+                  <span class="highlight-time" id="wind-time-val">—</span>
                 </div>
 
                 <div class="highlight-sub-row">
                   <div class="sub-metric">
                     <span class="sub-metric__label">Humidity</span>
-                    <span class="sub-metric__val">84%</span>
+                    <span class="sub-metric__val" id="humidity-val">—</span>
                   </div>
                   <div class="sub-metric">
                     <span class="sub-metric__label">Traffic Share</span>
-                    <span class="sub-metric__val">45%</span>
+                    <span class="sub-metric__val" id="traffic-share-val">—</span>
                   </div>
                 </div>
               </div>
@@ -528,23 +528,23 @@
                 <div class="radar-station radar-station--ito" style="top: 48%; left: 62%;">
                   <div class="radar-ring"></div>
                   <div class="station-bubble">
-                    <span class="bubble-city">ITO Station</span>
-                    <span class="bubble-val">187°</span>
-                    <span class="bubble-meta">💨 8 km/h • 90%</span>
+                    <span class="bubble-city">Shivaji Nagar</span>
+                    <span class="bubble-val">158°</span>
+                    <span class="bubble-meta">💨 9 km/h • 68%</span>
                   </div>
                 </div>
 
                 <div class="radar-station radar-station--anand" style="top: 26%; left: 38%;">
                   <div class="station-pill">
                     <span class="station-dot" style="background:#EF4444"></span>
-                    <span>Anand Vihar 210°</span>
+                    <span>Akurdi PCMC 184°</span>
                   </div>
                 </div>
 
                 <div class="radar-station radar-station--dwarka" style="top: 72%; left: 45%;">
                   <div class="station-pill">
                     <span class="station-dot" style="background:#F59E0B"></span>
-                    <span>Dwarka 165°</span>
+                    <span>Bhosari MIDC 192°</span>
                   </div>
                 </div>
 
@@ -552,15 +552,19 @@
                 <div class="map-floating-pills">
                   <button class="loc-chip loc-chip--active">
                     <i data-lucide="cloud"></i>
-                    <span>Delhi NCR, IN</span>
+                    <span>Pune, MH</span>
                   </button>
                   <button class="loc-chip">
                     <i data-lucide="cloud"></i>
-                    <span>Noida, UP</span>
+                    <span>Mumbai, MH</span>
+                  </button>
+                  <button class="loc-chip">
+                    <i data-lucide="cloud"></i>
+                    <span>Nashik, MH</span>
                   </button>
                   <button class="loc-chip">
                     <i data-lucide="sun"></i>
-                    <span>Gurugram, HR</span>
+                    <span>Akurdi, MH</span>
                   </button>
                 </div>
 
@@ -651,31 +655,31 @@
               <div class="map-station-pin map-station-pin--active" style="top: 45%; left: 58%;" data-station="ito">
                 <div class="pin-ring"></div>
                 <div class="pin-core"></div>
-                <div class="pin-label">ITO Junction (187 AQI)</div>
+                <div class="pin-label">Shivaji Nagar (158 AQI)</div>
               </div>
 
               <div class="map-station-pin" style="top: 25%; left: 36%;" data-station="anand">
                 <div class="pin-ring pin-ring--severe"></div>
                 <div class="pin-core pin-core--severe"></div>
-                <div class="pin-label">Anand Vihar (218 AQI ⚠️)</div>
+                <div class="pin-label">Akurdi PCMC (184 AQI ⚠️)</div>
               </div>
 
               <div class="map-station-pin" style="top: 68%; left: 42%;" data-station="dwarka">
-                <div class="pin-ring pin-ring--moderate"></div>
-                <div class="pin-core pin-core--moderate"></div>
-                <div class="pin-label">Dwarka Sec-8 (165 AQI)</div>
+                <div class="pin-ring pin-ring--severe"></div>
+                <div class="pin-core pin-core--severe"></div>
+                <div class="pin-label">Bhosari MIDC (192 AQI)</div>
               </div>
 
               <div class="map-station-pin" style="top: 22%; left: 66%;" data-station="wazirpur">
-                <div class="pin-ring pin-ring--poor"></div>
-                <div class="pin-core pin-core--poor"></div>
-                <div class="pin-label">Wazirpur (182 AQI)</div>
+                <div class="pin-ring pin-ring--moderate"></div>
+                <div class="pin-core pin-core--moderate"></div>
+                <div class="pin-label">Kothrud / Karve Rd (126 AQI)</div>
               </div>
 
               <div class="map-station-pin" style="top: 75%; left: 68%;" data-station="lodhi">
                 <div class="pin-ring pin-ring--good"></div>
                 <div class="pin-core pin-core--good"></div>
-                <div class="pin-label">Lodhi Road (118 AQI)</div>
+                <div class="pin-label">Pashan Bio-Belt (84 AQI)</div>
               </div>
 
               <!-- Floating Map Layer Toolbar -->
@@ -712,10 +716,10 @@
               <div class="inspector-header">
                 <div>
                   <span class="label-xs text-gold">STATION TELEMETRY</span>
-                  <h3 class="inspector-title" id="inspect-name">ITO Monitoring Station</h3>
-                  <span class="inspector-zone" id="inspect-zone">Central Delhi • Zone 4 Sensor</span>
+                  <h3 class="inspector-title" id="inspect-name">Shivaji Nagar Observatory</h3>
+                  <span class="inspector-zone" id="inspect-zone">Central Pune • Urban Core IMD</span>
                 </div>
-                <span class="badge-status badge-status--poor" id="inspect-badge">187 AQI</span>
+                <span class="badge-status badge-status--moderate" id="inspect-badge">158 AQI</span>
               </div>
 
               <div class="inspector-metrics-grid">
@@ -1050,13 +1054,13 @@
             <div class="view-header__left">
               <div class="view-tag"><span class="pulse-dot"></span> Neighborhood Analytics</div>
               <h1 class="view-title">Ward-Level Ranking & Source Attribution</h1>
-              <p class="view-desc">Granular ward comparisons across Delhi NCR, identifying primary pollution drivers and targeted interventions.</p>
+              <p class="view-desc">Granular ward comparisons across Maharashtra urban centers (Pune, Mumbai, Nashik, Akurdi / PCMC), identifying primary pollution drivers and targeted interventions.</p>
             </div>
             <div class="view-header__right">
               <div class="filter-pills-row" id="ward-filter-group">
                 <button class="filter-pill filter-pill--active" data-filter="all">All Wards (32)</button>
-                <button class="filter-pill" data-filter="severe">Severe & Poor (>180)</button>
-                <button class="filter-pill" data-filter="moderate">Moderate (&lt;170)</button>
+                <button class="filter-pill" data-filter="severe">Severe & Poor (>170)</button>
+                <button class="filter-pill" data-filter="moderate">Moderate (&lt;160)</button>
               </div>
             </div>
           </div>
@@ -1066,22 +1070,22 @@
             <div class="bento-card ward-stat-card">
               <span class="label-xs muted">TOTAL WARDS MONITORED</span>
               <strong class="ward-stat-num">32 Wards</strong>
-              <span class="ward-stat-sub text-cyan">Across 11 Delhi Districts</span>
+              <span class="ward-stat-sub text-cyan">Across Maharashtra Urban Centers</span>
             </div>
             <div class="bento-card ward-stat-card">
               <span class="label-xs text-red">HIGHEST SEVERITY WARD</span>
-              <strong class="ward-stat-num text-red">Anand Vihar (218)</strong>
-              <span class="ward-stat-sub text-red">Active Divergence Spike</span>
+              <strong class="ward-stat-num text-red">Bhosari MIDC (192)</strong>
+              <span class="ward-stat-sub text-red">Foundry & Industrial Cluster</span>
             </div>
             <div class="bento-card ward-stat-card">
               <span class="label-xs text-green">CLEANEST WARD</span>
-              <strong class="ward-stat-num text-green">Lodhi Road (118)</strong>
-              <span class="ward-stat-sub text-green">Protected Green Corridor</span>
+              <strong class="ward-stat-num text-green">Colaba / Pashan (64–84)</strong>
+              <span class="ward-stat-sub text-green">Coastal & Protected Green Belt</span>
             </div>
             <div class="bento-card ward-stat-card">
               <span class="label-xs text-gold">PRIMARY EMISSION DRIVER</span>
-              <strong class="ward-stat-num text-gold">Vehicular (42%)</strong>
-              <span class="ward-stat-sub">Followed by Biomass (28%)</span>
+              <strong class="ward-stat-num text-gold">Vehicular (44%)</strong>
+              <span class="ward-stat-sub">Followed by MIDC Industry (26%)</span>
             </div>
           </div>
 
@@ -1107,52 +1111,68 @@
                   </thead>
                   <tbody>
                     <tr class="ward-row ward-row--severe" data-category="severe">
-                      <td><strong>Anand Vihar</strong></td>
-                      <td>East Delhi</td>
-                      <td><span class="badge-status badge-status--severe">218 AQI</span></td>
-                      <td>142 µg/m³</td>
-                      <td><span class="driver-tag driver-tag--traffic">Transport + Stubble</span></td>
-                      <td>Deploy 12 Mist Cannons + Heavy Truck Ban</td>
+                      <td><strong>Bhosari MIDC</strong></td>
+                      <td>PCMC Industrial</td>
+                      <td><span class="badge-status badge-status--severe">192 AQI</span></td>
+                      <td>126 µg/m³</td>
+                      <td><span class="driver-tag driver-tag--industry">Metal Dust & Furnaces</span></td>
+                      <td>Stack Scrubber Audit & Dust Collector Mandate</td>
                     </tr>
                     <tr class="ward-row ward-row--severe" data-category="severe">
-                      <td><strong>Jahangirpuri</strong></td>
-                      <td>North Delhi</td>
-                      <td><span class="badge-status badge-status--severe">198 AQI</span></td>
-                      <td>128 µg/m³</td>
-                      <td><span class="driver-tag driver-tag--industry">Industrial Dust</span></td>
-                      <td>Halt Construction + Night Industrial Inspection</td>
-                    </tr>
-                    <tr class="ward-row ward-row--poor" data-category="severe">
-                      <td><strong>ITO Junction</strong></td>
-                      <td>Central Delhi</td>
-                      <td><span class="badge-status badge-status--poor">187 AQI</span></td>
+                      <td><strong>Akurdi Chowk</strong></td>
+                      <td>PCMC Central</td>
+                      <td><span class="badge-status badge-status--severe">184 AQI</span></td>
                       <td>118 µg/m³</td>
-                      <td><span class="driver-tag driver-tag--traffic">Traffic Congestion</span></td>
-                      <td>Traffic Signal Synchronization + Metro Subsidy</td>
+                      <td><span class="driver-tag driver-tag--traffic">Highway Freight + SME</span></td>
+                      <td>Anti-Smog Mist Cannons & Heavy Transit Diversion</td>
                     </tr>
                     <tr class="ward-row ward-row--poor" data-category="severe">
-                      <td><strong>Wazirpur</strong></td>
-                      <td>North West</td>
-                      <td><span class="badge-status badge-status--poor">182 AQI</span></td>
-                      <td>114 µg/m³</td>
-                      <td><span class="driver-tag driver-tag--industry">Metal Furnaces</span></td>
-                      <td>20% Industrial Emission Curtailment</td>
+                      <td><strong>Deonar / Chembur</strong></td>
+                      <td>Eastern Mumbai</td>
+                      <td><span class="badge-status badge-status--severe">196 AQI</span></td>
+                      <td>130 µg/m³</td>
+                      <td><span class="driver-tag driver-tag--industry">Refinery & Waste VOCs</span></td>
+                      <td>VOC Leak Detection & Waste Capping Interventions</td>
                     </tr>
                     <tr class="ward-row ward-row--moderate" data-category="moderate">
-                      <td><strong>Dwarka Sector-8</strong></td>
-                      <td>South West</td>
-                      <td><span class="badge-status badge-status--moderate">165 AQI</span></td>
+                      <td><strong>Shivaji Nagar</strong></td>
+                      <td>Central Pune</td>
+                      <td><span class="badge-status badge-status--moderate">158 AQI</span></td>
                       <td>98 µg/m³</td>
-                      <td><span class="driver-tag driver-tag--dust">Road & Construction Dust</span></td>
-                      <td>Mechanized Vacuum Sweeping</td>
+                      <td><span class="driver-tag driver-tag--traffic">Vehicular Congestion</span></td>
+                      <td>Traffic Signal Synchronization & PMPML Bus Priority</td>
                     </tr>
-                    <tr class="ward-row ward-row--good" data-category="moderate">
-                      <td><strong>Lodhi Road</strong></td>
-                      <td>South Delhi</td>
-                      <td><span class="badge-status badge-status--good">118 AQI</span></td>
-                      <td>65 µg/m³</td>
+                    <tr class="ward-row ward-row--moderate" data-category="moderate">
+                      <td><strong>Satpur MIDC</strong></td>
+                      <td>Nashik West</td>
+                      <td><span class="badge-status badge-status--moderate">158 AQI</span></td>
+                      <td>98 µg/m³</td>
+                      <td><span class="driver-tag driver-tag--industry">Engineering Ancillaries</span></td>
+                      <td>Industrial Zone Emission Scrubbing Audits</td>
+                    </tr>
+                    <tr class="ward-row ward-row--moderate" data-category="moderate">
+                      <td><strong>Bandra Kurla Complex</strong></td>
+                      <td>Central Mumbai</td>
+                      <td><span class="badge-status badge-status--moderate">152 AQI</span></td>
+                      <td>94 µg/m³</td>
+                      <td><span class="driver-tag driver-tag--traffic">Corporate Fleet Transit</span></td>
+                      <td>Mandatory Zero-Emission Commercial Shuttles</td>
+                    </tr>
+                    <tr class="ward-row ward-row--good" data-category="good">
+                      <td><strong>Pashan IISER Belt</strong></td>
+                      <td>West Pune Green</td>
+                      <td><span class="badge-status badge-status--good">84 AQI</span></td>
+                      <td>46 µg/m³</td>
                       <td><span class="driver-tag driver-tag--ambient">Ambient Background</span></td>
-                      <td>Green Canopy Maintenance & Monitoring</td>
+                      <td>Urban Forest Canopy Protection & Bio-Monitoring</td>
+                    </tr>
+                    <tr class="ward-row ward-row--good" data-category="good">
+                      <td><strong>Colaba</strong></td>
+                      <td>South Mumbai</td>
+                      <td><span class="badge-status badge-status--good">64 AQI</span></td>
+                      <td>34 µg/m³</td>
+                      <td><span class="driver-tag driver-tag--ambient">Marine Sea Breeze</span></td>
+                      <td>Heritage Area Pedestrianization & Canopy Care</td>
                     </tr>
                   </tbody>
                 </table>
@@ -1341,14 +1361,14 @@
             <span class="label-xs muted">Tested across 26 Indian CPCB cities from Kaggle Dataset</span>
 
             <div class="city-selector-grid">
-              <div class="city-card city-card--active" data-city="delhi">
+              <div class="city-card city-card--active" data-city="pune">
                 <div class="city-card__top">
-                  <span class="city-name">Delhi NCR</span>
-                  <span class="badge-status badge-status--poor">187 AQI</span>
+                  <span class="city-name">Pune</span>
+                  <span class="badge-status badge-status--moderate">158 AQI</span>
                 </div>
                 <div class="city-card__meta">
-                  <span>24 Active Stations</span>
-                  <span>Primary: Transport / Biomass</span>
+                  <span>18 Active Stations</span>
+                  <span>Valley Inversion & High Transit</span>
                 </div>
                 <span class="active-indicator">● Active Twin</span>
               </div>
@@ -1359,52 +1379,52 @@
                   <span class="badge-status badge-status--good">92 AQI</span>
                 </div>
                 <div class="city-card__meta">
-                  <span>14 Active Stations</span>
-                  <span>Marine Boundary Layer</span>
+                  <span>22 Active Stations</span>
+                  <span>Marine Boundary Layer & Coastal</span>
                 </div>
               </div>
 
-              <div class="city-card" data-city="bengaluru">
+              <div class="city-card" data-city="nashik">
                 <div class="city-card__top">
-                  <span class="city-name">Bengaluru</span>
-                  <span class="badge-status badge-status--good">74 AQI</span>
-                </div>
-                <div class="city-card__meta">
-                  <span>10 Active Stations</span>
-                  <span>High Elevation Dispersion</span>
-                </div>
-              </div>
-
-              <div class="city-card" data-city="kolkata">
-                <div class="city-card__top">
-                  <span class="city-name">Kolkata</span>
-                  <span class="badge-status badge-status--poor">168 AQI</span>
-                </div>
-                <div class="city-card__meta">
-                  <span>12 Active Stations</span>
-                  <span>Industrial + Heavy Transit</span>
-                </div>
-              </div>
-
-              <div class="city-card" data-city="lucknow">
-                <div class="city-card__top">
-                  <span class="city-name">Lucknow</span>
-                  <span class="badge-status badge-status--severe">204 AQI</span>
+                  <span class="city-name">Nashik</span>
+                  <span class="badge-status badge-status--moderate">128 AQI</span>
                 </div>
                 <div class="city-card__meta">
                   <span>8 Active Stations</span>
-                  <span>Indo-Gangetic Plain Inversion</span>
+                  <span>Godavari Basin & Industrial MIDC</span>
                 </div>
               </div>
 
-              <div class="city-card" data-city="hyderabad">
+              <div class="city-card" data-city="akurdi">
                 <div class="city-card__top">
-                  <span class="city-name">Hyderabad</span>
-                  <span class="badge-status badge-status--moderate">112 AQI</span>
+                  <span class="city-name">Akurdi (PCMC)</span>
+                  <span class="badge-status badge-status--severe">184 AQI</span>
                 </div>
                 <div class="city-card__meta">
-                  <span>11 Active Stations</span>
-                  <span>Moderate Industrial Profile</span>
+                  <span>12 Active Stations</span>
+                  <span>Automotive & Foundry Sector</span>
+                </div>
+              </div>
+
+              <div class="city-card" data-city="thane">
+                <div class="city-card__top">
+                  <span class="city-name">Thane</span>
+                  <span class="badge-status badge-status--moderate">166 AQI</span>
+                </div>
+                <div class="city-card__meta">
+                  <span>14 Active Stations</span>
+                  <span>Chemical Hub & Heavy Freight</span>
+                </div>
+              </div>
+
+              <div class="city-card" data-city="nagpur">
+                <div class="city-card__top">
+                  <span class="city-name">Nagpur</span>
+                  <span class="badge-status badge-status--moderate">135 AQI</span>
+                </div>
+                <div class="city-card__meta">
+                  <span>10 Active Stations</span>
+                  <span>Central Maharashtra Transit Belt</span>
                 </div>
               </div>
             </div>
@@ -1453,9 +1473,9 @@
               </div>
               <button class="btn-text-action" id="btn-copy-apikey"><i data-lucide="copy"></i> Copy Demo API Key</button>
             </div>
-            <pre class="code-block"><code>GET  /api/v1/twin/delhi/forecast?horizon=72h
-POST /api/v1/twin/delhi/simulate { "traffic_curb": 0.30, "mist_units": 45 }
-GET  /api/v1/twin/anand_vihar/attribution</code></pre>
+            <pre class="code-block"><code>GET  /api/v1/twin/pune/forecast?horizon=72h
+POST /api/v1/twin/pune/simulate { "traffic_curb": 0.30, "mist_units": 45 }
+GET  /api/v1/twin/akurdi/attribution</code></pre>
           </div>
         </div>
 
@@ -1485,25 +1505,25 @@ GET  /api/v1/twin/anand_vihar/attribution</code></pre>
           <div class="drift-stat-grid">
             <div class="drift-box">
               <span class="drift-box__lbl">Affected Station</span>
-              <strong class="drift-box__val">Anand Vihar, Delhi</strong>
+              <strong class="drift-box__val">Bhosari MIDC / Akurdi, PCMC</strong>
             </div>
             <div class="drift-box">
               <span class="drift-box__lbl">Observed Sensor</span>
-              <strong class="drift-box__val text-red">218 µg/m³ PM2.5</strong>
+              <strong class="drift-box__val text-red">192 µg/m³ PM2.5</strong>
             </div>
             <div class="drift-box">
               <span class="drift-box__lbl">Forecast Model</span>
-              <strong class="drift-box__val text-gold">165 µg/m³</strong>
+              <strong class="drift-box__val text-gold">142 µg/m³</strong>
             </div>
             <div class="drift-box">
               <span class="drift-box__lbl">Divergence</span>
-              <strong class="drift-box__val text-coral">+32.1% (Anomaly)</strong>
+              <strong class="drift-box__val text-coral">+35.2% (Anomaly)</strong>
             </div>
           </div>
 
           <div class="drift-cause-card">
             <h4><i data-lucide="info"></i> Root Cause Diagnosis:</h4>
-            <p>Localized crop residue burning plume transported via low-altitude NW wind vector, exacerbated by early evening thermal inversion layer trapping particulate matter at ground level.</p>
+            <p>Unscheduled metal foundry casting emissions along Old Pune-Mumbai Highway, exacerbated by night-time boundary layer compression trapping particulate matter in the Pawana river basin.</p>
           </div>
         </div>
 
@@ -1522,44 +1542,51 @@ GET  /api/v1/twin/anand_vihar/attribution</code></pre>
       <div class="modal-card modal-card--search" id="modal-search">
         <div class="search-input-wrap">
           <i data-lucide="search" class="search-icon"></i>
-          <input type="text" id="station-search-input" placeholder="Search city or monitoring station (e.g., Anand Vihar, Mumbai, Lodhi)..." autofocus />
+          <input type="text" id="station-search-input" placeholder="Search city or monitoring station (e.g., Akurdi, Pune, Mumbai, Nashik)..." autofocus />
           <button class="modal-close-btn" id="btn-close-search">&times;</button>
         </div>
         <div class="search-results-list" id="search-results">
-          <div class="search-item" data-station="ito" data-city="delhi">
+          <div class="search-item" data-station="anand" data-city="pune">
             <div class="search-item__main">
-              <strong>ITO Junction</strong>
-              <span>Central Delhi • Live Sensor</span>
+              <strong>Akurdi PCMC</strong>
+              <span>PCMC Industrial Corridor • Live Sensor</span>
             </div>
-            <span class="badge-status badge-status--poor">187 AQI</span>
+            <span class="badge-status badge-status--severe">184 AQI</span>
           </div>
-          <div class="search-item" data-station="anand" data-city="delhi">
+          <div class="search-item" data-station="ito" data-city="pune">
             <div class="search-item__main">
-              <strong>Anand Vihar</strong>
-              <span>East Delhi • Severe Zone</span>
+              <strong>Shivaji Nagar</strong>
+              <span>Central Pune • Urban Core IMD</span>
             </div>
-            <span class="badge-status badge-status--severe">218 AQI</span>
+            <span class="badge-status badge-status--moderate">158 AQI</span>
           </div>
-          <div class="search-item" data-station="dwarka" data-city="delhi">
+          <div class="search-item" data-station="dwarka" data-city="pune">
             <div class="search-item__main">
-              <strong>Dwarka Sector-8</strong>
-              <span>South West Delhi</span>
+              <strong>Bhosari MIDC</strong>
+              <span>PCMC Manufacturing Cluster</span>
             </div>
-            <span class="badge-status badge-status--moderate">165 AQI</span>
+            <span class="badge-status badge-status--severe">192 AQI</span>
           </div>
-          <div class="search-item" data-station="lodhi" data-city="delhi">
+          <div class="search-item" data-station="lodhi" data-city="pune">
             <div class="search-item__main">
-              <strong>Lodhi Road</strong>
-              <span>South Delhi • Green Belt</span>
+              <strong>Pashan Bio-Observatory</strong>
+              <span>West Pune • IISER Green Belt</span>
             </div>
-            <span class="badge-status badge-status--good">118 AQI</span>
+            <span class="badge-status badge-status--good">84 AQI</span>
           </div>
           <div class="search-item" data-city="mumbai">
             <div class="search-item__main">
-              <strong>Mumbai (Colaba & BKC)</strong>
-              <span>Maharashtra Twin</span>
+              <strong>Bandra Kurla Complex (Mumbai)</strong>
+              <span>Commercial Hub • Maharashtra Twin</span>
             </div>
-            <span class="badge-status badge-status--good">92 AQI</span>
+            <span class="badge-status badge-status--moderate">152 AQI</span>
+          </div>
+          <div class="search-item" data-city="nashik">
+            <div class="search-item__main">
+              <strong>Satpur MIDC (Nashik)</strong>
+              <span>Industrial Corridor • North Maharashtra</span>
+            </div>
+            <span class="badge-status badge-status--moderate">158 AQI</span>
           </div>
         </div>
       </div>
@@ -1573,7 +1600,7 @@ GET  /api/v1/twin/anand_vihar/attribution</code></pre>
             <i data-lucide="file-text" class="text-gold"></i>
             <div>
               <h3>Urban Environmental Daily Intelligence Briefing</h3>
-              <span class="label-xs muted">Automated Digital Twin Synthesis • Delhi NCR</span>
+              <span class="label-xs muted">Automated Digital Twin Synthesis • Maharashtra Urban Centers</span>
             </div>
           </div>
           <button class="modal-close-btn" id="btn-close-briefing">&times;</button>
@@ -1587,15 +1614,15 @@ GET  /api/v1/twin/anand_vihar/attribution</code></pre>
           </div>
           <div class="briefing-section">
             <h4>1. Executive Summary</h4>
-            <p>Air quality across Delhi NCR currently sits at <strong>187 AQI (Poor)</strong>, with a forecasted peak reaching <strong>203 AQI</strong> tomorrow evening. Surface atmospheric stagnation and a low inversion ceiling prevent vertical dispersion.</p>
+            <p>Air quality across Maharashtra urban corridors (Pune, PCMC, Mumbai, Akurdi) currently sits at <strong>142 AQI (Moderate to Poor)</strong>, with a forecasted peak reaching <strong>178 AQI</strong> in industrial sectors. Western Ghats valley inversion and industrial transit entrapment prevent vertical dispersion.</p>
           </div>
           <div class="briefing-section">
             <h4>2. Source Attribution Breakdown</h4>
-            <p>Real-time SHAP analysis attributes <strong>42%</strong> of particulate mass to vehicular exhaust, <strong>28%</strong> to transboundary agricultural residue plumes from the North-West corridor, and <strong>18%</strong> to industrial manufacturing furnaces.</p>
+            <p>Real-time SHAP analysis attributes <strong>44%</strong> of particulate mass to vehicular and freight exhaust along NH48 and the Mumbai-Pune Expressway, <strong>26%</strong> to industrial manufacturing (MIDC Bhosari / Akurdi / Chembur), and <strong>20%</strong> to road dust re-suspension.</p>
           </div>
           <div class="briefing-section">
             <h4>3. Recommended Interventions & Decision Matrix</h4>
-            <p>Simulation models predict that implementing a <strong>30% traffic restriction</strong> coupled with <strong>45 anti-smog mist units</strong> in Anand Vihar and Jahangirpuri will yield an immediate <strong>-42 AQI reduction</strong>, avoiding an estimated <strong>135 respiratory ER admissions</strong> over the next 48 hours.</p>
+            <p>Simulation models predict that implementing a <strong>30% freight restriction</strong> along the expressway corridor coupled with <strong>45 anti-smog mist units</strong> in Akurdi and Bhosari will yield an immediate <strong>-38 AQI reduction</strong>, avoiding an estimated <strong>110 respiratory ER admissions</strong> over the next 48 hours.</p>
           </div>
         </div>
 
@@ -1640,7 +1667,7 @@ GET  /api/v1/twin/anand_vihar/attribution</code></pre>
           <div class="ai-msg ai-msg--bot">
             <div class="ai-avatar"><i data-lucide="bot"></i></div>
             <div class="ai-bubble">
-              <p>Hello! I am your <strong>Atmos Environmental Advisor</strong>. I answer questions directly using our digital twin's live sensor data, Gaussian Process spatial plumes, and predictive models.</p>
+              <p>Hello! I am your <strong>Atmos Environmental Advisor</strong>. I answer questions directly using our digital twin's live sensor data, Gaussian Process spatial plumes, and predictive models for Maharashtra cities.</p>
               <span class="ai-time">Just now</span>
             </div>
           </div>
@@ -1648,9 +1675,9 @@ GET  /api/v1/twin/anand_vihar/attribution</code></pre>
 
         <!-- Quick Prompt Chips -->
         <div class="ai-quick-prompts">
-          <button class="prompt-chip" data-prompt="Should schools close tomorrow?">🏫 Should schools close tomorrow?</button>
-          <button class="prompt-chip" data-prompt="Why did Anand Vihar spike today?">🚨 Why did Anand Vihar spike?</button>
-          <button class="prompt-chip" data-prompt="What happens if we restrict traffic by 30%?">🚗 What if we restrict traffic by 30%?</button>
+          <button class="prompt-chip" data-prompt="Should PCMC schools restrict outdoor sports tomorrow?">🏫 Should PCMC schools restrict outdoor sports?</button>
+          <button class="prompt-chip" data-prompt="Why did Akurdi and Bhosari spike today?">🚨 Why did Akurdi and Bhosari spike?</button>
+          <button class="prompt-chip" data-prompt="What happens if we restrict freight on Pune-Mumbai highway by 30%?">🚗 What if we restrict highway freight by 30%?</button>
         </div>
 
         <!-- Chat input bar -->

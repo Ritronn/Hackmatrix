@@ -49,7 +49,7 @@ _NAMES = {
     "mist":     "Anti-Smog Mist Guns & Road Sweepers",
     "const":    "Construction & Demolition Halt",
     "metro":    "Free Metro & EV Bus Fares",
-    "stubble":  "Stubble Drone Interception",
+    "stubble":  "Biomass & Crop Residue Burning Interception",
 }
 
 

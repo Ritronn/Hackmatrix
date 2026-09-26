@@ -1,96 +1,103 @@
 /**
  * components/advisor.js
- * Floating AI Advisor chat widget.
- * Multilingual (EN/HI/MR), grounded responses, quick prompt chips.
+ * Floating AI Advisor — sends questions to the Gemini backend endpoint.
+ * Injects live AQI context automatically from window._currentAqi.
+ * Falls back to canned responses if backend is unreachable.
  */
+import { askAdvisor } from '../api/advisor.js';
+
 export function initAIAdvisor() {
-  const toggleBtn    = document.getElementById('ai-advisor-toggle');
-  const chatWindow   = document.getElementById('ai-chat-window');
-  const closeBtn     = document.getElementById('ai-chat-close');
-  const chatForm     = document.getElementById('ai-chat-form');
-  const inputField   = document.getElementById('ai-input-field');
-  const messagesLog  = document.getElementById('ai-messages-log');
-  const promptChips  = document.querySelectorAll('.prompt-chip');
-  const langButtons  = document.querySelectorAll('.lang-btn');
+  const toggleBtn   = document.getElementById('ai-advisor-toggle');
+  const chatWindow  = document.getElementById('ai-chat-window');
+  const closeBtn    = document.getElementById('ai-chat-close');
+  const chatForm    = document.getElementById('ai-chat-form');
+  const inputField  = document.getElementById('ai-input-field');
+  const messagesLog = document.getElementById('ai-messages-log');
+  const promptChips = document.querySelectorAll('.prompt-chip');
+  const langButtons = document.querySelectorAll('.lang-btn');
 
   let currentLang = 'en';
 
-  // ── Toggle chat window ──
+  // ── Toggle ────────────────────────────────────────────────────────────────
   toggleBtn?.addEventListener('click', () => {
     chatWindow?.classList.toggle('ai-chat-window--open');
     if (chatWindow?.classList.contains('ai-chat-window--open')) {
       setTimeout(() => inputField?.focus(), 150);
     }
   });
+  closeBtn?.addEventListener('click', () => chatWindow?.classList.remove('ai-chat-window--open'));
 
-  closeBtn?.addEventListener('click', () => {
-    chatWindow?.classList.remove('ai-chat-window--open');
-  });
-
-  // ── Language switcher ──
+  // ── Language switcher ─────────────────────────────────────────────────────
+  const placeholders = {
+    hi: 'वायु गुणवत्ता, नीतिगत निर्णय या स्वास्थ्य जोखिम के बारे में पूछें...',
+    mr: 'हवेची गुणवत्ता किंवा उपाययोजनांबद्दल विचारा...',
+    en: 'Ask about air quality, policy interventions, or health risks...',
+  };
   langButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
       langButtons.forEach((b) => b.classList.remove('lang-btn--active'));
       btn.classList.add('lang-btn--active');
       currentLang = btn.getAttribute('data-lang') || 'en';
-
-      const placeholders = {
-        hi: 'वायु गुणवत्ता, नीतिगत निर्णय या स्वास्थ्य जोखिम के बारे में पूछें...',
-        mr: 'हवेची गुणवत्ता किंवा उपाययोजनांबद्दल विचारा...',
-        en: 'Ask about air quality, policy interventions, or health risks...',
-      };
       if (inputField) inputField.placeholder = placeholders[currentLang] ?? placeholders.en;
     });
   });
 
-  // ── Append a message bubble ──
-  function appendMessage(text, isUser = false) {
+  // ── Message bubble ────────────────────────────────────────────────────────
+  function appendMessage(html, isUser = false, isLoading = false) {
     if (!messagesLog) return;
-    const msgEl = document.createElement('div');
-    msgEl.className = `ai-msg ${isUser ? 'ai-msg--user' : 'ai-msg--bot'}`;
+    const el = document.createElement('div');
+    el.className = `ai-msg ${isUser ? 'ai-msg--user' : 'ai-msg--bot'}`;
+    if (isLoading) el.id = 'ai-loading-bubble';
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-    msgEl.innerHTML = isUser
-      ? `<div class="ai-bubble"><p>${text}</p><span class="ai-time">${now}</span></div>`
+    el.innerHTML = isUser
+      ? `<div class="ai-bubble"><p>${html}</p><span class="ai-time">${now}</span></div>`
       : `<div class="ai-avatar"><i data-lucide="bot"></i></div>
-         <div class="ai-bubble"><p>${text}</p><span class="ai-time">${now}</span></div>`;
-
-    messagesLog.appendChild(msgEl);
+         <div class="ai-bubble"><p>${html}</p><span class="ai-time">${now}</span></div>`;
+    messagesLog.appendChild(el);
     messagesLog.scrollTop = messagesLog.scrollHeight;
     if (window.lucide) window.lucide.createIcons();
+    return el;
   }
 
-  // ── Grounded response generator ──
-  function generateResponse(query) {
-    const q = query.toLowerCase();
-
-    if (currentLang === 'hi') {
-      if (q.includes('school') || q.includes('स्कूल'))
-        return 'डिजिटल ट्विन का पूर्वानुमान है कि कल सुबह 08:30 बजे आनंद विहार और जहांगीरपुरी में AQI 220 पार कर सकता है। जीआरएपी-3 दिशानिर्देशों के तहत प्राथमिक विद्यालयों को ऑनलाइन कक्षाओं में स्थानांतरित करने की सिफारिश की जाती है।';
-      if (q.includes('anand') || q.includes('आनंद'))
-        return 'आनंद विहार में 32% विचलन दर्ज हुआ है। उत्तर-पश्चिम से 8 किमी/घंटा की हवा पराली के धुएं को ला रही है, जिसे शाम की थर्मल इनवर्जन परत ने जमीन पर फंसा दिया है।';
-      return 'मॉडल 30% ट्रैफिक प्रतिबंध और 45 मिस्ट गन से AQI में -42 अंक की गिरावट का अनुमान लगाता है।';
-    }
-
-    if (currentLang === 'mr')
-      return 'अटमॉस डिजिटल ट्विनच्या विश्लेषणानुसार: सध्या दिल्ली एनसीआरचा सरासरी AQI 187 (खराब) आहे. 30% वाहतूक निर्बंध लागू केल्यास 48 तासांत हवेच्या गुणवत्तेत 24% सुधारणा शक्य आहे.';
-
-    // English grounded responses
-    if (q.includes('school') || q.includes('close'))
-      return 'The digital twin forecasts AQI exceeding <strong>210 in East and North-West wards</strong> between 07:30–10:30 AM tomorrow due to nocturnal thermal trapping. Under GRAP-III protocols, suspending in-person primary school sessions avoids an estimated <strong>48 acute childhood ER admissions</strong>.';
-    if (q.includes('anand') || q.includes('spike') || q.includes('why'))
-      return 'Anand Vihar spiked to <strong>218 AQI (+32% divergence)</strong> due to sustained 8 km/h North-Westerly winds transporting an agricultural burning plume into the trans-Yamuna basin. A low atmospheric boundary layer (280 m) trapped particulate matter at surface level.';
-    if (q.includes('traffic') || q.includes('30%') || q.includes('restrict'))
-      return 'Enforcing a <strong>30% Odd-Even and heavy transit restriction</strong> removes approximately <strong>18 AQI points</strong>. Combined with metro subsidies, it saves <strong>₹14.2 Crore</strong> in civic healthcare costs at an intervention cost of ~₹12 Cr.';
-
-    return 'Based on live twin telemetry, city-wide AQI is <strong>187 (Poor)</strong> with vehicular emissions driving <strong>42%</strong> of the particulate load. Targeted dust suppression in priority wards yields the highest immediate ROI (+1.54 AQI drop per ₹ Cr).';
+  function removeLoadingBubble() {
+    document.getElementById('ai-loading-bubble')?.remove();
   }
 
-  // ── Handle a user query ──
-  function handleQuery(query) {
+  // ── Offline fallback ──────────────────────────────────────────────────────
+  function fallbackResponse(q) {
+    const l = q.toLowerCase();
+    if (l.includes('school') || l.includes('close'))
+      return 'The digital twin forecasts AQI reaching <strong>185+ in Akurdi and Bhosari industrial corridors</strong> tomorrow morning. Under MPCB guidelines, outdoor sports and morning assemblies should be suspended in PCMC schools.';
+    if (l.includes('akurdi') || l.includes('bhosari') || l.includes('anand') || l.includes('spike'))
+      return 'Akurdi and Bhosari spiked to <strong>188–192 AQI (+28% divergence)</strong> due to cold night-time boundary layer compression trapping foundry emissions and NH48 freight diesel exhaust.';
+    if (l.includes('traffic') || l.includes('restrict'))
+      return 'A <strong>30% freight restriction along the Pune-Mumbai Expressway and NH48 bypass</strong> removes ~16 AQI points and saves <strong>₹12.4 Crore</strong> in healthcare costs at ~₹9.5 Cr intervention cost.';
+    return `Maharashtra urban twin AQI is currently <strong>${window._currentAqi ?? 142} (Moderate to Poor)</strong>. Vehicular and industrial transit drives 44% of particulate load. Anti-smog mist guns in Bhosari and Akurdi offer the best immediate ROI.`;
+  }
+
+  // ── Send query to Gemini backend ──────────────────────────────────────────
+  async function handleQuery(query) {
     if (!query.trim()) return;
     appendMessage(query, true);
-    setTimeout(() => appendMessage(generateResponse(query), false), 450);
+    appendMessage('⋯ thinking...', false, true);
+
+    try {
+      const result = await askAdvisor({
+        question:                query,
+        city:                    window._currentCity ?? 'Pune',
+        language:                currentLang,
+        context_aqi:             window._currentAqi ?? null,
+        context_forecast_peak:   window._currentAqi ? window._currentAqi * 1.08 : null,
+        // Use live attribution if ML team has written it, else a generic description
+        context_dominant_source: window._currentAttribution ?? 'Vehicular transit, Industrial manufacturing (MIDC), Road dust',
+      });
+      removeLoadingBubble();
+      appendMessage(result.answer, false);
+    } catch (err) {
+      console.warn('[advisor] Gemini API unreachable, using fallback.', err);
+      removeLoadingBubble();
+      appendMessage(fallbackResponse(query), false);
+    }
   }
 
   chatForm?.addEventListener('submit', (e) => {
