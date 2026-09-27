@@ -10,6 +10,7 @@
 import './styles/base.css';
 import './styles/components.css';
 import './styles/views.css';
+import './styles/theme-light.css';
 import './style.css';
 
 // ── Partial loader ───────────────────────────────────────
@@ -20,6 +21,7 @@ import { initStormSequence }  from './components/storm.js';
 import { initNavRail }        from './components/nav.js';
 import { initGlobalModals }   from './components/modals.js';
 import { initAIAdvisor }      from './components/advisor.js';
+import { initThemeToggle }    from './components/theme-toggle.js';
 
 // ── View Controllers ────────────────────────────────────
 import { initMapControls, loadCityData } from './views/dashboard.js';
@@ -31,6 +33,9 @@ import { initSettingsAndCities }         from './views/settings.js';
 import { initRouter }                    from './router.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // ── 0. Initialize theme toggle first ────────────────────
+  initThemeToggle();
+
   // ── 1. Inject all partials into their slot containers ──
   await loadAllPartials();
 
