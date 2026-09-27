@@ -735,3 +735,30 @@ html[data-theme="light"] .ai-input-bar input:focus {
 }
 
 /* Send button and avatar are accent colors — leave unchanged */
+
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   AI ADVISOR FAB (TRIGGER BUTTON) — LIGHT MODE
+   Only colors change. Shape, size, position, animation stay untouched.
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+html[data-theme="light"] .ai-advisor-fab {
+  background: linear-gradient(135deg, rgba(255, 253, 248, 0.97), rgba(245, 240, 230, 0.97));
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(220, 210, 195, 0.7);
+  color: #1a202c;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.10),
+    0 0 18px rgba(2, 132, 199, 0.10);
+}
+
+html[data-theme="light"] .ai-advisor-fab:hover {
+  border-color: rgba(2, 132, 199, 0.45);
+  box-shadow:
+    0 14px 35px rgba(0, 0, 0, 0.14),
+    0 0 24px rgba(2, 132, 199, 0.18);
+}
+
+/* Sparkles icon — use light-mode accent blue instead of dark-mode gold */
+html[data-theme="light"] .ai-advisor-fab i {
+  color: #0284c7;
+}
