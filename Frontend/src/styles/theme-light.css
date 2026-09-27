@@ -629,3 +629,109 @@ html[data-theme="light"] .briefing-section h4 {
 html[data-theme="light"] .briefing-section strong {
   color: #1a202c;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   AI ADVISOR PANEL — LIGHT MODE FIX
+   Targeted overrides only. Layout, size, position, animations stay untouched.
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+/* Panel window */
+html[data-theme="light"] .ai-chat-window {
+  background: rgba(255, 253, 248, 0.97);
+  border: 1px solid rgba(220, 210, 195, 0.6);
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.12),
+    0 0 20px rgba(56, 189, 248, 0.06);
+}
+
+/* Header strip */
+html[data-theme="light"] .ai-chat-header {
+  background: rgba(251, 242, 213, 0.6);
+  border-bottom: 1px solid rgba(220, 210, 195, 0.45);
+}
+
+/* Title text */
+html[data-theme="light"] .ai-chat-title h4 {
+  color: #1a202c;
+}
+
+/* Language switcher container */
+html[data-theme="light"] .ai-lang-switcher {
+  background: rgba(220, 210, 195, 0.35);
+}
+
+/* Language buttons - inactive */
+html[data-theme="light"] .lang-btn {
+  color: #718096;
+}
+
+/* Language buttons - active */
+html[data-theme="light"] .lang-btn--active {
+  background: rgba(255, 255, 255, 0.85);
+  color: #1a202c;
+}
+
+/* Close × button */
+html[data-theme="light"] .ai-close-btn {
+  color: #718096;
+}
+
+html[data-theme="light"] .ai-close-btn:hover {
+  color: #1a202c;
+}
+
+/* Bot message bubble */
+html[data-theme="light"] .ai-msg--bot .ai-bubble {
+  background: rgba(245, 242, 235, 0.85);
+  border: 1px solid rgba(220, 210, 195, 0.55);
+  color: #1a202c;
+}
+
+/* User message bubble — keep warm accent, just ensure text is legible */
+html[data-theme="light"] .ai-msg--user .ai-bubble {
+  color: #1a202c;
+}
+
+/* Timestamp on all bubbles */
+html[data-theme="light"] .ai-time {
+  color: #a0aec0;
+}
+
+/* Quick-prompts section */
+html[data-theme="light"] .ai-quick-prompts {
+  border-top: 1px solid rgba(220, 210, 195, 0.45);
+}
+
+html[data-theme="light"] .prompt-chip {
+  background: rgba(245, 242, 235, 0.7);
+  border: 1px solid rgba(220, 210, 195, 0.5);
+  color: #4a5568;
+}
+
+html[data-theme="light"] .prompt-chip:hover {
+  background: rgba(235, 230, 220, 0.85);
+  border-color: rgba(2, 132, 199, 0.35);
+  color: #1a202c;
+}
+
+/* Input bar */
+html[data-theme="light"] .ai-input-bar {
+  border-top: 1px solid rgba(220, 210, 195, 0.45);
+}
+
+html[data-theme="light"] .ai-input-bar input {
+  background: rgba(255, 253, 248, 0.9);
+  border: 1px solid rgba(220, 210, 195, 0.55);
+  color: #1a202c;
+}
+
+html[data-theme="light"] .ai-input-bar input::placeholder {
+  color: #a0aec0;
+}
+
+html[data-theme="light"] .ai-input-bar input:focus {
+  border-color: #0284c7;
+  background: #ffffff;
+}
+
+/* Send button and avatar are accent colors — leave unchanged */
