@@ -2,19 +2,19 @@
  * theme-light.css — Light Theme Matching Reference Image
  * 
  * Creates warm cream/golden atmospheric background with soft radial sunlight glow
- * exactly matching the provided reference image
+ * exactly matching the provided reference image while ensuring perfect readability
  */
 
 html[data-theme="light"] {
-  /* Text Colors for Light Mode */
-  --text-primary: #1e293b;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
+  /* Text Colors for Light Mode - High Contrast for Readability */
+  --text-primary: #1a202c;
+  --text-secondary: #4a5568;
+  --text-muted: #718096;
 
   /* UI Element Colors with warm tints matching reference */
-  --bg-card: rgba(255, 255, 255, 0.88);
-  --bg-nav: rgba(251, 242, 213, 0.92);
-  --border-card: rgba(240, 230, 215, 0.4);
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-nav: rgba(251, 242, 213, 0.94);
+  --border-card: rgba(240, 230, 215, 0.45);
   
   /* Light Mode Accent Colors */
   --accent-cyan: #0284c7;
@@ -23,37 +23,28 @@ html[data-theme="light"] {
   --accent-red: #dc2626;
 }
 
-/* Light Mode Background - Matching Reference Image Structure */
+/* Light Mode Background - Subtle Atmospheric Effect Behind UI */
 html[data-theme="light"] body {
   background-color: #fbf2d5; /* Base warm cream from reference */
   background-image:
-    /* Large soft radial sunlight glow - upper right (brightest area from reference) */
-    radial-gradient(ellipse 1200px 800px at 85% 15%, rgba(254,235,176,0.45) 0%, rgba(251,242,213,0.25) 40%, transparent 65%),
+    /* Subtle warm sunlight glow - upper right (matching reference but very gentle) */
+    radial-gradient(ellipse 1400px 900px at 88% 12%, rgba(254,240,190,0.25) 0%, rgba(251,242,213,0.15) 50%, transparent 70%),
     
-    /* Secondary warm glow - center right */
-    radial-gradient(ellipse 900px 600px at 75% 25%, rgba(255,248,220,0.35) 0%, rgba(247,241,227,0.15) 50%, transparent 70%),
+    /* Secondary gentle warmth - center */
+    radial-gradient(ellipse 1000px 700px at 70% 30%, rgba(255,248,225,0.18) 0%, rgba(247,241,227,0.08) 60%, transparent 75%),
     
-    /* Subtle golden highlight - upper area */
-    radial-gradient(ellipse 800px 500px at 70% 10%, rgba(254,235,176,0.25) 0%, rgba(251,242,213,0.12) 45%, transparent 65%),
+    /* Ambient cream foundation - overall warmth */
+    radial-gradient(ellipse 1600px 1000px at 50% 40%, rgba(246,243,226,0.15) 0%, rgba(251,242,213,0.08) 70%, transparent 85%),
     
-    /* Ambient warm light - left side balance */
-    radial-gradient(ellipse 700px 450px at 25% 40%, rgba(247,241,227,0.2) 0%, rgba(246,243,226,0.08) 50%, transparent 70%),
-    
-    /* Overall atmospheric depth - center */
-    radial-gradient(ellipse 1400px 900px at 50% 35%, rgba(255,249,232,0.3) 0%, rgba(251,242,213,0.15) 55%, transparent 75%),
-    
-    /* Bottom warm foundation */
-    radial-gradient(ellipse 1000px 600px at 45% 80%, rgba(246,243,226,0.2) 0%, rgba(247,241,227,0.08) 60%, transparent 75%),
-    
-    /* Base gradient foundation - warm cream transitions matching reference */
-    linear-gradient(160deg, #fbf2d5 0%, #f7f1e3 25%, #fff9e8 45%, #f6f3e2 70%, #fbf2d5 100%);
+    /* Base foundation - very subtle cream transitions */
+    linear-gradient(165deg, #fbf2d5 0%, #f8f1e5 30%, #fff9e8 60%, #f6f3e2 100%);
   
   background-attachment: fixed;
   background-size: cover;
   color: var(--text-primary);
 }
 
-/* Subtle warm atmosphere overlay */
+/* Very Subtle Atmospheric Overlay - BEHIND dashboard content */
 html[data-theme="light"] body::before {
   content: '';
   position: fixed;
@@ -62,73 +53,74 @@ html[data-theme="light"] body::before {
   width: 100%;
   height: 100%;
   background: 
-    /* Very subtle warm radiance matching reference glow */
+    /* Extremely subtle warm radiance - barely visible */
     radial-gradient(
-      ellipse 600px 400px at 80% 20%,
-      rgba(254, 235, 176, 0.08) 0%,
-      rgba(251, 242, 213, 0.04) 60%,
+      ellipse 800px 500px at 85% 15%,
+      rgba(254, 240, 190, 0.04) 0%,
+      rgba(251, 242, 213, 0.02) 70%,
       transparent 100%
     );
-  animation: gentleWarmth 12s ease-in-out infinite;
+  animation: gentleWarmth 15s ease-in-out infinite;
   pointer-events: none;
-  z-index: -1;
+  z-index: -10; /* Well behind all dashboard content */
 }
 
 @keyframes gentleWarmth {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 0.9; }
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
 }
 
-/* Remove second pseudo-element for clean look */
+/* Remove second pseudo-element */
 html[data-theme="light"] body::after {
   display: none;
 }
 
-/* Cards - Warm ivory appearance matching reference */
+/* Cards - High Opacity for Perfect Readability */
 html[data-theme="light"] .bento-card,
 html[data-theme="light"] .hero-card,
 html[data-theme="light"] .forecast-box,
 html[data-theme="light"] .highlight-card,
 html[data-theme="light"] .map-card {
-  background: rgba(255, 255, 255, 0.90);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(240, 230, 215, 0.35);
+  background: rgba(255, 255, 255, 0.96); /* Very high opacity for readability */
+  backdrop-filter: blur(6px); /* Reduced blur */
+  border: 1px solid rgba(240, 230, 215, 0.4);
   box-shadow: 
-    0 2px 12px rgba(0, 0, 0, 0.025),
-    0 1px 3px rgba(0, 0, 0, 0.015);
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 1px 2px rgba(0, 0, 0, 0.02);
   color: var(--text-primary);
 }
 
-/* Navigation Rail - Warm ivory matching reference sidebar */
+/* Navigation Rail - Clean and Readable */
 html[data-theme="light"] .nav-rail {
-  background: rgba(251, 242, 213, 0.88);
-  backdrop-filter: blur(10px);
-  border-right: 1px solid rgba(240, 230, 215, 0.3);
-  box-shadow: 1px 0 6px rgba(0, 0, 0, 0.02);
+  background: rgba(251, 242, 213, 0.96); /* High opacity */
+  backdrop-filter: blur(8px);
+  border-right: 1px solid rgba(240, 230, 215, 0.35);
+  box-shadow: 1px 0 4px rgba(0, 0, 0, 0.02);
 }
 
-/* Navigation Buttons - Clean dark icons with blue active state */
+/* Navigation Buttons - High Contrast */
 html[data-theme="light"] .rail-btn {
-  color: #475569;
+  color: #4a5568; /* Darker for better contrast */
   transition: all 0.2s ease;
 }
 
 html[data-theme="light"] .rail-btn:hover {
-  background: rgba(240, 230, 215, 0.15);
-  color: #334155;
+  background: rgba(240, 230, 215, 0.2);
+  color: #2d3748;
 }
 
 html[data-theme="light"] .rail-btn--active {
-  background: rgba(56, 189, 248, 0.12);
-  color: #0284c7;
-  box-shadow: 0 1px 4px rgba(56, 189, 248, 0.15);
+  background: rgba(56, 189, 248, 0.15);
+  color: #0369a1; /* Darker blue for contrast */
+  box-shadow: 0 1px 4px rgba(56, 189, 248, 0.2);
 }
 
-/* Typography with subtle warmth */
+/* Typography - High Contrast for Readability */
 html[data-theme="light"] .card-heading,
 html[data-theme="light"] .section-title,
 html[data-theme="light"] .view-title {
   color: var(--text-primary);
+  font-weight: 600; /* Slightly bolder for better readability */
 }
 
 html[data-theme="light"] .hero-card__condition,
@@ -143,22 +135,497 @@ html[data-theme="light"] .hero-card__loc {
   color: var(--text-muted);
 }
 
-/* Floating Elements - Clean appearance */
+/* Hero Card Values - Ensure High Contrast */
+html[data-theme="light"] .hero-card__value {
+  color: #1a202c; /* Very dark for maximum readability */
+}
+
+html[data-theme="light"] .hero-card__unit {
+  color: #2d3748;
+}
+
+/* Highlight Card Values - High Contrast */
+html[data-theme="light"] .highlight-num {
+  color: #1a202c; /* Very dark for numbers */
+}
+
+html[data-theme="light"] .highlight-unit {
+  color: #2d3748;
+}
+
+/* Forecast Values - Readable */
+html[data-theme="light"] .forecast-aqi-high,
+html[data-theme="light"] .forecast-aqi-low {
+  color: #1a202c;
+}
+
+/* Sub-metrics Values - High Contrast */
+html[data-theme="light"] .sub-metric__val {
+  color: #1a202c;
+  font-weight: 600;
+}
+
+/* Floating Elements - Clean and Readable */
 html[data-theme="light"] .loc-chip {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(240, 230, 215, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(240, 230, 215, 0.25);
   color: var(--text-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 html[data-theme="light"] .map-ctrl-btn {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(240, 230, 215, 0.15);
-  color: #64748b;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(240, 230, 215, 0.2);
+  color: #4a5568;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-/* Weather Illustration Adjustments */
+/* Weather Illustration - Subtle Warm Glow */
 html[data-theme="light"] .weather-art__glow {
-  background: radial-gradient(circle, rgba(254, 235, 176, 0.4) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(254, 240, 190, 0.3) 0%, transparent 70%);
+}
+
+/* Ensure All Text Remains High Contrast */
+html[data-theme="light"] .forecast-row__date,
+html[data-theme="light"] .forecast-row__day {
+  color: var(--text-secondary);
+}
+
+html[data-theme="light"] .time-scrub__title,
+html[data-theme="light"] .time-scrub__sub {
+  color: var(--text-primary);
+}
+
+/* Map Elements Readability */
+html[data-theme="light"] .legend-header {
+  color: var(--text-secondary);
+}
+
+html[data-theme="light"] .station-bubble {
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--text-primary);
+  border: 1px solid rgba(240, 230, 215, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   COMPREHENSIVE TEXT CONTRAST FIXES FOR ALL OTHER PAGES
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+/* Global Text Elements - Ensure Readability Across All Pages */
+html[data-theme="light"] p,
+html[data-theme="light"] span:not(.badge):not(.dot):not(.pill),
+html[data-theme="light"] div:not(.hero-card):not(.bento-card):not(.nav-rail) {
+  color: var(--text-primary);
+}
+
+/* View Headers and Descriptions */
+html[data-theme="light"] .view-desc {
+  color: var(--text-secondary);
+}
+
+/* Tables - High Contrast for All Data */
+html[data-theme="light"] table,
+html[data-theme="light"] th,
+html[data-theme="light"] td {
+  color: var(--text-primary);
+}
+
+html[data-theme="light"] thead th {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+html[data-theme="light"] tbody td {
+  color: var(--text-primary);
+}
+
+/* AQI and Numerical Values - Maximum Contrast */
+html[data-theme="light"] .aqi-value,
+html[data-theme="light"] .metric-value,
+html[data-theme="light"] .number-value,
+html[data-theme="light"] .percentage-value {
+  color: #1a202c !important;
+  font-weight: 600;
+}
+
+/* Policy Intervention Page Elements */
+html[data-theme="light"] .intervention-name,
+html[data-theme="light"] .intervention-title {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+html[data-theme="light"] .intervention-description,
+html[data-theme="light"] .intervention-desc {
+  color: var(--text-secondary);
+}
+
+html[data-theme="light"] .cost-value,
+html[data-theme="light"] .roi-value,
+html[data-theme="light"] .reduction-value {
+  color: #1a202c;
+  font-weight: 600;
+}
+
+html[data-theme="light"] .slider-label,
+html[data-theme="light"] .control-label {
+  color: var(--text-secondary);
+}
+
+html[data-theme="light"] .baseline-value,
+html[data-theme="light"] .outcome-value,
+html[data-theme="light"] .predicted-value {
+  color: #1a202c;
+}
+
+/* Ward/Analytics Page Elements */
+html[data-theme="light"] .ward-name,
+html[data-theme="light"] .zone-name,
+html[data-theme="light"] .station-name {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+html[data-theme="light"] .ranking-value,
+html[data-theme="light"] .rank-number {
+  color: #1a202c;
+  font-weight: 700;
+}
+
+html[data-theme="light"] .dominant-driver,
+html[data-theme="light"] .source-attribution {
+  color: var(--text-secondary);
+}
+
+html[data-theme="light"] .pm25-value,
+html[data-theme="light"] .pm10-value,
+html[data-theme="light"] .pollutant-value {
+  color: #1a202c;
+  font-weight: 600;
+}
+
+/* Model Accuracy Page Elements */
+html[data-theme="light"] .rmse-value,
+html[data-theme="light"] .correlation-value,
+html[data-theme="light"] .accuracy-metric {
+  color: #1a202c;
+  font-weight: 600;
+}
+
+html[data-theme="light"] .confidence-interval,
+html[data-theme="light"] .coverage-value {
+  color: var(--text-secondary);
+}
+
+html[data-theme="light"] .architecture-label,
+html[data-theme="light"] .model-label {
+  color: var(--text-primary);
+}
+
+/* Settings/Multi-City Page Elements */
+html[data-theme="light"] .city-name,
+html[data-theme="light"] .city-title {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+html[data-theme="light"] .city-description,
+html[data-theme="light"] .city-info {
+  color: var(--text-secondary);
+}
+
+html[data-theme="light"] .station-count,
+html[data-theme="light"] .active-count {
+  color: #1a202c;
+  font-weight: 600;
+}
+
+html[data-theme="light"] .speed-label,
+html[data-theme="light"] .sensitivity-label {
+  color: var(--text-secondary);
+}
+
+html[data-theme="light"] .api-label,
+html[data-theme="light"] .code-label {
+  color: var(--text-primary);
+}
+
+/* Form Elements and Controls */
+html[data-theme="light"] input,
+html[data-theme="light"] select,
+html[data-theme="light"] textarea {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(240, 230, 215, 0.4);
+}
+
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder {
+  color: var(--text-muted);
+}
+
+html[data-theme="light"] .form-label,
+html[data-theme="light"] .input-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Button Text */
+html[data-theme="light"] .btn,
+html[data-theme="light"] button:not(.rail-btn) {
+  color: var(--text-primary);
+}
+
+/* Chart and Legend Elements */
+html[data-theme="light"] .chart-title,
+html[data-theme="light"] .legend-title {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+html[data-theme="light"] .chart-label,
+html[data-theme="light"] .legend-label,
+html[data-theme="light"] .axis-label {
+  color: var(--text-secondary);
+}
+
+html[data-theme="light"] .chart-value,
+html[data-theme="light"] .data-point-label {
+  color: #1a202c;
+}
+
+/* Status and Indicator Text */
+html[data-theme="light"] .status-active,
+html[data-theme="light"] .indicator-active {
+  color: var(--accent-green);
+  font-weight: 600;
+}
+
+html[data-theme="light"] .status-inactive,
+html[data-theme="light"] .indicator-inactive {
+  color: var(--text-muted);
+}
+
+/* Date and Time Elements */
+html[data-theme="light"] .date-value,
+html[data-theme="light"] .time-value,
+html[data-theme="light"] .timestamp {
+  color: var(--text-secondary);
+}
+
+/* Percentage and Unit Labels */
+html[data-theme="light"] .percentage,
+html[data-theme="light"] .unit-label,
+html[data-theme="light"] .measurement-unit {
+  color: var(--text-secondary);
+}
+
+/* Error and Success Messages */
+html[data-theme="light"] .error-message,
+html[data-theme="light"] .validation-error {
+  color: var(--accent-red);
+}
+
+html[data-theme="light"] .success-message,
+html[data-theme="light"] .validation-success {
+  color: var(--accent-green);
+}
+
+/* Generic Text Content Classes */
+html[data-theme="light"] .text-content,
+html[data-theme="light"] .content-text,
+html[data-theme="light"] .description-text {
+  color: var(--text-secondary);
+}
+
+html[data-theme="light"] .value-text,
+html[data-theme="light"] .metric-text,
+html[data-theme="light"] .data-text {
+  color: #1a202c;
+  font-weight: 600;
+}
+
+/* Ensure Cards Don't Override Text Colors */
+html[data-theme="light"] .bento-card *:not(.badge):not(.dot):not(.pill),
+html[data-theme="light"] .hero-card *:not(.badge):not(.dot):not(.pill),
+html[data-theme="light"] .forecast-box *:not(.badge):not(.dot):not(.pill),
+html[data-theme="light"] .highlight-card *:not(.badge):not(.dot):not(.pill),
+html[data-theme="light"] .map-card *:not(.badge):not(.dot):not(.pill) {
+  color: inherit;
+}
+
+/* Override any inherited low-contrast colors */
+html[data-theme="light"] * {
+  /* Remove any inherited light colors that make text unreadable */
+}
+
+html[data-theme="light"] .muted:not(.nav-element):not(.dashboard-element) {
+  color: var(--text-muted) !important;
+}
+
+/* Table-specific fixes for data readability */
+html[data-theme="light"] table .cell-value,
+html[data-theme="light"] .table-cell,
+html[data-theme="light"] .data-cell {
+  color: #1a202c;
+  font-weight: 500;
+}
+
+html[data-theme="light"] .table-header,
+html[data-theme="light"] .column-header {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════
+   NOTIFICATION MODAL - LIGHT MODE FIX
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+/* Modal Backdrop */
+html[data-theme="light"] .modal-backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Modal Card - Light Mode Styling */
+html[data-theme="light"] .modal-card {
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(240, 230, 215, 0.5);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+html[data-theme="light"] .modal-card--drift {
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
+/* Modal Header */
+html[data-theme="light"] .modal-header h3 {
+  color: #1a202c;
+}
+
+html[data-theme="light"] .modal-header .label-xs.muted {
+  color: var(--text-muted);
+}
+
+html[data-theme="light"] .modal-close-btn {
+  color: #4a5568;
+}
+
+html[data-theme="light"] .modal-close-btn:hover {
+  color: #1a202c;
+}
+
+/* Alert Icon Ring */
+html[data-theme="light"] .alert-icon-ring {
+  background: rgba(248, 113, 113, 0.1);
+  color: var(--accent-red);
+}
+
+/* Drift Stat Grid */
+html[data-theme="light"] .drift-box {
+  background: rgba(251, 242, 213, 0.3);
+  border: 1px solid rgba(240, 230, 215, 0.5);
+}
+
+html[data-theme="light"] .drift-box__lbl {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+html[data-theme="light"] .drift-box__val {
+  color: #1a202c;
+  font-weight: 700;
+}
+
+/* Preserve Semantic Colors in Light Mode */
+html[data-theme="light"] .drift-box__val.text-red {
+  color: var(--accent-red) !important;
+}
+
+html[data-theme="light"] .drift-box__val.text-gold {
+  color: var(--accent-amber) !important;
+}
+
+html[data-theme="light"] .drift-box__val.text-coral {
+  color: #ea580c !important;
+}
+
+/* Root Cause Diagnosis Card */
+html[data-theme="light"] .drift-cause-card {
+  background: rgba(254, 215, 170, 0.15);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+html[data-theme="light"] .drift-cause-card h4 {
+  color: #1a202c;
+}
+
+html[data-theme="light"] .drift-cause-card p {
+  color: var(--text-secondary);
+}
+
+/* Modal Footer Buttons */
+html[data-theme="light"] .btn-secondary {
+  background: rgba(240, 230, 215, 0.3);
+  color: #4a5568;
+  border: 1px solid rgba(240, 230, 215, 0.5);
+}
+
+html[data-theme="light"] .btn-secondary:hover {
+  background: rgba(240, 230, 215, 0.5);
+  color: #1a202c;
+}
+
+html[data-theme="light"] .btn-primary-action {
+  background: linear-gradient(135deg, #0284c7, #0ea5e9);
+  color: #ffffff;
+  border: none;
+}
+
+html[data-theme="light"] .btn-primary-action:hover {
+  background: linear-gradient(135deg, #0369a1, #0284c7);
+}
+
+/* Search and Briefing Modals - Light Mode */
+html[data-theme="light"] .modal-card--search,
+html[data-theme="light"] .modal-card--briefing {
+  background: rgba(255, 255, 255, 0.98);
+}
+
+html[data-theme="light"] .search-input-wrap input {
+  background: rgba(251, 242, 213, 0.3);
+  color: #1a202c;
+  border: 1px solid rgba(240, 230, 215, 0.5);
+}
+
+html[data-theme="light"] .search-input-wrap input::placeholder {
+  color: var(--text-muted);
+}
+
+html[data-theme="light"] .search-item {
+  color: #1a202c;
+  border-bottom: 1px solid rgba(240, 230, 215, 0.3);
+}
+
+html[data-theme="light"] .search-item:hover {
+  background: rgba(251, 242, 213, 0.2);
+}
+
+html[data-theme="light"] .search-item__main strong {
+  color: #1a202c;
+}
+
+html[data-theme="light"] .search-item__main span {
+  color: var(--text-secondary);
+}
+
+html[data-theme="light"] .briefing-content {
+  color: var(--text-secondary);
+}
+
+html[data-theme="light"] .briefing-section h4 {
+  color: #1a202c;
+}
+
+html[data-theme="light"] .briefing-section strong {
+  color: #1a202c;
 }
