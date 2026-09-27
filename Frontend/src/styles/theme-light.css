@@ -24,37 +24,31 @@ html[data-theme="light"] {
   --glass-border: 1px solid rgba(255, 193, 77, 0.2);
 }
 
-/* Sophisticated Sunny Daytime Background - Mirrors Dark Mode Structure */
+/* Bright Sunny Daytime Background - Exact Cream/Peach Tone from Screenshot */
 html[data-theme="light"] body {
-  background-color: #fff8e1; /* Warm cream base instead of dark */
+  background-color: #fef7ed; /* Bright warm cream base matching screenshot */
   background-image:
-    /* Primary Sun Glow (mirrors top-left coral glow in dark mode) */
-    radial-gradient(ellipse 950px 650px at 85% 15%, rgba(255,223,0,0.35) 0%, rgba(255,193,77,0.18) 50%, transparent 72%),
+    /* Subtle Golden Sun Glow (very light) */
+    radial-gradient(ellipse 800px 500px at 85% 15%, rgba(255,241,165,0.15) 0%, rgba(255,228,181,0.08) 50%, transparent 70%),
     
-    /* Secondary Warm Glow (mirrors bottom-right coral glow) */
-    radial-gradient(circle 800px at 12% 88%, rgba(255,193,77,0.28) 0%, rgba(255,223,0,0.12) 48%, transparent 68%),
+    /* Gentle Warm Light */
+    radial-gradient(circle 600px at 15% 85%, rgba(255,228,181,0.12) 0%, rgba(255,241,165,0.06) 48%, transparent 65%),
     
-    /* Golden Sunlight Rays (mirrors top-right gold glow) */
-    radial-gradient(ellipse 850px 550px at 18% 10%, rgba(255,235,59,0.32) 0%, rgba(255,213,79,0.14) 48%, transparent 70%),
+    /* Soft Peachy Glow */
+    radial-gradient(ellipse 700px 400px at 20% 20%, rgba(255,237,213,0.15) 0%, rgba(254,243,199,0.08) 48%, transparent 65%),
     
-    /* Ambient Warm Light (mirrors bottom-left gold glow) */
-    radial-gradient(circle 650px at 90% 92%, rgba(255,213,79,0.25) 0%, transparent 60%),
+    /* Ambient Cream Light */
+    radial-gradient(circle 500px at 80% 80%, rgba(254,243,199,0.12) 0%, transparent 55%),
     
-    /* Sky Dome Light (mirrors slate mid-layer) */
-    radial-gradient(ellipse 1300px 750px at 50% 28%, rgba(227,242,253,0.45) 0%, rgba(187,222,251,0.22) 60%, transparent 75%),
-    
-    /* Atmospheric Depth (mirrors bottom slate layer) */
-    radial-gradient(ellipse 1400px 850px at 68% 65%, rgba(144,202,249,0.35) 0%, transparent 72%),
-    
-    /* Sky Gradient Foundation (mirrors the complex linear gradient) */
-    linear-gradient(168deg, #fff3e0 0%, #ffe0b2 32%, #ffcc80 68%, #fff8e1 100%);
+    /* Overall Warm Foundation */
+    linear-gradient(160deg, #fef7ed 0%, #fef3c7 25%, #fed7aa 50%, #fef7ed 75%, #fffbeb 100%);
   
   background-attachment: fixed;
   background-size: cover;
   color: var(--text-primary);
 }
 
-/* Subtle Sun Rays Animation */
+/* Very Subtle Light Effects - Clean and Bright */
 html[data-theme="light"] body::before {
   content: '';
   position: fixed;
@@ -63,92 +57,68 @@ html[data-theme="light"] body::before {
   width: 100%;
   height: 100%;
   background: 
-    /* Main sun glow pulse at top-right */
+    /* Gentle warm glow at top-right */
     radial-gradient(
-      ellipse 300px 200px at 85% 15%,
-      rgba(255, 235, 59, 0.1) 0%,
-      rgba(255, 193, 77, 0.05) 50%,
+      ellipse 400px 250px at 85% 15%,
+      rgba(255, 241, 165, 0.06) 0%,
+      rgba(255, 228, 181, 0.03) 60%,
       transparent 100%
-    ),
-    /* Warm atmospheric shimmer */
-    radial-gradient(
-      ellipse 600px 400px at 50% 40%,
-      rgba(255, 248, 225, 0.06) 0%,
-      transparent 60%
     );
-  animation: sunPulse 8s ease-in-out infinite;
+  animation: gentleGlow 10s ease-in-out infinite;
   pointer-events: none;
   z-index: -1;
 }
 
-/* Additional Sun Ray Effects */
+/* Remove the second pseudo-element for cleaner look */
 html[data-theme="light"] body::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: 
-    /* Diagonal sun rays */
-    linear-gradient(135deg, transparent 0%, rgba(255, 235, 59, 0.02) 25%, transparent 30%, transparent 70%, rgba(255, 235, 59, 0.02) 75%, transparent 100%),
-    linear-gradient(45deg, transparent 0%, rgba(255, 235, 59, 0.015) 25%, transparent 30%, transparent 70%, rgba(255, 235, 59, 0.015) 75%, transparent 100%);
-  animation: sunRays 12s linear infinite;
-  pointer-events: none;
-  z-index: -1;
+  display: none;
 }
 
-@keyframes sunPulse {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; }
-}
-
-@keyframes sunRays {
-  0% { transform: rotate(0deg); opacity: 0.3; }
-  50% { opacity: 0.5; }
-  100% { transform: rotate(2deg); opacity: 0.3; }
+@keyframes gentleGlow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
 }
 
 /* Enhanced UI Elements for Sunny Atmosphere */
 
-/* Cards with Warm Glassmorphism */
+/* Cards with Bright Clean Appearance - Matching Screenshot */
 html[data-theme="light"] .bento-card,
 html[data-theme="light"] .hero-card,
 html[data-theme="light"] .forecast-box,
 html[data-theme="light"] .highlight-card,
 html[data-theme="light"] .map-card {
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 193, 77, 0.25);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(254, 215, 170, 0.3);
   box-shadow: 
-    0 8px 32px rgba(255, 193, 77, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.04);
+    0 4px 20px rgba(0, 0, 0, 0.03),
+    0 1px 4px rgba(0, 0, 0, 0.02);
   color: var(--text-primary);
 }
 
-/* Navigation Rail with Sunny Glow */
+/* Navigation Rail - Clean and Bright */
 html[data-theme="light"] .nav-rail {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(16px);
-  border-right: 1px solid rgba(255, 193, 77, 0.2);
-  box-shadow: 2px 0 16px rgba(255, 193, 77, 0.06);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(254, 215, 170, 0.25);
+  box-shadow: 1px 0 8px rgba(0, 0, 0, 0.02);
 }
 
-/* Enhanced Navigation Buttons */
+/* Clean Navigation Buttons - Matching Screenshot Style */
 html[data-theme="light"] .rail-btn {
-  color: var(--text-secondary);
-  transition: all 0.3s ease;
+  color: #64748b;
+  transition: all 0.2s ease;
 }
 
 html[data-theme="light"] .rail-btn:hover {
-  background: rgba(255, 193, 77, 0.12);
-  color: var(--text-primary);
+  background: rgba(254, 215, 170, 0.08);
+  color: #334155;
 }
 
 html[data-theme="light"] .rail-btn--active {
-  background: rgba(255, 193, 77, 0.18);
-  color: var(--text-primary);
-  box-shadow: 0 2px 8px rgba(255, 193, 77, 0.15);
+  background: rgba(254, 215, 170, 0.12);
+  color: #1e293b;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 /* Typography Enhancements */
@@ -192,17 +162,17 @@ html[data-theme="light"] {
   --accent-red: #dc2626;
 }
 
-/* Floating Elements */
+/* Floating Elements - Clean and Bright */
 html[data-theme="light"] .loc-chip {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(255, 193, 77, 0.2);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(254, 215, 170, 0.15);
   color: var(--text-primary);
-  box-shadow: 0 4px 12px rgba(255, 193, 77, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 html[data-theme="light"] .map-ctrl-btn {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 193, 77, 0.15);
-  color: var(--text-secondary);
-  box-shadow: 0 2px 8px rgba(255, 193, 77, 0.08);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(254, 215, 170, 0.12);
+  color: #64748b;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
