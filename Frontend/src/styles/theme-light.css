@@ -1,44 +1,59 @@
 /**
- * theme-light.css — Light Theme Overrides for Atmos Twin
+ * theme-light.css — Light Theme Matching Reference Image
  * 
- * Creates sophisticated sunny daytime atmospheric background mirroring the Dark Mode structure
- * Uses layered gradients for depth and warmth similar to the cloudy nighttime atmosphere
+ * Creates warm cream/golden atmospheric background with soft radial sunlight glow
+ * exactly matching the provided reference image
  */
 
 html[data-theme="light"] {
-  /* Override body background with sunny daytime atmosphere */
-  --bg-body: transparent;
-
   /* Text Colors for Light Mode */
   --text-primary: #1e293b;
   --text-secondary: #475569;
   --text-muted: #64748b;
 
-  /* UI Element Colors with warm sunny tints */
-  --bg-card: rgba(255, 255, 255, 0.75);
-  --bg-nav: rgba(255, 255, 255, 0.85);
-  --border-card: rgba(255, 193, 77, 0.3);
+  /* UI Element Colors with warm tints matching reference */
+  --bg-card: rgba(255, 255, 255, 0.88);
+  --bg-nav: rgba(251, 242, 213, 0.92);
+  --border-card: rgba(240, 230, 215, 0.4);
   
-  /* Glassmorphic Effect */
-  --glass-blur: blur(12px);
-  --glass-border: 1px solid rgba(255, 193, 77, 0.2);
+  /* Light Mode Accent Colors */
+  --accent-cyan: #0284c7;
+  --accent-amber: #f59e0b;
+  --accent-green: #059669;
+  --accent-red: #dc2626;
 }
 
-/* Perfect Light Mode - Exact Color from Screenshot */
+/* Light Mode Background - Matching Reference Image Structure */
 html[data-theme="light"] body {
-  background-color: #faf5f0; /* Exact light cream/beige from screenshot */
+  background-color: #fbf2d5; /* Base warm cream from reference */
   background-image:
-    /* Very subtle warm undertones */
-    radial-gradient(ellipse 1200px 800px at 50% 50%, rgba(250, 245, 240, 0.8) 0%, rgba(248, 240, 227, 0.4) 60%, transparent 80%),
-    /* Gentle overall warmth */
-    linear-gradient(180deg, #faf5f0 0%, #f8f0e7 100%);
+    /* Large soft radial sunlight glow - upper right (brightest area from reference) */
+    radial-gradient(ellipse 1200px 800px at 85% 15%, rgba(254,235,176,0.45) 0%, rgba(251,242,213,0.25) 40%, transparent 65%),
+    
+    /* Secondary warm glow - center right */
+    radial-gradient(ellipse 900px 600px at 75% 25%, rgba(255,248,220,0.35) 0%, rgba(247,241,227,0.15) 50%, transparent 70%),
+    
+    /* Subtle golden highlight - upper area */
+    radial-gradient(ellipse 800px 500px at 70% 10%, rgba(254,235,176,0.25) 0%, rgba(251,242,213,0.12) 45%, transparent 65%),
+    
+    /* Ambient warm light - left side balance */
+    radial-gradient(ellipse 700px 450px at 25% 40%, rgba(247,241,227,0.2) 0%, rgba(246,243,226,0.08) 50%, transparent 70%),
+    
+    /* Overall atmospheric depth - center */
+    radial-gradient(ellipse 1400px 900px at 50% 35%, rgba(255,249,232,0.3) 0%, rgba(251,242,213,0.15) 55%, transparent 75%),
+    
+    /* Bottom warm foundation */
+    radial-gradient(ellipse 1000px 600px at 45% 80%, rgba(246,243,226,0.2) 0%, rgba(247,241,227,0.08) 60%, transparent 75%),
+    
+    /* Base gradient foundation - warm cream transitions matching reference */
+    linear-gradient(160deg, #fbf2d5 0%, #f7f1e3 25%, #fff9e8 45%, #f6f3e2 70%, #fbf2d5 100%);
   
   background-attachment: fixed;
   background-size: cover;
   color: var(--text-primary);
 }
 
-/* Minimal Light Effects - Clean Look */
+/* Subtle warm atmosphere overlay */
 html[data-theme="light"] body::before {
   content: '';
   position: fixed;
@@ -46,24 +61,30 @@ html[data-theme="light"] body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  background: transparent; /* No additional effects for clean look */
+  background: 
+    /* Very subtle warm radiance matching reference glow */
+    radial-gradient(
+      ellipse 600px 400px at 80% 20%,
+      rgba(254, 235, 176, 0.08) 0%,
+      rgba(251, 242, 213, 0.04) 60%,
+      transparent 100%
+    );
+  animation: gentleWarmth 12s ease-in-out infinite;
   pointer-events: none;
   z-index: -1;
 }
 
-/* Remove the second pseudo-element for cleaner look */
+@keyframes gentleWarmth {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.9; }
+}
+
+/* Remove second pseudo-element for clean look */
 html[data-theme="light"] body::after {
   display: none;
 }
 
-@keyframes gentleGlow {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 0.8; }
-}
-
-/* Enhanced UI Elements for Sunny Atmosphere */
-
-/* Perfect Cards - Matching Screenshot Style */
+/* Cards - Warm ivory appearance matching reference */
 html[data-theme="light"] .bento-card,
 html[data-theme="light"] .hero-card,
 html[data-theme="light"] .forecast-box,
@@ -71,44 +92,43 @@ html[data-theme="light"] .highlight-card,
 html[data-theme="light"] .map-card {
   background: rgba(255, 255, 255, 0.90);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(240, 230, 220, 0.4);
+  border: 1px solid rgba(240, 230, 215, 0.35);
   box-shadow: 
-    0 2px 12px rgba(0, 0, 0, 0.02),
-    0 1px 3px rgba(0, 0, 0, 0.01);
+    0 2px 12px rgba(0, 0, 0, 0.025),
+    0 1px 3px rgba(0, 0, 0, 0.015);
   color: var(--text-primary);
 }
 
-/* Navigation Rail - Clean and Bright */
+/* Navigation Rail - Warm ivory matching reference sidebar */
 html[data-theme="light"] .nav-rail {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  border-right: 1px solid rgba(254, 215, 170, 0.25);
-  box-shadow: 1px 0 8px rgba(0, 0, 0, 0.02);
+  background: rgba(251, 242, 213, 0.88);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(240, 230, 215, 0.3);
+  box-shadow: 1px 0 6px rgba(0, 0, 0, 0.02);
 }
 
-/* Clean Navigation Buttons - Matching Screenshot Style */
+/* Navigation Buttons - Clean dark icons with blue active state */
 html[data-theme="light"] .rail-btn {
-  color: #64748b;
+  color: #475569;
   transition: all 0.2s ease;
 }
 
 html[data-theme="light"] .rail-btn:hover {
-  background: rgba(254, 215, 170, 0.08);
+  background: rgba(240, 230, 215, 0.15);
   color: #334155;
 }
 
 html[data-theme="light"] .rail-btn--active {
-  background: rgba(254, 215, 170, 0.12);
-  color: #1e293b;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  background: rgba(56, 189, 248, 0.12);
+  color: #0284c7;
+  box-shadow: 0 1px 4px rgba(56, 189, 248, 0.15);
 }
 
-/* Typography Enhancements */
+/* Typography with subtle warmth */
 html[data-theme="light"] .card-heading,
 html[data-theme="light"] .section-title,
 html[data-theme="light"] .view-title {
   color: var(--text-primary);
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 html[data-theme="light"] .hero-card__condition,
@@ -123,38 +143,22 @@ html[data-theme="light"] .hero-card__loc {
   color: var(--text-muted);
 }
 
-/* Storm Clouds Override for Light Mode */
-html[data-theme="light"] .storm-intro,
-html[data-theme="light"] .clouds-overlay {
-  /* Hide storm clouds in light mode or replace with sunny clouds */
-  opacity: 0.3;
-  filter: brightness(1.8) contrast(0.8) hue-rotate(45deg);
-}
-
-/* Weather Illustration Adjustments */
-html[data-theme="light"] .weather-art__glow {
-  background: radial-gradient(circle, rgba(255, 223, 0, 0.3) 0%, transparent 70%);
-}
-
-/* Accent Colors for Light Mode */
-html[data-theme="light"] {
-  --accent-cyan: #0284c7;
-  --accent-amber: #f59e0b;
-  --accent-green: #059669;
-  --accent-red: #dc2626;
-}
-
-/* Floating Elements - Clean and Bright */
+/* Floating Elements - Clean appearance */
 html[data-theme="light"] .loc-chip {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(254, 215, 170, 0.15);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(240, 230, 215, 0.2);
   color: var(--text-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 html[data-theme="light"] .map-ctrl-btn {
   background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(254, 215, 170, 0.12);
+  border: 1px solid rgba(240, 230, 215, 0.15);
   color: #64748b;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+/* Weather Illustration Adjustments */
+html[data-theme="light"] .weather-art__glow {
+  background: radial-gradient(circle, rgba(254, 235, 176, 0.4) 0%, transparent 70%);
 }
