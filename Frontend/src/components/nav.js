@@ -12,10 +12,13 @@ export function initNavRail() {
    * @param {string} viewName
    */
   window.switchView = function (viewName) {
-    buttons.forEach((b) => {
+    const activeButtons = document.querySelectorAll('.rail-btn[data-view]');
+    const activeViews   = document.querySelectorAll('.app-view');
+
+    activeButtons.forEach((b) => {
       b.classList.toggle('rail-btn--active', b.getAttribute('data-view') === viewName);
     });
-    views.forEach((v) => {
+    activeViews.forEach((v) => {
       v.classList.toggle('app-view--active', v.id === `view-${viewName}`);
     });
 

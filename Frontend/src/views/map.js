@@ -64,7 +64,8 @@ export function initDigitalTwinMap() {
 
     map = new maptilersdk.Map({
       container: 'maptiler-map',
-      style: maptilersdk.MapStyle.DATAVIZ.DARK,
+      apiKey: MAPTILER_KEY,
+      style: maptilersdk.MapStyle.STREETS.DARK,
       center: centre,
       zoom: 11,
       pitch: 30,
@@ -73,10 +74,22 @@ export function initDigitalTwinMap() {
 
     map.addControl(new maptilersdk.AttributionControl({ compact: true }), 'bottom-right');
     map.addControl(new maptilersdk.NavigationControl({ showCompass: false }), 'top-right');
+    window._digitalTwinMap = map;
 
     map.on('load', () => {
+      map.resize();
       loadStationData(city);
     });
+
+    // Observe parent container size changes
+    const mapParent = container.parentElement;
+    if (mapParent) {
+      const ro = new ResizeObserver(() => {
+        if (map) map.resize();
+        resizeCanvas();
+      });
+      ro.observe(mapParent);
+    }
   }
 
   // ── Wind particle canvas (overlaid on the MapTiler map) ───────────────────
@@ -90,35 +103,67 @@ export function initDigitalTwinMap() {
     const w = parent.clientWidth;
     const h = parent.clientHeight;
     if (w > 0 && h > 0) {
-      canvas.width  = w;
-      canvas.height = h;
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width  = w;
+        canvas.height = h;
+      }
     }
   }
   window.resizeWindCanvas = resizeCanvas;
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas);
 
-  let ANGLE = window._windAngle != null ? window._windAngle : 0.56;
-  let dx = Math.cos(ANGLE);
-  let dy = Math.sin(ANGLE);
+  // Helper to obtain unit vector (dx, dy) and base velocity from live weather
+  function getWindVector() {
+    // If backend u and v components are available, use them directly:
+    // u = eastward velocity (positive towards East / screen right)
+    // v = northward velocity (positive towards North / screen up -> screen Y is -v)
+    if (window._windU != null && window._windV != null && (window._windU !== 0 || window._windV !== 0)) {
+      const mag = Math.hypot(window._windU, window._windV) || 1;
+      return {
+        dx: window._windU / mag,
+        dy: -window._windV / mag, // Screen Y is positive downward
+        speed: (window._windSpeedKmh || 12) * 0.22,
+      };
+    }
 
-  const PARTICLE_COUNT = 80;
-  const particles = Array.from({ length: PARTICLE_COUNT }, () => ({
-    x:     Math.random() * 800,
-    y:     Math.random() * 600,
-    len:   10 + Math.random() * 20,
-    speed: 1.0 + Math.random() * 1.6,
-    alpha: 0.15 + Math.random() * 0.45,
-    hue:   Math.random() > 0.6 ? '#efd395' : '#38bdf8',
-  }));
+    // Fallback using compass degrees (direction wind originates FROM)
+    // Direction towards which wind flows is (deg + 180) mod 360
+    const deg = window._windDeg != null ? window._windDeg : 270;
+    const flowRad = ((deg + 180) % 360) * Math.PI / 180;
+    return {
+      dx: Math.sin(flowRad),
+      dy: -Math.cos(flowRad),
+      speed: (window._windSpeedKmh || 12) * 0.22,
+    };
+  }
+
+  const PARTICLE_COUNT = 260;
+
+  function createParticle(w, h, randomAge = false) {
+    const maxAge = 60 + Math.floor(Math.random() * 90);
+    const hueRand = Math.random();
+    const hue = hueRand > 0.65 ? '#efd395' : (hueRand > 0.25 ? '#38bdf8' : '#7dd3fc');
+    return {
+      x: Math.random() * (w || 800),
+      y: Math.random() * (h || 600),
+      age: randomAge ? Math.floor(Math.random() * maxAge) : 0,
+      maxAge: maxAge,
+      speedMult: 0.75 + Math.random() * 0.55,
+      lenMult: 14 + Math.random() * 18,
+      phase: Math.random() * Math.PI * 2,
+      hue: hue,
+    };
+  }
+
+  const particles = Array.from({ length: PARTICLE_COUNT }, () => createParticle(800, 600, true));
 
   /** Re-scatter all particles across the current canvas dimensions. */
   function scatterParticles() {
     const w = canvas?.width || 800;
     const h = canvas?.height || 600;
-    for (const p of particles) {
-      p.x = Math.random() * w;
-      p.y = Math.random() * h;
+    for (let i = 0; i < particles.length; i++) {
+      particles[i] = createParticle(w, h, true);
     }
   }
 
@@ -142,30 +187,57 @@ export function initDigitalTwinMap() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Update wind angle (use != null so angle 0 is still valid)
-    if (window._windAngle != null && window._windAngle !== ANGLE) {
-      ANGLE = window._windAngle;
-      dx = Math.cos(ANGLE);
-      dy = Math.sin(ANGLE);
-    }
-
     if (particlesVisible) {
       const w = canvas.width;
       const h = canvas.height;
-      for (const p of particles) {
-        p.x += dx * p.speed * currentSpeed;
-        p.y += dy * p.speed * currentSpeed;
-        // Wrap around all edges regardless of wind direction
-        if (p.x > w + 40)  p.x = -40;
-        if (p.y > h + 40)  p.y = -40;
-        if (p.x < -40)     p.x = w + 40;
-        if (p.y < -40)     p.y = h + 40;
+      const { dx, dy, speed } = getWindVector();
+      const perpX = -dy;
+      const perpY = dx;
+      const effectiveSpeed = Math.max(1.2, speed) * currentSpeed;
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.age++;
+
+        // Reset if aged out or out of canvas bounds
+        if (p.age >= p.maxAge || p.x < -60 || p.x > w + 60 || p.y < -60 || p.y > h + 60) {
+          particles[i] = createParticle(w, h, false);
+          // Spawn near the edge wind originates from
+          if (Math.random() > 0.35) {
+            if (Math.abs(dx) > Math.abs(dy)) {
+              particles[i].x = dx > 0 ? -10 - Math.random() * 40 : w + 10 + Math.random() * 40;
+              particles[i].y = Math.random() * h;
+            } else {
+              particles[i].x = Math.random() * w;
+              particles[i].y = dy > 0 ? -10 - Math.random() * 40 : h + 10 + Math.random() * 40;
+            }
+          }
+          continue;
+        }
+
+        // Slight organic atmospheric turbulence curl
+        const wave = Math.sin(p.age * 0.05 + p.phase) * 0.18;
+        const moveX = (dx + perpX * wave) * effectiveSpeed * p.speedMult;
+        const moveY = (dy + perpY * wave) * effectiveSpeed * p.speedMult;
+
+        p.x += moveX;
+        p.y += moveY;
+
+        // Smooth sinusoidal opacity envelope (fade in -> peak -> fade out)
+        const progress = p.age / p.maxAge;
+        const alpha = Math.sin(progress * Math.PI) * 0.75;
+        if (alpha <= 0.01) continue;
+
+        const tailLen = (effectiveSpeed * p.speedMult * 2.8) + p.lenMult;
+        const tailX = p.x - (dx + perpX * wave) * tailLen;
+        const tailY = p.y - (dy + perpY * wave) * tailLen;
+
         ctx.beginPath();
         ctx.moveTo(p.x, p.y);
-        ctx.lineTo(p.x - dx * p.len, p.y - dy * p.len);
+        ctx.lineTo(tailX, tailY);
         ctx.strokeStyle = p.hue;
-        ctx.globalAlpha = p.alpha;
-        ctx.lineWidth = 1.5;
+        ctx.globalAlpha = alpha;
+        ctx.lineWidth = 1.7;
         ctx.lineCap = 'round';
         ctx.stroke();
       }
@@ -183,7 +255,12 @@ export function initDigitalTwinMap() {
         getWeather(cityName),
       ]);
 
-      const windLabel = `${weather.wind_speed_kmh.toFixed(1)} km/h ${weather.wind_direction_label}`;
+      const windSpeed = weather.wind_speed_kmh || 12;
+      const windLabel = `${windSpeed.toFixed(1)} km/h ${weather.wind_direction_label}`;
+      window._windU = weather.wind_u;
+      window._windV = weather.wind_v;
+      window._windDeg = weather.wind_direction_deg;
+      window._windSpeedKmh = windSpeed;
       window._windAngle = (weather.wind_direction_deg * Math.PI) / 180;
 
       // Update wind pill label
@@ -408,7 +485,10 @@ export function initDigitalTwinMap() {
   const origSwitch  = window.switchView;
   window.switchView = function (viewName) {
     origSwitch?.(viewName);
-    if (viewName === 'map') {
+    if (viewName === 'dashboard') {
+      setTimeout(() => window._dashboardMiniMap?.resize(), 50);
+      setTimeout(() => window._dashboardMiniMap?.resize(), 300);
+    } else if (viewName === 'map') {
       // Resize after a tick so the container has non-zero dimensions
       requestAnimationFrame(() => {
         resizeCanvas();
@@ -424,7 +504,8 @@ export function initDigitalTwinMap() {
         map.flyTo({ center: centre, zoom: 11, speed: 1.2 });
         loadStationData(window._currentCity ?? 'Pune');
         // MapTiler needs resize notification after becoming visible
-        setTimeout(() => map.resize(), 100);
+        setTimeout(() => { map.resize(); resizeCanvas(); }, 50);
+        setTimeout(() => { map.resize(); resizeCanvas(); }, 300);
       }
     }
   };

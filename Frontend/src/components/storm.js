@@ -73,10 +73,26 @@ export function initStormSequence() {
     after(4850, () => titleEl?.classList.add('storm-title-group--fadeout'));
 
     // Dashboard reveal at 100% (5200ms)
-    after(5200, () => introEl.classList.add('storm-intro--hidden'));
+    after(5200, () => {
+      introEl.classList.add('storm-intro--hidden');
+      window._dashboardMiniMap?.resize();
+      window.resizeWindCanvas?.();
+      window._maptilerMap?.resize();
+    });
   }
 
-  runSequence();
+  // If opening a direct subpage like /map, /scenario, /analytics, /accuracy, /settings,
+  // hide intro immediately so the user doesn't wait 5s for the subpage.
+  const currentPath = window.location.pathname.replace(/\/+$/, '').toLowerCase();
+  const isDirectSubpage = currentPath && currentPath !== '' && currentPath !== '/' && currentPath !== '/home' && currentPath !== '/dashboard';
+
+  if (isDirectSubpage) {
+    introEl.classList.add('storm-intro--hidden');
+    introEl.style.opacity = '0';
+    introEl.style.pointerEvents = 'none';
+  } else {
+    runSequence();
+  }
 
   // Skip button
   skipBtn?.addEventListener('click', () => {
@@ -84,7 +100,12 @@ export function initStormSequence() {
     titleEl?.classList.add('storm-title-group--fadeout');
     introEl.classList.add('clouds-parting');
     clouds.part();
-    setTimeout(() => introEl.classList.add('storm-intro--hidden'), 600);
+    setTimeout(() => {
+      introEl.classList.add('storm-intro--hidden');
+      window._dashboardMiniMap?.resize();
+      window.resizeWindCanvas?.();
+      window._maptilerMap?.resize();
+    }, 600);
   });
 
   // Replay button in nav rail

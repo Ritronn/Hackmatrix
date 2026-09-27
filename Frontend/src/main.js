@@ -28,6 +28,7 @@ import { initScenarioSimulator }         from './views/scenario.js';
 import { initWardsAnalytics }            from './views/wards.js';
 import { initAccuracyTracker }           from './views/accuracy.js';
 import { initSettingsAndCities }         from './views/settings.js';
+import { initRouter }                    from './router.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // ── 1. Inject all partials into their slot containers ──
@@ -66,4 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ── 12. Floating AI Advisor widget ──────────────────────
   initAIAdvisor();
+
+  // ── 13. Page-based URL Router ───────────────────────────
+  initRouter();
 });

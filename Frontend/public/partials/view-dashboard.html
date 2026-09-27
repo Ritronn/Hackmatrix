@@ -249,32 +249,7 @@
           </div>
           <div class="map-canvas-surface" id="map-surface">
             <!-- Real MapTiler mini-map renders here -->
-            <div id="dashboard-minimap" style="position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;z-index:0;"></div>
-            <div class="map-heat-blob map-heat-blob--1"></div>
-            <div class="map-heat-blob map-heat-blob--2"></div>
-            <div class="map-heat-blob map-heat-blob--3"></div>
-
-            <!-- Station Radar Markers -->
-            <div class="radar-station radar-station--ito" style="top: 48%; left: 62%;">
-              <div class="radar-ring"></div>
-              <div class="station-bubble">
-                <span class="bubble-city">Shivaji Nagar</span>
-                <span class="bubble-val" id="radar-aqi-ito">—°</span>
-                <span class="bubble-meta">💨 — km/h • —%</span>
-              </div>
-            </div>
-            <div class="radar-station radar-station--anand" style="top: 26%; left: 38%;">
-              <div class="station-pill">
-                <span class="station-dot" style="background:#EF4444"></span>
-                <span id="radar-pill-anand">Akurdi PCMC —°</span>
-              </div>
-            </div>
-            <div class="radar-station radar-station--dwarka" style="top: 72%; left: 45%;">
-              <div class="station-pill">
-                <span class="station-dot" style="background:#F59E0B"></span>
-                <span id="radar-pill-dwarka">Bhosari MIDC —°</span>
-              </div>
-            </div>
+            <div id="dashboard-minimap" style="position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;z-index:1;"></div>
 
             <!-- Location Chips -->
             <div class="map-floating-pills">
@@ -284,12 +259,12 @@
               <button class="loc-chip"><i data-lucide="sun"></i><span>Akurdi, MH</span></button>
             </div>
 
-            <!-- Zoom Controls -->
+            <!-- Zoom Controls & Full Map Action -->
             <div class="map-floating-controls">
               <button class="map-ctrl-btn" id="ctrl-zoom-in" title="Zoom In"><i data-lucide="plus"></i></button>
               <button class="map-ctrl-btn" id="ctrl-zoom-out" title="Zoom Out"><i data-lucide="minus"></i></button>
               <button class="map-ctrl-btn" id="ctrl-locate" title="Recenter"><i data-lucide="crosshair"></i></button>
-              <button class="map-ctrl-btn" id="ctrl-layers" title="Toggle Dispersion Layer"><i data-lucide="layers"></i></button>
+              <button class="map-ctrl-btn" id="ctrl-open-full-map" title="Open Full Digital Twin Map"><i data-lucide="maximize-2"></i></button>
             </div>
           </div>
         </div>

@@ -179,18 +179,10 @@
 .legend-scale-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--muted-dark); }
 .map-canvas-surface {
   position: absolute; inset: 0;
-  background:
-    radial-gradient(ellipse at 70% 50%, rgba(90,104,130,0.35) 0%, transparent 60%),
-    radial-gradient(ellipse at 40% 30%, rgba(224,123,91,0.22) 0%, transparent 55%),
-    radial-gradient(ellipse at 20% 70%, rgba(239,211,149,0.15) 0%, transparent 55%),
-    #0E1219;
+  background: transparent;
 }
 .map-canvas-surface::before {
-  content: '';
-  position: absolute; inset: 0;
-  background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px);
-  background-size: 32px 32px;
-  pointer-events: none;
+  display: none;
 }
 .map-heat-blob { position: absolute; border-radius: 50%; filter: blur(40px); pointer-events: none; }
 .map-heat-blob--1 { width: 200px; height: 200px; top: 30%; left: 55%; background: rgba(224,123,91,0.35); }

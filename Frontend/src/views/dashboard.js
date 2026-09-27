@@ -87,29 +87,22 @@ function applyAQIData(data) {
   // Store current city AQI globally for advisor context
   window._currentAqi  = data.avg_aqi;
   window._currentCity = data.city;
+  window._latestAqiData = data;
 
-  // ── Radar bubble / station pill updates on dashboard mini-map ────────────
-  const RADAR_KEYWORDS = {
-    'radar-aqi-ito':    ['Shivaji', 'Shivajinagar', 'Swargate', 'Pune'],
-    'radar-pill-anand': ['Akurdi', 'Nigdi', 'Pimpri', 'Chinchwad'],
-    'radar-pill-dwarka':['Bhosari', 'Chakan', 'MIDC', 'Alandi'],
-  };
-
-  for (const [elId, keywords] of Object.entries(RADAR_KEYWORDS)) {
-    const el = document.getElementById(elId);
-    if (!el) continue;
-    const matched = data.stations.find((s) =>
-      keywords.some((kw) => s.station_name.toLowerCase().includes(kw.toLowerCase()))
-    );
-    const aqi = matched ? matched.aqi : Math.round(data.avg_aqi);
-    if (elId === 'radar-aqi-ito') {
-      el.textContent = `${aqi}°`;
-    } else {
-      // station-pill span: keep the label prefix, update the value
-      const label = elId === 'radar-pill-anand' ? 'Akurdi PCMC' : 'Bhosari MIDC';
-      el.textContent = `${label} ${aqi}°`;
-    }
+  // Update markers on dashboard minimap if it's already initialised
+  if (window._renderDashboardMiniMapMarkers) {
+    window._renderDashboardMiniMapMarkers(data.stations);
   }
+}
+
+/** AQI colour helper */
+function aqiColor(aqi) {
+  if (aqi <= 50)  return '#4CAF50';
+  if (aqi <= 100) return '#8BC34A';
+  if (aqi <= 200) return '#FFC107';
+  if (aqi <= 300) return '#FF9800';
+  if (aqi <= 400) return '#F44336';
+  return '#7B1FA2';
 }
 
 /** Update hero card with live weather data. */
@@ -138,6 +131,8 @@ function applyWeatherData(data) {
   // Store wind vectors globally for map particle animation
   window._windU = data.wind_u;
   window._windV = data.wind_v;
+  window._windDeg = data.wind_direction_deg;
+  window._windSpeedKmh = data.wind_speed_kmh;
   window._windAngle = (data.wind_direction_deg * Math.PI) / 180;
 }
 
@@ -160,6 +155,15 @@ export async function loadCityData(city = 'Pune') {
     ]);
     applyAQIData(aqiData);
     applyWeatherData(weatherData);
+
+    // Reposition minimap if already loaded
+    if (window._dashboardMiniMap) {
+      const centre = CITY_CENTRES[city.toLowerCase()] ?? CITY_CENTRES.pune;
+      window._dashboardMiniMap.flyTo({ center: centre, zoom: 11, speed: 1.2 });
+      if (window._renderDashboardMiniMapMarkers) {
+        window._renderDashboardMiniMapMarkers(aqiData.stations);
+      }
+    }
   } catch (err) {
     console.error('[dashboard] Failed to fetch live AQI data.', err);
     if (aqiEl) aqiEl.textContent = 'N/A';
@@ -173,23 +177,117 @@ export async function loadCityData(city = 'Pune') {
 export function initMapControls() {
   // ── MapTiler mini-map setup ─────────────────────────────────────────────────
   const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY ?? '';
-  if (!maptilersdk.config.apiKey) maptilersdk.config.apiKey = MAPTILER_KEY;
+  maptilersdk.config.apiKey = MAPTILER_KEY;
 
   let miniMap = null;
+  let miniMapMarkers = [];
+
+  function renderMiniMapMarkers(stations = []) {
+    if (!miniMap) return;
+    miniMapMarkers.forEach((m) => m.remove());
+    miniMapMarkers = [];
+
+    stations.forEach((st) => {
+      if (!st.latitude || !st.longitude) return;
+
+      const el = document.createElement('div');
+      el.className = 'dashboard-minimap-marker';
+      el.style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(14, 18, 26, 0.88);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 9999px;
+        padding: 3px 9px 3px 5px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+        cursor: pointer;
+        user-select: none;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+        white-space: nowrap;
+        pointer-events: auto;
+      `;
+
+      const dot = document.createElement('span');
+      const col = aqiColor(st.aqi);
+      dot.style.cssText = `
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: ${col};
+        box-shadow: 0 0 8px ${col};
+        display: inline-block;
+        flex-shrink: 0;
+      `;
+
+      const text = document.createElement('span');
+      text.style.cssText = `
+        font-size: 11px;
+        font-weight: 600;
+        color: #FFFFFF;
+      `;
+      const shortName = st.station_name.split(',')[0].trim();
+      text.textContent = `${shortName} ${Math.round(st.aqi)}`;
+
+      el.appendChild(dot);
+      el.appendChild(text);
+
+      el.addEventListener('mouseenter', () => {
+        el.style.transform = 'scale(1.1)';
+        el.style.borderColor = 'rgba(56, 189, 248, 0.6)';
+      });
+      el.addEventListener('mouseleave', () => {
+        el.style.transform = 'scale(1.0)';
+        el.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+      });
+      el.addEventListener('click', () => {
+        if (window.switchView) window.switchView('map');
+      });
+
+      const marker = new maptilersdk.Marker({ element: el })
+        .setLngLat([st.longitude, st.latitude])
+        .addTo(miniMap);
+      miniMapMarkers.push(marker);
+    });
+  }
+  window._renderDashboardMiniMapMarkers = renderMiniMapMarkers;
+
   const container = document.getElementById('dashboard-minimap');
   if (container) {
     miniMap = new maptilersdk.Map({
       container: 'dashboard-minimap',
-      style: maptilersdk.MapStyle.DATAVIZ.DARK,
+      apiKey: MAPTILER_KEY,
+      style: maptilersdk.MapStyle.STREETS.DARK,
       center: CITY_CENTRES.pune,
-      zoom: 10,
+      zoom: 11,
       pitch: 0,
       interactive: true,
       attributionControl: false,
     });
+
     miniMap.addControl(new maptilersdk.AttributionControl({ compact: true }), 'bottom-right');
-    // Expose for city switches
     window._dashboardMiniMap = miniMap;
+
+    // Automatic layout sync via ResizeObserver
+    const ro = new ResizeObserver(() => {
+      if (miniMap) miniMap.resize();
+    });
+    ro.observe(container);
+
+    miniMap.on('load', () => {
+      miniMap.resize();
+      if (window._latestAqiData?.stations) {
+        renderMiniMapMarkers(window._latestAqiData.stations);
+      }
+    });
+
+    // Handle deferred layout frames
+    setTimeout(() => miniMap?.resize(), 250);
+    setTimeout(() => miniMap?.resize(), 800);
+    setTimeout(() => miniMap?.resize(), 2000);
+    setTimeout(() => miniMap?.resize(), 5500);
   }
 
   // ── Location chips ────────────────────────────────────────────────────────
@@ -208,7 +306,7 @@ export function initMapControls() {
       // Fly minimap to city
       if (miniMap) {
         const centre = CITY_CENTRES[cityName.toLowerCase()] ?? CITY_CENTRES.pune;
-        miniMap.flyTo({ center: centre, zoom: 10, speed: 1.2 });
+        miniMap.flyTo({ center: centre, zoom: 11, speed: 1.2 });
       }
 
       await loadCityData(cityName);
@@ -228,8 +326,12 @@ export function initMapControls() {
     if (miniMap) {
       const city = (window._currentCity ?? 'Pune').toLowerCase();
       const centre = CITY_CENTRES[city] ?? CITY_CENTRES.pune;
-      miniMap.flyTo({ center: centre, zoom: 10, speed: 1.2 });
+      miniMap.flyTo({ center: centre, zoom: 11, speed: 1.2 });
     }
+  });
+
+  document.getElementById('ctrl-open-full-map')?.addEventListener('click', () => {
+    if (window.switchView) window.switchView('map');
   });
 }
 

@@ -1207,17 +1207,9 @@ button {
   background: transparent;
 }
 
-/* Subtle map street/grid lines */
+/* Map street/grid lines disabled for real MapTiler visibility */
 .map-canvas-surface::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: 
-    radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 32px 32px;
-  pointer-events: none;
-  z-index: 1;
+  display: none;
 }
 
 /* Radar Station Markers */
