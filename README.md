@@ -92,9 +92,7 @@ Atmos Twin delivers an end-to-end intelligence ecosystem structured into two dis
 
 ## Technical Architecture
 
-![System Architecture](images/Architecture.png)
-
-![End-to-End System Architecture](images/End-to-EndSystemArchitectureDiagram.png)
+![Technical Architecture](images/tech%20archi.png)
 
 ```
 Sensors & Open Telemetry ──► Redis Stream (Queue) ──► Background Worker
