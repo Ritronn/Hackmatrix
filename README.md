@@ -147,9 +147,9 @@ Trained on real Central Pollution Control Board (CPCB) station-level historical 
 - **How it works**: Uses exact Shapley values directly from the trained tree model, normalized into physical contribution percentages per station type.
 
 <p align="center">
-<img src="temp/Ml model/shap_summary_traffic_corridor.png" width="32%" alt="SHAP — Traffic Corridor">
-<img src="temp/Ml model/shap_summary_industrial_belt.png" width="32%" alt="SHAP — Industrial Belt">
-<img src="temp/Ml model/shap_summary_residential_background.png" width="32%" alt="SHAP — Residential">
+<img src="images/shap_summary_traffic_corridor.png" width="32%" alt="SHAP — Traffic Corridor">
+<img src="images/shap_summary_industrial_belt.png" width="32%" alt="SHAP — Industrial Belt">
+<img src="images/shap_summary_residential_background.png" width="32%" alt="SHAP — Residential">
 </p>
 <p align="center"><em>Real learned station differentiation: Traffic corridors emphasize vehicular proxies (left), industrial belts highlight point-source proxies (center), and residential zones are governed by atmospheric weather dispersion (right).</em></p>
 
@@ -171,7 +171,7 @@ Trained on real Central Pollution Control Board (CPCB) station-level historical 
 #### Model Validation & Prediction Quality
 
 <p align="center">
-<img src="temp/Ml model/pred_vs_actual.png" width="80%" alt="Predicted vs Actual AQI">
+<img src="images/pred_vs_actual.png" width="80%" alt="Predicted vs Actual AQI">
 </p>
 <p align="center"><em>Predicted vs. Actual AQI on chronological test data (Station DL003). Captures severe winter spikes, diurnal cycles, and the 2020 lockdown reduction with unbiased zero-centered residuals.</em></p>
 
