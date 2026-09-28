@@ -23,8 +23,14 @@ Backend/data/*.parquet
 
 # ── Node / Frontend ───────────────────────────────────────
 node_modules/
+dist/
 Frontend/dist/
+.vite/
 Frontend/.vite/
+
+# ── Editor & IDE ──────────────────────────────────────────
+.vscode/
+.idea/
 
 # ── OS ────────────────────────────────────────────────────
 .DS_Store
