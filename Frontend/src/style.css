@@ -1005,11 +1005,23 @@ button {
   gap: 20px;
 }
 
-/* ─── Highlights 3-Card Grid ─── */
+/* ─── Highlights 4-Card Grid (1*4 on wide screens, 2*2 on mid screens) ─── */
 .highlights-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
+}
+
+@media (max-width: 1300px) {
+  .highlights-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .highlights-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .highlight-card {
@@ -2522,6 +2534,7 @@ button {
   display: grid;
   grid-template-columns: 1.35fr 1fr;
   gap: 20px;
+  align-items: start;
 }
 
 .ward-table-card {
@@ -2570,6 +2583,8 @@ button {
   padding: 22px;
   display: flex;
   flex-direction: column;
+  height: fit-content;
+  align-self: start;
 }
 
 .shap-breakdown-list {

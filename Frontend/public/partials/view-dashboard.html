@@ -212,7 +212,7 @@
             <div style="display:flex;justify-content:center;padding:8px 0;">
               <canvas id="attribution-donut" width="120" height="120"></canvas>
             </div>
-            <div class="highlight-sub-row" style="flex-wrap:wrap;gap:4px;">
+            <div class="highlight-sub-row" style="display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;margin-top:auto;padding-top:8px;">
               <div class="sub-metric"><span class="sub-metric__label" style="color:#EF4444;">● Traffic</span><span class="sub-metric__val" id="attr-traffic">—</span></div>
               <div class="sub-metric"><span class="sub-metric__label" style="color:#F59E0B;">● Industrial</span><span class="sub-metric__val" id="attr-industrial">—</span></div>
               <div class="sub-metric"><span class="sub-metric__label" style="color:#8B5CF6;">● Dust</span><span class="sub-metric__val" id="attr-dust">—</span></div>
@@ -241,13 +241,7 @@
             <!-- Real MapTiler mini-map renders here -->
             <div id="dashboard-minimap" style="position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;z-index:1;"></div>
 
-            <!-- Location Chips -->
-            <div class="map-floating-pills">
-              <button class="loc-chip loc-chip--active"><i data-lucide="cloud"></i><span>Delhi, DL</span></button>
-              <button class="loc-chip"><i data-lucide="cloud"></i><span>Noida, UP</span></button>
-              <button class="loc-chip"><i data-lucide="cloud"></i><span>Gurgaon, HR</span></button>
-              <button class="loc-chip"><i data-lucide="cloud"></i><span>Mumbai, MH</span></button>
-            </div>
+
 
             <!-- Zoom Controls & Full Map Action -->
             <div class="map-floating-controls">

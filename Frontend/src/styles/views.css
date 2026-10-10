@@ -136,9 +136,15 @@
 .sim-preview__meta { display: flex; flex-direction: column; gap: 2px; }
 .sim-preview__stat { font-family: var(--font-headline); font-size: 17px; font-weight: 700; color: var(--c-gold); }
 
-/* Highlights grid */
+/* Highlights grid (1*4 on wide screens, 2*2 on mid screens) */
 .highlights-section { display: flex; flex-direction: column; }
-.highlights-grid  { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+.highlights-grid  { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+@media (max-width: 1300px) {
+  .highlights-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .highlights-grid { grid-template-columns: 1fr; }
+}
 .highlight-card { padding: 18px; display: flex; flex-direction: column; min-height: 195px; }
 .highlight-card:hover {
   border-color: rgba(56,189,248,0.45);
@@ -448,9 +454,9 @@
 .ward-stat-card { padding: 18px; display: flex; flex-direction: column; gap: 4px; }
 .ward-stat-num { font-family: var(--font-headline); font-size: 20px; font-weight: 700; color: #FFFFFF; }
 .ward-stat-sub { font-size: 11px; }
-.wards-main-grid { display: grid; grid-template-columns: 1fr 380px; gap: 20px; flex: 1; }
+.wards-main-grid { display: grid; grid-template-columns: 1fr 380px; gap: 20px; flex: 1; align-items: start; }
 .ward-table-card { padding: 22px; overflow: auto; }
-.ward-attribution-card { padding: 22px; }
+.ward-attribution-card { padding: 22px; height: fit-content; align-self: start; }
 
 .table-responsive { overflow-x: auto; }
 .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }

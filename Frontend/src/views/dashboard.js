@@ -247,73 +247,100 @@ function applyForecastData(data) {
   console.log('[dashboard] ML forecast applied:', data.points.length, 'days');
 }
 
-/** Apply ML attribution breakdown to the dashboard with donut chart. */
+/** Apply ML attribution breakdown to the dashboard with high-DPI donut chart and 0.3f precision. */
 function applyAttributionData(data) {
   if (!data) return;
 
   window._attributionData = data;
 
-  // Update legend numbers
-  const trafficEl    = document.getElementById('attr-traffic');
-  const industrialEl = document.getElementById('attr-industrial');
-  const dustEl       = document.getElementById('attr-dust');
-  const weatherEl    = document.getElementById('attr-weather');
+  // Helper for strict 0.3f formatting
+  const fmt3 = (val) => {
+    const num = parseFloat(val);
+    if (isNaN(num)) return '0.000%';
+    return `${num.toFixed(3)}%`;
+  };
+
+  // Update legend numbers with 0.3f precision
+  const trafficEl      = document.getElementById('attr-traffic');
+  const industrialEl   = document.getElementById('attr-industrial');
+  const dustEl         = document.getElementById('attr-dust');
+  const weatherEl      = document.getElementById('attr-weather');
   const trafficShareEl = document.getElementById('traffic-share-val');
 
-  if (trafficEl)      trafficEl.textContent    = `${data.traffic_pct}%`;
-  if (industrialEl)   industrialEl.textContent  = `${data.industrial_pct}%`;
-  if (dustEl)         dustEl.textContent        = `${data.combustion_dust_pct}%`;
-  if (weatherEl)      weatherEl.textContent     = `${data.meteorology_pct}%`;
-  if (trafficShareEl) trafficShareEl.textContent = `${data.traffic_pct}%`;
+  if (trafficEl)      trafficEl.textContent    = fmt3(data.traffic_pct);
+  if (industrialEl)   industrialEl.textContent  = fmt3(data.industrial_pct);
+  if (dustEl)         dustEl.textContent        = fmt3(data.combustion_dust_pct);
+  if (weatherEl)      weatherEl.textContent     = fmt3(data.meteorology_pct);
+  if (trafficShareEl) trafficShareEl.textContent = fmt3(data.traffic_pct);
 
-  // ── Draw donut chart ───────────────────────────────────────────────────
+  // ── Draw crisp retina donut chart ──────────────────────────────────────
   const canvas = document.getElementById('attribution-donut');
   if (canvas) {
-    const ctx = canvas.getContext('2d');
-    const w = canvas.width, h = canvas.height;
-    const cx = w / 2, cy = h / 2;
-    const outerR = Math.min(cx, cy) - 4;
-    const innerR = outerR * 0.52;
+    const dpr = window.devicePixelRatio || 2;
+    const size = 120;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    canvas.style.width = `${size}px`;
+    canvas.style.height = `${size}px`;
 
-    ctx.clearRect(0, 0, w, h);
+    const ctx = canvas.getContext('2d');
+    ctx.resetTransform?.();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, size, size);
+
+    const cx = size / 2;
+    const cy = size / 2;
+    const outerR = (size / 2) - 6;
+    const innerR = outerR * 0.58;
+    const ringWidth = outerR - innerR;
+    const midR = innerR + (ringWidth / 2);
+
+    // Subtle track ring behind segments
+    ctx.beginPath();
+    ctx.arc(cx, cy, midR, 0, 2 * Math.PI);
+    ctx.lineWidth = ringWidth;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.stroke();
 
     const slices = [
-      { pct: data.traffic_pct,          color: '#EF4444' },
-      { pct: data.industrial_pct,       color: '#F59E0B' },
-      { pct: data.combustion_dust_pct,   color: '#8B5CF6' },
-      { pct: data.meteorology_pct,       color: '#38BDF8' },
-      { pct: data.carry_over_pct,        color: '#6B7280' },
+      { pct: parseFloat(data.traffic_pct) || 0,        color: '#EF4444' },
+      { pct: parseFloat(data.industrial_pct) || 0,     color: '#F59E0B' },
+      { pct: parseFloat(data.combustion_dust_pct) || 0, color: '#8B5CF6' },
+      { pct: parseFloat(data.meteorology_pct) || 0,     color: '#38BDF8' },
+      { pct: parseFloat(data.carry_over_pct) || 0,      color: '#6B7280' },
     ];
 
-    const total = slices.reduce((s, sl) => s + sl.pct, 0) || 1;
+    const total = slices.reduce((s, sl) => s + Math.max(0, sl.pct), 0) || 1;
+    const activeSlices = slices.filter(s => s.pct > 0.01);
+    const gapRad = activeSlices.length > 1 ? 0.045 : 0;
+
     let startAngle = -0.5 * Math.PI;
 
-    slices.forEach(slice => {
-      if (slice.pct <= 0) return;
-      const sliceAngle = 2 * Math.PI * (slice.pct / total);
-      ctx.fillStyle = slice.color;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, outerR, startAngle, startAngle + sliceAngle);
-      ctx.closePath();
-      ctx.fill();
-      startAngle += sliceAngle;
+    activeSlices.forEach((slice) => {
+      const fullAngle = 2 * Math.PI * (slice.pct / total);
+      if (fullAngle > gapRad) {
+        const segStart = startAngle + (gapRad / 2);
+        const segEnd = startAngle + fullAngle - (gapRad / 2);
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, midR, segStart, segEnd);
+        ctx.lineWidth = ringWidth;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = slice.color;
+        ctx.stroke();
+      }
+      startAngle += fullAngle;
     });
 
-    // Cut centre for donut
-    ctx.fillStyle = '#1a1d25';
-    ctx.beginPath();
-    ctx.arc(cx, cy, innerR, 0, 2 * Math.PI);
-    ctx.fill();
-
-    // Centre label
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 13px "Space Grotesk", sans-serif';
+    // Center labels
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('SHAP', cx, cy - 5);
-    ctx.font = '9px "Space Grotesk", sans-serif';
-    ctx.fillStyle = '#9CA3AF';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '700 12px "Space Grotesk", sans-serif';
+    ctx.fillText('SHAP', cx, cy - 6);
+
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = '500 8.5px "Space Grotesk", sans-serif';
     ctx.fillText('Attribution', cx, cy + 8);
   }
 
@@ -515,28 +542,7 @@ export function initMapControls() {
     setTimeout(() => miniMap?.resize(), 5500);
   }
 
-  // ── Location chips ────────────────────────────────────────────────────────
-  const chips       = document.querySelectorAll('.loc-chip');
-  const heroStation = document.getElementById('hero-station');
 
-  chips.forEach((chip) => {
-    chip.addEventListener('click', async () => {
-      chips.forEach((c) => c.classList.remove('loc-chip--active'));
-      chip.classList.add('loc-chip--active');
-      const name = chip.querySelector('span')?.textContent?.trim() ?? '';
-      // Parse "Delhi, DL" → "Delhi"
-      const cityName = name.split(',')[0].trim();
-      if (heroStation) heroStation.textContent = name;
-
-      // Fly minimap to city
-      if (miniMap) {
-        const centre = CITY_CENTRES[cityName.toLowerCase()] ?? CITY_CENTRES.delhi;
-        miniMap.flyTo({ center: centre, zoom: 11, speed: 1.2 });
-      }
-
-      await loadCityData(cityName);
-    });
-  });
 
   // ── Zoom controls (operate on real map) ─────────────────────────────────
   document.getElementById('ctrl-zoom-in')?.addEventListener('click', () => {
