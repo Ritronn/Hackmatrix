@@ -21,6 +21,7 @@ from app.services.ml_service import (
     get_station_coords,
     DELHI_COORDS,
     _MODEL_DIR,
+    multi_level_sensor_loss_comparison,
 )
 from app.services.aqi_service import fetch_city_aqi, get_band
 
@@ -603,3 +604,41 @@ async def held_out_location(
         raise HTTPException(404, str(ve))
     except Exception as e:
         raise HTTPException(500, f"Held-out prediction failed: {e}")
+
+
+# ── Addition 2: Multi-Level Sensor-Loss Comparison ───────────────────────────
+
+@router.get("/{city}/sensor-loss-comparison")
+async def sensor_loss_comparison(
+    city: str,
+    seed: int = Query(42),
+):
+    """
+    Run sensor-loss simulation at 25%, 50%, and 75% simultaneously.
+    Returns a comparison table: GP vs IDW vs Persistence MAE at each level.
+    Also returns intervention package stability assessment (Addition 2 requirement).
+    All three baselines:
+      - GP: Gaussian Process spatial interpolation with uncertainty
+      - IDW: Inverse Distance Weighting (Shepard p=2)
+      - Persistence: City-mean AQI before loss (naive frozen reading)
+    """
+    if not models_ready():
+        raise HTTPException(503, "ML models not loaded")
+
+    try:
+        city_data = await fetch_city_aqi(city)
+    except Exception as e:
+        raise HTTPException(502, f"Cannot fetch station data: {e}")
+
+    station_data = _build_full_station_network(city_data, city)
+
+    if len(station_data) < 3:
+        raise HTTPException(400, f"Need at least 3 stations, got {len(station_data)}")
+
+    try:
+        result = multi_level_sensor_loss_comparison(station_data, seed=seed)
+        result['city'] = city
+        result['timestamp'] = datetime.now(timezone.utc).isoformat()
+        return result
+    except Exception as e:
+        raise HTTPException(500, f"Sensor loss comparison failed: {e}")

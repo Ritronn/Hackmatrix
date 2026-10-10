@@ -7,15 +7,15 @@
     </div>
     <div class="view-header__right">
       <div class="mode-switcher">
-        <button class="mode-btn mode-btn--active" id="btn-mode-sim">Standard What-If</button>
-        <button class="mode-btn" id="btn-mode-mayor"><i data-lucide="award"></i> Mayor Mode (₹50 Cr)</button>
+        <button class="mode-btn mode-btn--active" id="btn-mode-mayor"><i data-lucide="award"></i> Mayor Mode (₹50 Cr)</button>
         <button class="mode-btn" id="btn-mode-budget"><i data-lucide="calculator"></i> Budget Planner</button>
+        <button class="mode-btn" id="btn-mode-forecast"><i data-lucide="radar"></i> Sensor Forecasting</button>
       </div>
     </div>
   </div>
 
   <!-- Mayor Mode Budget Tracker -->
-  <div class="bento-card mayor-budget-card" id="mayor-budget-deck" style="display: none;">
+  <div class="bento-card mayor-budget-card" id="mayor-budget-deck">
     <div class="mayor-budget__header">
       <div>
         <span class="label-xs text-gold">MUNICIPAL POLICY SANDBOX</span>
@@ -92,6 +92,14 @@
             <input type="checkbox" value="const" class="unavailable-check" />
             <span>Construction Halt</span>
           </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer;">
+            <input type="checkbox" value="metro" class="unavailable-check" />
+            <span>Free Metro &amp; EV Bus</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer;">
+            <input type="checkbox" value="stubble" class="unavailable-check" />
+            <span>Biomass / Stubble Burning</span>
+          </label>
         </div>
       </div>
     </div>
@@ -128,7 +136,134 @@
     </div>
   </div>
 
-  <!-- 2-Column Scenario Layout -->
+  <!-- ===== Sensor Forecasting Deck (Addition 2 -- Final Round) ===== -->
+  <div class="bento-card" id="forecasting-deck" style="display: none; margin-bottom: 24px;">
+    <div class="bento-card__title-bar" style="margin-bottom: 0;">
+      <div>
+        <span class="label-xs" style="color: #A78BFA;">ADDITION 2 — SENSOR FORECASTING & UNCERTAINTY (PS REQUIREMENT)</span>
+        <h3 class="card-heading">Forecasting with Missing Sensors &amp; Unseen Locations</h3>
+        <p class="label-xs muted">Gaussian Process spatial forecasting compared against IDW and Persistence baselines. Uncertainty propagated to intervention package stability.</p>
+      </div>
+      <button class="btn-primary" id="btn-run-forecasting" style="white-space:nowrap; padding: 10px 20px;">
+        <i data-lucide="play"></i> Run Full Analysis
+      </button>
+    </div>
+
+    <!-- Section A: Multi-Level Sensor Loss Comparison Table -->
+    <div style="margin-top: 28px;">
+      <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 14px;">
+        <span class="label-xs" style="color: #FBBF24;">SECTION A — MULTI-LEVEL SENSOR LOSS (25% / 50% / 75%)</span>
+        <span style="font-size:10px; color:#6B7280; font-style:italic;">Three declared loss levels tested simultaneously</span>
+      </div>
+      <div id="sensor-comparison-loading" style="text-align:center; padding:20px; color:#9CA3AF; font-size:0.9rem;">
+        Click "Run Full Analysis" to start
+      </div>
+      <div id="sensor-comparison-table-wrap" style="display:none; overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+          <thead>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+              <th style="padding:10px 12px; text-align:left; color:#9CA3AF; font-weight:600;">Loss Level</th>
+              <th style="padding:10px 12px; text-align:center; color:#9CA3AF; font-weight:600;">Active Stations</th>
+              <th style="padding:10px 12px; text-align:center; color:#9CA3AF; font-weight:600;">Dropped</th>
+              <th style="padding:10px 12px; text-align:center; color:#60A5FA; font-weight:600;">GP MAE</th>
+              <th style="padding:10px 12px; text-align:center; color:#FBBF24; font-weight:600;">IDW MAE</th>
+              <th style="padding:10px 12px; text-align:center; color:#F87171; font-weight:600;">Persistence MAE</th>
+              <th style="padding:10px 12px; text-align:center; color:#9CA3AF; font-weight:600;">GP σ (Uncertainty)</th>
+              <th style="padding:10px 12px; text-align:center; color:#9CA3AF; font-weight:600;">GP Wins?</th>
+            </tr>
+          </thead>
+          <tbody id="sensor-comparison-tbody">
+          </tbody>
+        </table>
+        <div style="margin-top:10px; font-size:0.75rem; color:#6B7280; font-style:italic; padding: 0 4px;">
+          IDW = Inverse Distance Weighting (Shepard p=2) | Persistence = City-mean before loss event (frozen reading) | [MODELED]
+        </div>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div style="border-top:1px solid rgba(255,255,255,0.06); margin: 24px 0;"></div>
+
+    <!-- Section B: Held-Out Location Validation -->
+    <div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom: 14px; flex-wrap:wrap;">
+        <span class="label-xs" style="color: #34D399;">SECTION B — HELD-OUT LOCATION (UNSEEN DURING PREDICTION)</span>
+        <span style="font-size:10px; color:#6B7280; font-style:italic;">Station withheld from GP training, predicted from neighbors only</span>
+      </div>
+      <div style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin-bottom:16px;">
+        <div style="flex:1; min-width:180px;">
+          <label style="display:block; font-size:0.8rem; color:#9CA3AF; margin-bottom:6px;">Station to withhold:</label>
+          <select id="fo-held-out-select" style="width:100%; padding:8px 12px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:0.875rem;">
+            <option value="Anand Vihar">Anand Vihar (Industrial)</option>
+            <option value="ITO">ITO (Traffic Corridor)</option>
+            <option value="R K Puram">R K Puram (Traffic)</option>
+            <option value="Punjabi Bagh">Punjabi Bagh (Traffic)</option>
+            <option value="Dwarka">Dwarka (Residential)</option>
+            <option value="Rohini">Rohini (Residential)</option>
+            <option value="Lodhi Road">Lodhi Road (Residential)</option>
+          </select>
+        </div>
+        <button class="btn-primary" id="btn-run-held-out-fo" style="padding:8px 18px;">
+          <i data-lucide="target"></i> Predict Held-Out
+        </button>
+      </div>
+      <div id="fo-held-out-results" style="display:none;">
+        <!-- Prediction comparison grid -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px; margin-bottom:16px;">
+          <div style="padding:14px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:10px; text-align:center;">
+            <div style="font-size:0.75rem; color:#6B7280; margin-bottom:4px; font-weight:600;">ACTUAL (OBSERVED)</div>
+            <div style="font-size:1.8rem; font-weight:700; color:#22C55E;" id="fo-actual-aqi">&mdash;</div>
+            <div style="font-size:0.75rem; color:#22C55E;">Live sensor reading</div>
+          </div>
+          <div style="padding:14px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); border-radius:10px; text-align:center;">
+            <div style="font-size:0.75rem; color:#6B7280; margin-bottom:4px; font-weight:600;">[MODELED] GP PREDICTION</div>
+            <div style="font-size:1.8rem; font-weight:700; color:#60A5FA;" id="fo-gp-aqi">&mdash;</div>
+            <div style="font-size:0.75rem; color:#60A5FA;">Err: <span id="fo-gp-err">&mdash;</span> | ±<span id="fo-gp-std">&mdash;</span></div>
+          </div>
+          <div style="padding:14px; background:rgba(251,191,36,0.08); border:1px solid rgba(251,191,36,0.2); border-radius:10px; text-align:center;">
+            <div style="font-size:0.75rem; color:#6B7280; margin-bottom:4px; font-weight:600;">IDW BASELINE</div>
+            <div style="font-size:1.8rem; font-weight:700; color:#FBBF24;" id="fo-idw-aqi">&mdash;</div>
+            <div style="font-size:0.75rem; color:#FBBF24;">Error: <span id="fo-idw-err">&mdash;</span></div>
+          </div>
+          <div style="padding:14px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:10px; text-align:center;">
+            <div style="font-size:0.75rem; color:#6B7280; margin-bottom:4px; font-weight:600;">PERSISTENCE BASELINE</div>
+            <div style="font-size:1.8rem; font-weight:700; color:#F87171;" id="fo-pers-aqi">&mdash;</div>
+            <div style="font-size:0.75rem; color:#F87171;">Error: <span id="fo-pers-err">&mdash;</span></div>
+          </div>
+        </div>
+        <!-- Verdict -->
+        <div style="padding:12px 16px; border-radius:8px; font-size:0.85rem; border-left:3px solid #22C55E; background:rgba(34,197,94,0.06);" id="fo-held-out-verdict"></div>
+        <div style="margin-top:8px; font-size:0.75rem; color:#6B7280; font-style:italic;">
+          Nearest neighbors used: <span id="fo-neighbors">&mdash;</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div style="border-top:1px solid rgba(255,255,255,0.06); margin: 24px 0;"></div>
+
+    <!-- Section C: Intervention Package Stability Under Uncertainty -->
+    <div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom: 14px;">
+        <span class="label-xs" style="color: #F59E0B;">SECTION C — INTERVENTION PACKAGE STABILITY UNDER FORECAST UNCERTAINTY</span>
+      </div>
+      <p style="font-size:0.82rem; color:#9CA3AF; margin-bottom: 16px; line-height:1.6;">
+        Uses GP uncertainty (σ) from Section A to bound the expected AQI reduction of the best budget package.
+        Not a causal estimate — correlational uncertainty propagation only. [MODELED]
+      </p>
+      <div id="fo-stability-loading" style="text-align:center; padding:20px; color:#9CA3AF; font-size:0.85rem;">
+        Run Section A analysis first
+      </div>
+      <div id="fo-stability-grid" style="display:none; display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:14px;"></div>
+    </div>
+
+    <div style="margin-top:20px; padding:10px 14px; background:rgba(0,0,0,0.15); border-radius:8px; font-size:0.75rem; color:#4B5563; font-style:italic;">
+      [MODELED ESTIMATES] All spatial forecasts use Gaussian Process interpolation from live WAQI station data.
+      Baselines: IDW (Shepard p=2) and Persistence (city-mean before loss). No causal intervention effects are claimed.
+      Sources: CPCB GRAP 2023, IIT-Delhi SAFAR, sklearn GaussianProcessRegressor.
+    </div>
+  </div>
+
   <div class="scenario-grid">
     <!-- Left: Policy Levers -->
     <div class="bento-card scenario-controls-card">
@@ -200,7 +335,45 @@
         <div class="lever-foot"><span>0%</span><span class="muted">Cost: ~₹8 Cr civic penalty</span><span>100% Total Halt</span></div>
       </div>
 
+      <div class="control-lever">
+        <div class="lever-top">
+          <div class="lever-title-group">
+            <i data-lucide="bus" class="lever-icon text-cyan"></i>
+            <div>
+              <span class="lever-name">Free Metro & EV Bus Fares</span>
+              <span class="lever-desc">Off-peak zero-fare subsidy to induce modal shift</span>
+            </div>
+          </div>
+          <span class="lever-val-display" id="val-metro">Off</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.85rem;">
+            <input type="checkbox" id="toggle-metro" style="accent-color:#3B82F6; width:16px; height:16px; cursor:pointer;" />
+            <span>Enable fare subsidy</span>
+          </label>
+          <span class="text-cyan" style="font-size:0.75rem;">Cost: ~₹6.0 Cr / month</span>
+        </div>
+      </div>
 
+      <div class="control-lever">
+        <div class="lever-top">
+          <div class="lever-title-group">
+            <i data-lucide="flame" class="lever-icon text-amber"></i>
+            <div>
+              <span class="lever-name">Biomass & Crop Residue Interception</span>
+              <span class="lever-desc">Deploy CAQM bio-decomposer & harvesting machinery</span>
+            </div>
+          </div>
+          <span class="lever-val-display" id="val-stubble">Off</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.85rem;">
+            <input type="checkbox" id="toggle-stubble" style="accent-color:#F59E0B; width:16px; height:16px; cursor:pointer;" />
+            <span>Enable farm machinery interception</span>
+          </label>
+          <span class="text-amber" style="font-size:0.75rem;">Cost: ~₹4.0 Cr / season</span>
+        </div>
+      </div>
 
       <div style="margin-top: 20px;">
         <button class="action-btn-primary" id="btn-run-scenario" style="width: 100%; padding: 14px 20px; font-size: 13.5px; justify-content: center;">
@@ -275,12 +448,15 @@
       </div>
 
       <div class="bento-card roi-leaderboard-card">
-        <div class="bento-card__title-bar">
+        <div class="bento-card__title-bar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
           <div>
             <h3 class="card-heading">Intervention ROI Leaderboard</h3>
-            <span class="label-xs muted">Ranked by AQI reduction per unit cost & feasibility</span>
+            <span class="label-xs muted">Dynamic evaluation across active levers &amp; GRAP stages</span>
           </div>
-          <span class="badge-pill">Decision Matrix</span>
+          <div style="display:flex; gap:6px; background:rgba(255,255,255,0.04); padding:3px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+            <button id="btn-roi-mode-active" class="btn-xs" style="padding:4px 10px; font-size:0.75rem; border-radius:6px; background:#3B82F6; color:#fff; border:none; cursor:pointer; font-weight:600;">Active Levers</button>
+            <button id="btn-roi-mode-max" class="btn-xs" style="padding:4px 10px; font-size:0.75rem; border-radius:6px; background:transparent; color:#9CA3AF; border:none; cursor:pointer; font-weight:500;">GRAP IV Max</button>
+          </div>
         </div>
         <div class="roi-table-wrap">
           <table class="roi-table">

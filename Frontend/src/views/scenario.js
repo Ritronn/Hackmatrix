@@ -9,68 +9,264 @@ import { runSimulation, getRoiLeaderboard, getBudgetPlan } from '../api/scenario
 import { runMLScenario } from '../api/forecast.js';
 import { getCityAQI } from '../api/aqi.js';
 
-const FEASIBILITY_CLASS = { High: 'badge-tag--high', Medium: 'badge-tag--med', Low: 'badge-tag--low' };
+const FEASIBILITY_CLASS = {
+  High: 'badge-tag--high',
+  Medium: 'badge-tag--med',
+  Low: 'badge-tag--low',
+};
 
 // ── ROI Table renderer ────────────────────────────────────────────────────────
 function renderRoiTable(interventions) {
   const tbody = document.getElementById('roi-table-body');
   if (!tbody) return;
-  tbody.innerHTML = interventions.map((e) => `
-    <tr class="${e.rank === 1 ? 'roi-row--top' : ''}">
-      <td><span class="rank-badge ${e.rank <= 3 ? `rank-${e.rank}` : ''}">#${e.rank}</span></td>
-      <td><strong>${e.intervention}</strong></td>
-      <td class="text-green">-${e.aqi_drop.toFixed(1)} AQI</td>
-      <td>₹${e.cost_crore.toFixed(1)} Cr</td>
-      <td><strong class="text-gold">+${e.roi_per_crore.toFixed(2)} / Cr</strong></td>
-      <td><span class="badge-tag ${FEASIBILITY_CLASS[e.feasibility] ?? ''}">${e.feasibility}</span></td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = interventions.map((e) => {
+    const isInactive = (e.cost_crore <= 0 && e.aqi_drop <= 0) || e.feasibility === 'Status Quo';
+    const rankBadge = isInactive
+      ? `<span class="rank-badge" style="background:rgba(255,255,255,0.05); color:#6B7280; font-size:10px;">Off</span>`
+      : `<span class="rank-badge ${e.rank <= 3 ? `rank-${e.rank}` : ''}">#${e.rank}</span>`;
+    const aqiColor = isInactive ? '#6B7280' : '#22C55E';
+    const costText = isInactive ? '<span style="color:#6B7280;">₹0.0 Cr</span>' : `₹${e.cost_crore.toFixed(1)} Cr`;
+    const roiText = isInactive
+      ? '<span style="color:#6B7280;">—</span>'
+      : `<strong class="text-gold">+${e.roi_per_crore.toFixed(2)} / Cr</strong>`;
+    const feasClass = FEASIBILITY_CLASS[e.feasibility] ?? '';
+    const feasBadge = isInactive
+      ? `<span style="font-size:10px; padding:2px 8px; border-radius:4px; background:rgba(255,255,255,0.05); color:#9CA3AF;">Off</span>`
+      : `<span class="badge-tag ${feasClass}">${e.feasibility}</span>`;
+
+    return `
+      <tr class="${e.rank === 1 && !isInactive ? 'roi-row--top' : ''}" style="transition: all 0.25s ease;">
+        <td>${rankBadge}</td>
+        <td><strong style="color:${isInactive ? '#9CA3AF' : '#F3F4F6'}">${e.intervention}</strong></td>
+        <td style="color:${aqiColor}; font-weight:600;">-${e.aqi_drop.toFixed(1)} AQI</td>
+        <td>${costText}</td>
+        <td>${roiText}</td>
+        <td>${feasBadge}</td>
+      </tr>
+    `;
+  }).join('');
 }
 
 export function initScenarioSimulator() {
   // ── Mode switcher ─────────────────────────────────────────────────────────
-  const btnModeSim    = document.getElementById('btn-mode-sim');
-  const btnModeMayor  = document.getElementById('btn-mode-mayor');
-  const btnModeBudget = document.getElementById('btn-mode-budget');
-  const mayorDeck     = document.getElementById('mayor-budget-deck');
-  const budgetDeck    = document.getElementById('budget-planner-deck');
-  const scenarioGrid  = document.querySelector('.scenario-grid');
+  const btnModeMayor    = document.getElementById('btn-mode-mayor');
+  const btnModeBudget   = document.getElementById('btn-mode-budget');
+  const btnModeForecast = document.getElementById('btn-mode-forecast');
+  const mayorDeck       = document.getElementById('mayor-budget-deck');
+  const budgetDeck      = document.getElementById('budget-planner-deck');
+  const forecastingDeck = document.getElementById('forecasting-deck');
+  const scenarioGrid    = document.querySelector('.scenario-grid');
 
-  btnModeSim?.addEventListener('click', () => {
-    btnModeSim.classList.add('mode-btn--active');
-    btnModeMayor?.classList.remove('mode-btn--active');
-    btnModeBudget?.classList.remove('mode-btn--active');
-    if (mayorDeck) mayorDeck.style.display = 'none';
-    if (budgetDeck) budgetDeck.style.display = 'none';
-    if (scenarioGrid) scenarioGrid.style.display = 'grid';
-  });
+  function clearAllModes() {
+    [btnModeMayor, btnModeBudget, btnModeForecast].forEach(b => b?.classList.remove('mode-btn--active'));
+    if (mayorDeck)       mayorDeck.style.display       = 'none';
+    if (budgetDeck)      budgetDeck.style.display      = 'none';
+    if (forecastingDeck) forecastingDeck.style.display = 'none';
+    if (scenarioGrid)    scenarioGrid.style.display    = 'grid';
+  }
+
   btnModeMayor?.addEventListener('click', () => {
+    clearAllModes();
     btnModeMayor.classList.add('mode-btn--active');
-    btnModeSim?.classList.remove('mode-btn--active');
-    btnModeBudget?.classList.remove('mode-btn--active');
     if (mayorDeck) mayorDeck.style.display = 'block';
-    if (budgetDeck) budgetDeck.style.display = 'none';
-    if (scenarioGrid) scenarioGrid.style.display = 'grid';
   });
   btnModeBudget?.addEventListener('click', () => {
+    clearAllModes();
     btnModeBudget.classList.add('mode-btn--active');
-    btnModeSim?.classList.remove('mode-btn--active');
-    btnModeMayor?.classList.remove('mode-btn--active');
-    if (mayorDeck) mayorDeck.style.display = 'none';
     if (budgetDeck) budgetDeck.style.display = 'block';
     if (scenarioGrid) scenarioGrid.style.display = 'none';
   });
+  btnModeForecast?.addEventListener('click', () => {
+    clearAllModes();
+    btnModeForecast.classList.add('mode-btn--active');
+    if (forecastingDeck) forecastingDeck.style.display = 'block';
+    if (scenarioGrid) scenarioGrid.style.display = 'none';
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Sensor Forecasting Mode (Addition 2 — Final Round)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  let _comparisonData = null; // Cache comparison result for Section C
+
+  async function runForecastingAnalysis() {
+    const city = window._currentCity ?? 'Delhi';
+    const loadingEl = document.getElementById('sensor-comparison-loading');
+    const tableWrap = document.getElementById('sensor-comparison-table-wrap');
+    const tbody     = document.getElementById('sensor-comparison-tbody');
+    const stabilityLoading = document.getElementById('fo-stability-loading');
+    const stabilityGrid    = document.getElementById('fo-stability-grid');
+    const btn = document.getElementById('btn-run-forecasting');
+
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation"></i> Computing...';
+      if (window.lucide) window.lucide.createIcons();
+    }
+    if (loadingEl) loadingEl.textContent = 'Running GP, IDW & Persistence at 25%, 50%, 75%...';
+
+    try {
+      const { getSensorLossComparison } = await import('../api/forecast.js');
+      const result = await getSensorLossComparison(city);
+      _comparisonData = result;
+
+      // Render Section A: Comparison Table
+      if (tbody && result.comparison_table) {
+        tbody.innerHTML = result.comparison_table.map(row => {
+          const gpWinsIdw  = row.gp_beats_idw;
+          const gpWinsPers = row.gp_beats_persistence;
+          const winsText = (gpWinsIdw && gpWinsPers) ? '✅ Beats both' : gpWinsIdw ? '✅ Beats IDW' : gpWinsPers ? '✅ Beats Persistence' : '—';
+          return `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+            <td style="padding:10px 12px; font-weight:700; color:#FBBF24;">${row.loss_pct.toFixed(0)}% Loss</td>
+            <td style="padding:10px 12px; text-align:center; color:#22C55E;">${row.active_stations}</td>
+            <td style="padding:10px 12px; text-align:center; color:#F87171;">${row.dropped_count}</td>
+            <td style="padding:10px 12px; text-align:center; color:#60A5FA; font-weight:600;">${row.gp_mae} AQI</td>
+            <td style="padding:10px 12px; text-align:center; color:#FBBF24;">${row.idw_mae} AQI</td>
+            <td style="padding:10px 12px; text-align:center; color:#F87171;">${row.persistence_mae} AQI</td>
+            <td style="padding:10px 12px; text-align:center; color:#9CA3AF;">±${row.avg_gp_std} AQI</td>
+            <td style="padding:10px 12px; text-align:center; font-size:0.8rem;">${winsText}</td>
+          </tr>`;
+        }).join('');
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (tableWrap) tableWrap.style.display = 'block';
+      }
+
+      // Render Section C: Intervention Stability
+      if (stabilityGrid && result.intervention_stability) {
+        stabilityGrid.innerHTML = result.intervention_stability.map(item => {
+          const std = item.gp_std;
+          const lo  = item.reduction_lower_bound;
+          const hi  = item.reduction_upper_bound;
+          const pct = item.loss_pct;
+          const borderColor = pct <= 25 ? '#22C55E' : pct <= 50 ? '#FBBF24' : '#F87171';
+          return `<div style="padding:16px; background:rgba(255,255,255,0.03); border:1px solid ${borderColor}33; border-top:3px solid ${borderColor}; border-radius:10px;">
+            <div style="font-size:0.75rem; font-weight:700; color:${borderColor}; margin-bottom:8px;">${pct.toFixed(0)}% SENSOR LOSS</div>
+            <div style="font-size:0.8rem; color:#9CA3AF; margin-bottom:6px;">GP Forecast Uncertainty: <strong style="color:#fff;">±${std} AQI</strong></div>
+            <div style="font-size:0.85rem; margin-bottom:4px;">Target package: <strong>−30 AQI</strong></div>
+            <div style="font-size:1rem; font-weight:600; color:${borderColor};">
+              Realistic range: −${lo} to −${hi} AQI
+            </div>
+            <div style="font-size:0.72rem; color:#6B7280; margin-top:8px; line-height:1.5;">${item.interpretation}</div>
+          </div>`;
+        }).join('');
+        if (stabilityLoading) stabilityLoading.style.display = 'none';
+        stabilityGrid.style.display = 'grid';
+      }
+
+    } catch (err) {
+      console.error('[forecasting] Error:', err);
+      if (loadingEl) loadingEl.textContent = `⚠ Failed: ${err.message}. Is backend running?`;
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="play"></i> Run Full Analysis';
+        if (window.lucide) window.lucide.createIcons();
+      }
+    }
+  }
+
+  async function runHeldOutForecast() {
+    const city    = window._currentCity ?? 'Delhi';
+    const station = document.getElementById('fo-held-out-select')?.value ?? 'Anand Vihar';
+    const resultDiv = document.getElementById('fo-held-out-results');
+    const btn = document.getElementById('btn-run-held-out-fo');
+
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="spin-animation"></i> Predicting...';
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    try {
+      const { getHeldOut } = await import('../api/forecast.js');
+      const result = await getHeldOut(city, station);
+
+      if (resultDiv) resultDiv.style.display = 'block';
+
+      const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      set('fo-actual-aqi', result.actual_aqi);
+      set('fo-gp-aqi', `${result.gp_predicted_aqi} AQI`);
+      set('fo-gp-err', `${result.gp_error} AQI`);
+      set('fo-gp-std', `${result.gp_uncertainty_std} AQI`);
+      set('fo-idw-aqi', `${result.idw_predicted_aqi} AQI`);
+      set('fo-idw-err', `${result.idw_error} AQI`);
+      set('fo-pers-aqi', `${result.persistence_predicted_aqi} AQI`);
+      set('fo-pers-err', `${result.persistence_error} AQI`);
+
+      const verdictEl = document.getElementById('fo-held-out-verdict');
+      if (verdictEl) {
+        const gpBestMethod = result.gp_beats_idw && result.gp_beats_persistence
+          ? 'GP beats both IDW and Persistence'
+          : result.gp_beats_idw
+            ? 'GP beats IDW baseline'
+            : result.gp_beats_persistence
+              ? 'GP beats Persistence baseline'
+              : 'GP comparable to baselines';
+        const pkg = result.package_stability;
+        verdictEl.innerHTML = `
+          <strong style="color:#22C55E;">${result.held_out_station}</strong> withheld — 
+          ${gpBestMethod}. GP error: ${result.gp_error} AQI vs IDW: ${result.idw_error} AQI / Persistence: ${result.persistence_error} AQI.<br/>
+          <span style="color:#F59E0B; font-size:0.8rem;">Package stability at this location: 
+            targeting −${pkg.typical_reduction} AQI → range −${pkg.lower_bound} to −${pkg.upper_bound} AQI [MODELED]</span>`;
+      }
+
+      const neighborsEl = document.getElementById('fo-neighbors');
+      if (neighborsEl && result.nearest_neighbors) {
+        neighborsEl.textContent = result.nearest_neighbors.map(n => `${n.name} (${n.aqi} AQI)`).join(', ');
+      }
+
+    } catch (err) {
+      console.error('[held-out-forecast] Error:', err);
+      alert(`Held-out prediction failed: ${err.message}`);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="target"></i> Predict Held-Out';
+        if (window.lucide) window.lucide.createIcons();
+      }
+    }
+  }
+
+  document.getElementById('btn-run-forecasting')?.addEventListener('click', runForecastingAnalysis);
+  document.getElementById('btn-run-held-out-fo')?.addEventListener('click', runHeldOutForecast);
 
   // ── Lever elements ────────────────────────────────────────────────────────
   const sliderTraffic  = document.getElementById('slider-traffic');
   const sliderIndustry = document.getElementById('slider-industry');
   const sliderMist     = document.getElementById('slider-mist');
   const sliderConst    = document.getElementById('slider-const');
+  const toggleMetro    = document.getElementById('toggle-metro');
+  const toggleStubble  = document.getElementById('toggle-stubble');
 
   const valTraffic     = document.getElementById('val-traffic');
   const valIndustry    = document.getElementById('val-industry');
   const valMist        = document.getElementById('val-mist');
   const valConst       = document.getElementById('val-const');
+  const valMetro       = document.getElementById('val-metro');
+  const valStubble     = document.getElementById('val-stubble');
+
+  // ROI Leaderboard mode switcher (Active Levers vs GRAP IV Max)
+  let currentRoiMode   = 'active';
+  const btnRoiActive   = document.getElementById('btn-roi-mode-active');
+  const btnRoiMax      = document.getElementById('btn-roi-mode-max');
+
+  btnRoiActive?.addEventListener('click', () => {
+    currentRoiMode = 'active';
+    btnRoiActive.style.background = '#3B82F6';
+    btnRoiActive.style.color = '#fff';
+    btnRoiMax.style.background = 'transparent';
+    btnRoiMax.style.color = '#9CA3AF';
+    loadRoiLeaderboard();
+  });
+
+  btnRoiMax?.addEventListener('click', () => {
+    currentRoiMode = 'max';
+    btnRoiMax.style.background = '#3B82F6';
+    btnRoiMax.style.color = '#fff';
+    btnRoiActive.style.background = 'transparent';
+    btnRoiActive.style.color = '#9CA3AF';
+    loadRoiLeaderboard();
+  });
 
   // ── Output elements ───────────────────────────────────────────────────────
   const simAqiResult   = document.getElementById('sim-aqi-result');
@@ -86,7 +282,7 @@ export function initScenarioSimulator() {
 
   // ── Debounce helper — avoids hammering the API on every slider tick ───────
   let debounceTimer = null;
-  function debounce(fn, ms = 350) {
+  function debounce(fn, ms = 120) {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(fn, ms);
   }
@@ -97,6 +293,8 @@ export function initScenarioSimulator() {
     if (valIndustry) valIndustry.textContent = `${sliderIndustry?.value ?? 0}% curtailment`;
     if (valMist)     valMist.textContent     = `${sliderMist?.value     ?? 0} units active`;
     if (valConst)    valConst.textContent    = `${sliderConst?.value    ?? 0}% halted`;
+    if (valMetro)    valMetro.textContent    = toggleMetro?.checked ? 'Active (Subsidized)' : 'Off';
+    if (valStubble)  valStubble.textContent  = toggleStubble?.checked ? 'Active (Intercepting)' : 'Off';
   }
 
   // ── Call backend /scenario/simulate ──────────────────────────────────────
@@ -113,9 +311,8 @@ export function initScenarioSimulator() {
       industrial_curtailment_pct: parseFloat(sliderIndustry?.value ?? 0),
       mist_units:                 parseInt(sliderMist?.value        ?? 0, 10),
       construction_halt_pct:      parseFloat(sliderConst?.value     ?? 0),
-      // metro_subsidy and stubble_interception removed — toggles removed from UI
-      // Backend defaults them to false → 0 AQI reduction, ensuring
-      // zero-lever state produces simulated_aqi == baseline_aqi exactly.
+      metro_subsidy:              toggleMetro?.checked ?? false,
+      stubble_interception:       toggleStubble?.checked ?? false,
     };
 
     try {
@@ -211,9 +408,19 @@ export function initScenarioSimulator() {
     }
   }
 
-  // Sliders update labels only — calculation happens when clicking the Simulate button
+  // Sliders and toggles update labels and live-refresh the ROI leaderboard dynamically!
   [sliderTraffic, sliderIndustry, sliderMist, sliderConst].forEach((s) => {
-    s?.addEventListener('input', updateLabels);
+    s?.addEventListener('input', () => {
+      updateLabels();
+      debounce(loadRoiLeaderboard, 120);
+    });
+  });
+
+  [toggleMetro, toggleStubble].forEach((t) => {
+    t?.addEventListener('change', () => {
+      updateLabels();
+      loadRoiLeaderboard();
+    });
   });
 
   // Dedicated "Simulate Policy Interventions" predict button
@@ -246,14 +453,16 @@ export function initScenarioSimulator() {
     }
   });
 
-  // Reset — sliders back to zero (true no-intervention baseline)
+  // Reset — sliders and toggles back to zero
   document.getElementById('btn-reset-scenario')?.addEventListener('click', () => {
     if (sliderTraffic)  sliderTraffic.value   = '0';
     if (sliderIndustry) sliderIndustry.value  = '0';
     if (sliderMist)     sliderMist.value      = '0';
     if (sliderConst)    sliderConst.value     = '0';
+    if (toggleMetro)    toggleMetro.checked   = false;
+    if (toggleStubble)  toggleStubble.checked = false;
     updateLabels();
-    // Don't auto-calculate — user must hit Simulate to confirm intent
+    loadRoiLeaderboard();
   });
 
   // ── Ensure live baseline AQI dynamically from API ───────────────────────
@@ -309,12 +518,22 @@ export function initScenarioSimulator() {
     return baseline;
   }
 
-  // ── Load ROI leaderboard from backend ─────────────────────────────────────
+  // ── Load ROI leaderboard dynamically from backend ────────────────────────
   async function loadRoiLeaderboard() {
     try {
-      const city     = 'Delhi';
+      const city     = window._currentCity ?? 'Delhi';
       const baseline = await ensureLiveBaseline();
-      const data = await getRoiLeaderboard(city, baseline);
+
+      const params = currentRoiMode === 'active' ? {
+        traffic_pct:          parseFloat(sliderTraffic?.value ?? 0),
+        industry_pct:         parseFloat(sliderIndustry?.value ?? 0),
+        mist_units:           parseInt(sliderMist?.value ?? 0, 10),
+        const_pct:            parseFloat(sliderConst?.value ?? 0),
+        metro_subsidy:        toggleMetro?.checked ?? false,
+        stubble_interception: toggleStubble?.checked ?? false,
+      } : {};
+
+      const data = await getRoiLeaderboard(city, baseline, params);
       renderRoiTable(data.interventions);
     } catch (err) {
       console.warn('[scenario] ROI leaderboard fetch failed.', err);
@@ -459,6 +678,14 @@ export function initScenarioSimulator() {
         <div style="margin-top:12px; padding:8px; background:rgba(255,255,255,0.03); border-radius:6px;">
           <div style="font-size:10px; color:#9CA3AF; margin-bottom:4px; font-weight:600; letter-spacing:0.5px;">OPERATIONAL CONSTRAINTS</div>
           <div>${opRows}</div>
+        </div>` : ''}
+
+        ${pkg.affected_areas?.length ? `
+        <div style="margin-top:12px; padding:8px; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.15); border-radius:6px;">
+          <div style="font-size:10px; color:#6EE7B7; margin-bottom:4px; font-weight:600; letter-spacing:0.5px;">AFFECTED AREAS & ENFORCEMENT ZONES</div>
+          <ul style="list-style:none; padding:0; margin:0;">
+            ${pkg.affected_areas.map(a => `<li style="font-size:11px; color:#D1FAE5; margin-bottom:2px;">📍 ${a}</li>`).join('')}
+          </ul>
         </div>` : ''}
 
         ${overBudgetNote}

@@ -95,4 +95,11 @@ export const getSensorLoss = (city, lossPct = 30, seed = 42) =>
 export const getHeldOut = (city, station = 'Anand Vihar') =>
   apiFetch(`/forecast/${encodeURIComponent(city)}/held-out?station=${encodeURIComponent(station)}`);
 
-
+/**
+ * Run multi-level sensor-loss comparison (25%, 50%, 75%) in one call.
+ * Returns GP vs IDW vs Persistence MAE table + intervention stability assessment.
+ * @param {string} city
+ * @param {number} [seed=42]
+ */
+export const getSensorLossComparison = (city, seed = 42) =>
+  apiFetch(`/forecast/${encodeURIComponent(city)}/sensor-loss-comparison?seed=${seed}`);

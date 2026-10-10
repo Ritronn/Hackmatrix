@@ -34,8 +34,26 @@ AQI_BANDS: list[AQIBand] = [
 # City name (lowercase) → list of WAQI slug strings.
 # All slugs are tried in parallel; slugs returning "-" AQI or errors are skipped.
 CITY_SLUGS: dict[str, list[str]] = {
-    "delhi": ["delhi", "delhi/punjabi-bagh"],
-    "noida": ["noida", "delhi"],
+    "delhi": [
+        "delhi",
+        "delhi/punjabi-bagh",
+        "delhi/anand-vihar",
+        "delhi/ito",
+        "delhi/r-k-puram",
+        "delhi/dwarka-sector-8",
+        "delhi/rohini",
+        "delhi/wazirpur",
+        "delhi/lodhi-road",
+        "delhi/mundka",
+        "delhi/shadipur",
+    ],
+    "noida": [
+        "noida",
+        "noida/sector-62",
+        "noida/sector-1",
+        "noida/sector-116",
+        "delhi",
+    ],
 }
 
 DEFAULT_SLUGS = ["delhi"]

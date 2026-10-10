@@ -83,14 +83,17 @@ export function initWardsAnalytics() {
     }
   }
 
-  // Patch switchView to load wards on first navigation
-  let wardsLoaded = false;
+  // Patch switchView to refresh wards dynamically on navigation
   const origSwitch = window.switchView;
   window.switchView = function (viewName) {
     origSwitch?.(viewName);
-    if (viewName === 'wards' && !wardsLoaded) {
-      wardsLoaded = true;
+    if (viewName === 'wards') {
       loadWards();
     }
   };
+
+  // Listen to city changes if triggered globally
+  window.addEventListener('city-changed', () => {
+    loadWards();
+  });
 }

@@ -76,6 +76,15 @@ _NAMES = {
     "stubble":  "Biomass & Crop Residue Burning Interception",
 }
 
+_AFFECTED_AREAS = {
+    "traffic":  "Arterial corridors, Ring Roads & 13 border entry points",
+    "industry": "Industrial clusters (Anand Vihar, Wazirpur, Narela, Bawana)",
+    "mist":     "13 priority pollution hotspots & major road intersections",
+    "const":    "Active construction & infrastructure corridors NCT-wide",
+    "metro":    "Delhi Metro network (393 km, 288 stns) & DTC bus corridors",
+    "stubble":  "Regional airshed & NW border entry corridors (Punjab/Haryana border)",
+}
+
 # Health metric bases (research-calibrated)
 _ER_PER_AQI_UNIT   = 3.1   # IHME GBD 2019: ER visits/AQI-unit/day (city-wide)
 _ECON_PER_AQI_UNIT = 0.31  # World Bank: INR Crore saved/AQI-point/day
@@ -189,33 +198,139 @@ def run_scenario(inp: ScenarioInput) -> ScenarioResult:
 # ROI LEADERBOARD
 # ================================================================================
 
-def build_roi_leaderboard(city: str, baseline_aqi: float) -> ROILeaderboardResponse:
+def build_roi_leaderboard(
+    city: str,
+    baseline_aqi: float,
+    traffic_pct: float | None = None,
+    industry_pct: float | None = None,
+    mist_units: int | None = None,
+    const_pct: float | None = None,
+    metro_subsidy: bool | None = None,
+    stubble_interception: bool | None = None,
+) -> ROILeaderboardResponse:
     """
-    Run each intervention independently at GRAP-maximum permitted level;
-    rank by AQI reduction per INR Crore (cost-effectiveness ratio).
+    Run each intervention dynamically based on active lever intensity or GRAP-max;
+    evaluates dynamic AQI Drop, tiered Cost, ROI (Drop / ₹ Cr), and Feasibility level.
     """
-    max_inputs = {
-        "traffic":  ScenarioInput(city=city, baseline_aqi=baseline_aqi, traffic_restriction_pct=50),
-        "industry": ScenarioInput(city=city, baseline_aqi=baseline_aqi, industrial_curtailment_pct=40),
-        "mist":     ScenarioInput(city=city, baseline_aqi=baseline_aqi, mist_units=100),
-        "const":    ScenarioInput(city=city, baseline_aqi=baseline_aqi, construction_halt_pct=100),
-        "metro":    ScenarioInput(city=city, baseline_aqi=baseline_aqi, metro_subsidy=True),
-        "stubble":  ScenarioInput(city=city, baseline_aqi=baseline_aqi, stubble_interception=True),
-    }
-
     entries = []
-    for key, inp in max_inputs.items():
-        result = run_scenario(inp)
-        cost = result.total_cost_crore
-        drop = result.aqi_reduction
-        roi  = round(drop / cost, 3) if cost > 0 else 0.0
+
+    # 1. Traffic
+    t_val = traffic_pct if traffic_pct is not None else 50.0
+    if t_val <= 0:
         entries.append(ROIEntry(
-            rank=0, intervention=_NAMES[key],
-            aqi_drop=drop, cost_crore=cost,
-            roi_per_crore=roi, feasibility=_FEASIBILITY[key],
+            rank=0, intervention="Odd-Even & Heavy Vehicle Restriction (0% — Off)",
+            aqi_drop=0.0, cost_crore=0.0, roi_per_crore=0.0, feasibility="Status Quo"
+        ))
+    else:
+        t_drop = round((t_val / 50.0) * 20.0, 1)
+        if t_val <= 20:
+            t_cost = round((t_val / 20.0) * 3.5, 2)
+            t_feas = "High"
+        elif t_val <= 35:
+            t_cost = round(3.5 + ((t_val - 20.0) / 15.0) * 5.0, 2)
+            t_feas = "Medium"
+        else:
+            t_cost = round(8.5 + ((t_val - 35.0) / 15.0) * 6.5, 2)
+            t_feas = "Low"
+        t_roi = round(t_drop / t_cost, 2) if t_cost > 0 else 0.0
+        entries.append(ROIEntry(
+            rank=0, intervention=f"Odd-Even & Heavy Vehicle Restriction ({int(t_val)}%)",
+            aqi_drop=t_drop, cost_crore=t_cost, roi_per_crore=t_roi, feasibility=t_feas
         ))
 
-    entries.sort(key=lambda e: e.roi_per_crore, reverse=True)
+    # 2. Industry
+    i_val = industry_pct if industry_pct is not None else 40.0
+    if i_val <= 0:
+        entries.append(ROIEntry(
+            rank=0, intervention="Industrial Kiln & Furnace Curtailment (0% — Off)",
+            aqi_drop=0.0, cost_crore=0.0, roi_per_crore=0.0, feasibility="Status Quo"
+        ))
+    else:
+        i_drop = round((i_val / 40.0) * 18.0, 1)
+        if i_val <= 15:
+            i_cost = round((i_val / 15.0) * 4.5, 2)
+            i_feas = "High"
+        elif i_val <= 25:
+            i_cost = round(4.5 + ((i_val - 15.0) / 10.0) * 6.5, 2)
+            i_feas = "Medium"
+        else:
+            i_cost = round(11.0 + ((i_val - 25.0) / 15.0) * 9.0, 2)
+            i_feas = "Low"
+        i_roi = round(i_drop / i_cost, 2) if i_cost > 0 else 0.0
+        entries.append(ROIEntry(
+            rank=0, intervention=f"Industrial Kiln & Furnace Curtailment ({int(i_val)}%)",
+            aqi_drop=i_drop, cost_crore=i_cost, roi_per_crore=i_roi, feasibility=i_feas
+        ))
+
+    # 3. Mist Guns
+    m_val = mist_units if mist_units is not None else 100
+    if m_val <= 0:
+        entries.append(ROIEntry(
+            rank=0, intervention="Anti-Smog Mist Guns & Sweepers (0 units — Off)",
+            aqi_drop=0.0, cost_crore=0.0, roi_per_crore=0.0, feasibility="Status Quo"
+        ))
+    else:
+        m_drop = round(min((m_val / 100.0) * 9.0, 9.0), 1)
+        m_cost = round((m_val / 100.0) * 6.5, 2)
+        m_feas = "High" if m_val <= 75 else "Medium"
+        m_roi = round(m_drop / m_cost, 2) if m_cost > 0 else 0.0
+        entries.append(ROIEntry(
+            rank=0, intervention=f"Anti-Smog Mist Guns & Sweepers ({m_val} units)",
+            aqi_drop=m_drop, cost_crore=m_cost, roi_per_crore=m_roi, feasibility=m_feas
+        ))
+
+    # 4. Construction
+    c_val = const_pct if const_pct is not None else 100.0
+    if c_val <= 0:
+        entries.append(ROIEntry(
+            rank=0, intervention="Construction & Demolition Halt (0% — Off)",
+            aqi_drop=0.0, cost_crore=0.0, roi_per_crore=0.0, feasibility="Status Quo"
+        ))
+    else:
+        c_drop = round((c_val / 100.0) * 10.0, 1)
+        if c_val <= 30:
+            c_cost = round((c_val / 30.0) * 2.0, 2)
+            c_feas = "High"
+        elif c_val <= 60:
+            c_cost = round(2.0 + ((c_val - 30.0) / 30.0) * 3.0, 2)
+            c_feas = "Medium"
+        else:
+            c_cost = round(5.0 + ((c_val - 60.0) / 40.0) * 3.0, 2)
+            c_feas = "Low"
+        c_roi = round(c_drop / c_cost, 2) if c_cost > 0 else 0.0
+        entries.append(ROIEntry(
+            rank=0, intervention=f"Construction & Demolition Halt ({int(c_val)}%)",
+            aqi_drop=c_drop, cost_crore=c_cost, roi_per_crore=c_roi, feasibility=c_feas
+        ))
+
+    # 5. Free Metro
+    metro_on = metro_subsidy if metro_subsidy is not None else False
+    if not metro_on:
+        entries.append(ROIEntry(
+            rank=0, intervention="Free Metro & EV Bus Fares (Off)",
+            aqi_drop=0.0, cost_crore=0.0, roi_per_crore=0.0, feasibility="Status Quo"
+        ))
+    else:
+        entries.append(ROIEntry(
+            rank=0, intervention="Free Metro & EV Bus Fares (Active)",
+            aqi_drop=5.0, cost_crore=6.0, roi_per_crore=0.83, feasibility="High"
+        ))
+
+    # 6. Biomass / Stubble
+    stubble_on = stubble_interception if stubble_interception is not None else False
+    if not stubble_on:
+        entries.append(ROIEntry(
+            rank=0, intervention="Biomass & Crop Residue Interception (Off)",
+            aqi_drop=0.0, cost_crore=0.0, roi_per_crore=0.0, feasibility="Status Quo"
+        ))
+    else:
+        entries.append(ROIEntry(
+            rank=0, intervention="Biomass & Crop Residue Interception (Active)",
+            aqi_drop=12.0, cost_crore=4.0, roi_per_crore=3.00, feasibility="Medium"
+        ))
+
+    # Sort: active entries by ROI descending, inactive entries (0 cost) at bottom
+    entries.sort(key=lambda e: (e.cost_crore > 0, e.roi_per_crore, e.aqi_drop), reverse=True)
     for i, e in enumerate(entries, 1):
         e.rank = i
 
@@ -278,6 +393,7 @@ def find_best_packages(
                 "er_visits_avoided": result.er_visits_avoided_per_day,
                 "economic_saving_crore": result.economic_saving_crore,
                 "operational_limits": {k: _OPERATIONAL_LIMITS[k] for k in type_combo},
+                "affected_areas": [_AFFECTED_AREAS[k] for k in type_combo],
             })
 
     feasible   = sorted([p for p in packages if p["feasible"]],

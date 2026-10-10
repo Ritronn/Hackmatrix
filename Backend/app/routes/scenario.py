@@ -30,13 +30,28 @@ async def simulate_scenario(inp: ScenarioInput):
 async def get_roi_leaderboard(
     city: str = Query("Delhi"),
     baseline_aqi: float = Query(158.0, ge=0),
+    traffic_pct: float | None = Query(None, ge=0, le=50),
+    industry_pct: float | None = Query(None, ge=0, le=40),
+    mist_units: int | None = Query(None, ge=0, le=100),
+    const_pct: float | None = Query(None, ge=0, le=100),
+    metro_subsidy: bool | None = Query(None),
+    stubble_interception: bool | None = Query(None),
 ):
     """
     Return interventions ranked by AQI reduction per ₹ Crore (ROI).
-    Each intervention is evaluated independently at its maximum effective level.
+    Computes dynamic ROI, expenditure, and feasibility based on active levers.
     """
     try:
-        return build_roi_leaderboard(city=city, baseline_aqi=baseline_aqi)
+        return build_roi_leaderboard(
+            city=city,
+            baseline_aqi=baseline_aqi,
+            traffic_pct=traffic_pct,
+            industry_pct=industry_pct,
+            mist_units=mist_units,
+            const_pct=const_pct,
+            metro_subsidy=metro_subsidy,
+            stubble_interception=stubble_interception,
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

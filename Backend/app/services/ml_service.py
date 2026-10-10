@@ -564,18 +564,59 @@ def get_model_metrics() -> dict:
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# 9. Sensor Loss Simulation  (Addition 2A — Final Round)
+# 9. Spatial Forecasting Baselines — IDW & Persistence helpers
 # ═════════════════════════════════════════════════════════════════════════════
+
+def _idw_predict(
+    stations: list[dict],   # [{lat, lon, aqi}, ...] — the active (training) stations
+    target_lat: float,
+    target_lon: float,
+    power: float = 2.0,
+) -> float:
+    """
+    Inverse Distance Weighting (IDW) prediction at a target point.
+    Formula: ŷ = Σ(w_i * y_i) / Σ(w_i),  w_i = 1 / d_i^p
+    Special case: if target == a station exactly, return that station's AQI.
+    This is the classical Shepard interpolation used as spatial baseline.
+    """
+    KM_LAT = 111.0
+    mean_lat = sum(s['lat'] for s in stations) / len(stations)
+    KM_LON = 111.0 * math.cos(math.radians(mean_lat))
+
+    weights, weighted_sum = [], 0.0
+    for s in stations:
+        dx = (s['lat'] - target_lat) * KM_LAT
+        dy = (s['lon'] - target_lon) * KM_LON
+        d = math.sqrt(dx**2 + dy**2)
+        if d < 1e-6:          # exactly at a station
+            return float(s['aqi'])
+        w = 1.0 / (d ** power)
+        weights.append(w)
+        weighted_sum += w * s['aqi']
+    total_w = sum(weights)
+    return weighted_sum / total_w if total_w > 0 else float(sum(s['aqi'] for s in stations) / len(stations))
+
+
+# =============================================================================
+# 10. Sensor Loss Simulation  (Addition 2A -- Final Round)
+# =============================================================================
 
 def simulate_sensor_loss(
     all_stations: list[dict],    # [{name, lat, lon, aqi}, ...]
-    loss_pct: float,             # 10, 30, or 50
+    loss_pct: float,             # canonical: 25, 50, or 75
     seed: int = 42,
 ) -> dict:
     """
     Randomly drop loss_pct% of stations, re-run GP interpolation,
-    measure prediction error at dropped locations.
-    Uses existing interpolate_city_surface() — no model changes.
+    and compare against IDW and Persistence baselines at the dropped locations.
+
+    Three baselines (Addition 2 requirement):
+      - GP (Gaussian Process): full spatial covariance, returns uncertainty std_dev
+      - IDW (Inverse Distance Weighting): classical Shepard interpolation baseline
+      - Persistence: city-wide mean AQI before the loss event (naive frozen forecast)
+
+    Returns all three MAE values so frontend can render a comparison table.
+    Uncertainty (GP std_dev) is used to assess intervention package stability.
     """
     import random
     rng = random.Random(seed)
@@ -590,44 +631,58 @@ def simulate_sensor_loss(
     dropped_names = {s['name'] for s in dropped}
     remaining = [s for s in all_stations if s['name'] not in dropped_names]
 
-    # Baseline: full-sensor GP
+    # Persistence baseline: city mean BEFORE the loss event
+    # (represents "last known reading" -- naive frozen forecast)
+    persistence_value = sum(s['aqi'] for s in all_stations) / len(all_stations)
+
+    # Full-sensor GP (for baseline uncertainty reference)
     baseline_grid = interpolate_city_surface(remaining + dropped, grid_resolution=30)
     baseline_avg_std = sum(p['std_dev'] for p in baseline_grid) / len(baseline_grid) if baseline_grid else 0
 
-    # Degraded: reduced-sensor GP
+    # Degraded GP (reduced sensor coverage)
     degraded_grid = interpolate_city_surface(remaining, grid_resolution=30)
     degraded_avg_std = sum(p['std_dev'] for p in degraded_grid) / len(degraded_grid) if degraded_grid else 0
 
-    # Measure error at each dropped station location
     station_errors = []
+    idw_errs = []
+    pers_errs = []
+
     for station in dropped:
-        nearest = min(
+        # GP error
+        nearest_gp = min(
             degraded_grid,
             key=lambda p: (p['lat'] - station['lat'])**2 + (p['lon'] - station['lon'])**2
         )
-        error = abs(nearest['predicted_aqi'] - station['aqi'])
+        gp_pred = nearest_gp['predicted_aqi']
+        gp_err  = abs(gp_pred - station['aqi'])
+        gp_std  = nearest_gp['std_dev']
+
+        # IDW error
+        idw_pred = _idw_predict(remaining, station['lat'], station['lon'])
+        idw_err  = abs(idw_pred - station['aqi'])
+
+        # Persistence error
+        pers_err = abs(persistence_value - station['aqi'])
+
         station_errors.append({
             "station_name": station['name'],
             "actual_aqi": station['aqi'],
-            "predicted_aqi": nearest['predicted_aqi'],
-            "std_dev": nearest['std_dev'],
-            "confidence": nearest['confidence'],
-            "error": round(error, 2),
+            "gp_predicted_aqi": round(gp_pred, 1),
+            "idw_predicted_aqi": round(idw_pred, 1),
+            "persistence_predicted_aqi": round(persistence_value, 1),
+            "gp_std_dev": round(gp_std, 2),
+            "gp_confidence": nearest_gp['confidence'],
+            "gp_error": round(gp_err, 2),
+            "idw_error": round(idw_err, 2),
+            "persistence_error": round(pers_err, 2),
         })
+        idw_errs.append(idw_err)
+        pers_errs.append(pers_err)
 
-    # Also compute persistence baseline: predict each dropped station as avg of 3 nearest active
-    persistence_errors = []
-    for station in dropped:
-        nearest_active = sorted(
-            remaining,
-            key=lambda s: (s['lat'] - station['lat'])**2 + (s['lon'] - station['lon'])**2
-        )[:3]
-        if nearest_active:
-            simple_pred = sum(s['aqi'] for s in nearest_active) / len(nearest_active)
-            persistence_errors.append(abs(simple_pred - station['aqi']))
-
-    mae = sum(e['error'] for e in station_errors) / len(station_errors) if station_errors else 0
-    persistence_mae = sum(persistence_errors) / len(persistence_errors) if persistence_errors else 0
+    gp_mae   = round(sum(e['gp_error'] for e in station_errors) / len(station_errors), 2) if station_errors else 0.0
+    idw_mae  = round(sum(idw_errs) / len(idw_errs), 2) if idw_errs else 0.0
+    pers_mae = round(sum(pers_errs) / len(pers_errs), 2) if pers_errs else 0.0
+    avg_gp_std = round(sum(e['gp_std_dev'] for e in station_errors) / len(station_errors), 2) if station_errors else 0.0
 
     return {
         "loss_pct": loss_pct,
@@ -636,22 +691,113 @@ def simulate_sensor_loss(
         "dropped_count": len(dropped),
         "dropped_stations": [{"name": s['name'], "lat": s['lat'], "lon": s['lon'], "aqi": s['aqi']} for s in dropped],
         "active_station_names": [s['name'] for s in remaining],
-        "gp_mae_at_dropped": round(mae, 2),
-        "persistence_baseline_mae": round(persistence_mae, 2),
-        "gp_beats_baseline": mae < persistence_mae,
+        # Three-method comparison
+        "gp_mae_at_dropped": gp_mae,
+        "idw_mae_at_dropped": idw_mae,
+        "persistence_mae_at_dropped": pers_mae,
+        "gp_beats_idw": gp_mae < idw_mae,
+        "gp_beats_persistence": gp_mae < pers_mae,
+        # Legacy aliases (for map.js existing code)
+        "persistence_baseline_mae": pers_mae,
+        "gp_beats_baseline": gp_mae < pers_mae,
+        # Uncertainty metrics
+        "avg_gp_std_at_dropped": avg_gp_std,
         "baseline_avg_std": round(baseline_avg_std, 2),
         "degraded_avg_std": round(degraded_avg_std, 2),
         "uncertainty_increase_pct": round((degraded_avg_std - baseline_avg_std) / (baseline_avg_std + 1e-9) * 100, 1),
+        # Per-station detail
         "station_errors": station_errors,
         "degraded_grid": degraded_grid,
         "method": "gaussian-process-spatial",
-        "note": "[MODELED] Spatial extrapolation under simulated sensor failure — not live sensor readings.",
+        "baselines": {
+            "idw": "Inverse Distance Weighting (Shepard p=2)",
+            "persistence": "City-mean AQI before loss event (frozen reading)",
+        },
+        "note": "[MODELED] Spatial extrapolation under simulated sensor failure -- not live sensor readings.",
     }
 
 
-# ═════════════════════════════════════════════════════════════════════════════
-# 10. Held-Out Location Forecasting  (Addition 2B — Final Round)
-# ═════════════════════════════════════════════════════════════════════════════
+# =============================================================================
+# 11. Multi-Level Sensor-Loss Comparison  (Addition 2 -- Required Evidence)
+# =============================================================================
+
+def multi_level_sensor_loss_comparison(
+    all_stations: list[dict],
+    loss_levels: list | None = None,
+    seed: int = 42,
+) -> dict:
+    """
+    Run sensor-loss simulation at 25%, 50%, and 75% in a single call.
+    Returns a structured comparison table (GP vs IDW vs Persistence MAE)
+    at each loss level, plus intervention package stability assessment.
+    Satisfies Addition 2 requirement: 'test multiple declared sensor-loss levels.'
+    """
+    if loss_levels is None:
+        loss_levels = [25.0, 50.0, 75.0]
+
+    if len(all_stations) < 3:
+        return {"error": "Need at least 3 stations"}
+
+    comparison_rows = []
+    for lvl in loss_levels:
+        r = simulate_sensor_loss(all_stations, loss_pct=lvl, seed=seed)
+        if "error" in r:
+            continue
+        comparison_rows.append({
+            "loss_pct": lvl,
+            "active_stations": r["active_stations"],
+            "dropped_count": r["dropped_count"],
+            "gp_mae": r["gp_mae_at_dropped"],
+            "idw_mae": r["idw_mae_at_dropped"],
+            "persistence_mae": r["persistence_mae_at_dropped"],
+            "gp_beats_idw": r["gp_beats_idw"],
+            "gp_beats_persistence": r["gp_beats_persistence"],
+            "avg_gp_std": r["avg_gp_std_at_dropped"],
+            "uncertainty_increase_pct": r["uncertainty_increase_pct"],
+            "dropped_station_names": [s["name"] for s in r["dropped_stations"]],
+        })
+
+    # Intervention stability: how does GP std_dev affect a typical budget package?
+    # Typical GRAP mid-tier package targets ~30 AQI reduction (research-calibrated)
+    TYPICAL_REDUCTION = 30.0
+    stability_analysis = []
+    for row in comparison_rows:
+        std = row["avg_gp_std"]
+        stability_analysis.append({
+            "loss_pct": row["loss_pct"],
+            "typical_aqi_reduction": TYPICAL_REDUCTION,
+            "reduction_lower_bound": round(TYPICAL_REDUCTION - std, 1),
+            "reduction_upper_bound": round(TYPICAL_REDUCTION + std, 1),
+            "gp_std": std,
+            "interpretation": (
+                f"At {row['loss_pct']:.0f}% sensor loss: GP uncertainty = +/-{std} AQI. "
+                f"A package targeting -{TYPICAL_REDUCTION:.0f} AQI could realistically deliver "
+                f"-{round(TYPICAL_REDUCTION - std, 1)} to -{round(TYPICAL_REDUCTION + std, 1)} AQI. "
+                "[MODELED -- correlational, not causal]"
+            ),
+        })
+
+    return {
+        "total_stations": len(all_stations),
+        "loss_levels_tested": loss_levels,
+        "comparison_table": comparison_rows,
+        "intervention_stability": stability_analysis,
+        "method": {
+            "gp": "Gaussian Process (RBF kernel + WhiteKernel) -- returns spatial uncertainty sigma",
+            "idw": "Inverse Distance Weighting (Shepard p=2) -- distance-only spatial baseline",
+            "persistence": "City-mean AQI before sensor loss -- naive frozen-reading baseline",
+        },
+        "note": (
+            "[MODELED] All predictions are spatial extrapolations from live station readings. "
+            "Sensor failure is simulated by randomly withholding stations. "
+            "No causal effects are claimed from correlation-based estimates."
+        ),
+    }
+
+
+# =============================================================================
+# 12. Held-Out Location Forecasting  (Addition 2B -- Final Round)
+# =============================================================================
 
 def held_out_location_demo(
     all_stations: list[dict],    # [{name, lat, lon, aqi}, ...]
@@ -659,59 +805,86 @@ def held_out_location_demo(
 ) -> dict:
     """
     Withhold one station from GP interpolation, predict its AQI
-    from neighboring stations only. Compare GP vs simple baseline.
+    from neighboring stations only.
+
+    Three-method comparison (Addition 2 requirement):
+      - GP: Gaussian Process spatial covariance (with uncertainty std_dev)
+      - IDW: Inverse Distance Weighting (classical Shepard baseline)
+      - Persistence: City-wide mean of remaining stations (naive baseline)
     """
-    # Find the target station
     target = None
     for s in all_stations:
         if held_out_name.lower() in s['name'].lower():
             target = s
             break
     if target is None:
-        return {"error": f"Station '{held_out_name}' not found in {[s['name'] for s in all_stations]}"}
+        available = [s['name'] for s in all_stations]
+        raise ValueError(f"Station '{held_out_name}' not found. Available: {available}")
 
     remaining = [s for s in all_stations if s['name'] != target['name']]
     if len(remaining) < 2:
-        return {"error": "Need at least 2 remaining stations for interpolation"}
+        raise ValueError("Need at least 2 remaining stations for interpolation")
 
-    # GP prediction (our method)
+    # GP prediction
     grid = interpolate_city_surface(remaining, grid_resolution=40)
     gp_point = min(
         grid,
         key=lambda p: (p['lat'] - target['lat'])**2 + (p['lon'] - target['lon'])**2
     )
+    gp_pred = gp_point['predicted_aqi']
+    gp_std  = gp_point['std_dev']
 
-    # Simple spatial baseline: average of 3 nearest active neighbors
+    # IDW prediction (proper Shepard interpolation)
+    idw_pred = _idw_predict(remaining, target['lat'], target['lon'])
+
+    # Persistence baseline: city mean of remaining stations
+    city_avg = sum(s['aqi'] for s in remaining) / len(remaining)
+
     nearest_3 = sorted(
         remaining,
         key=lambda s: (s['lat'] - target['lat'])**2 + (s['lon'] - target['lon'])**2
     )[:3]
-    baseline_pred = sum(s['aqi'] for s in nearest_3) / len(nearest_3)
 
-    # Persistence baseline: use the city-wide average
-    city_avg = sum(s['aqi'] for s in remaining) / len(remaining)
+    actual    = target['aqi']
+    gp_error  = round(abs(gp_pred - actual), 2)
+    idw_error = round(abs(idw_pred - actual), 2)
+    pers_error = round(abs(city_avg - actual), 2)
 
-    gp_error = abs(gp_point['predicted_aqi'] - target['aqi'])
-    baseline_error = abs(baseline_pred - target['aqi'])
-    city_avg_error = abs(city_avg - target['aqi'])
-
+    TYPICAL_REDUCTION = 30.0
     return {
         "held_out_station": target['name'],
         "held_out_lat": target['lat'],
         "held_out_lon": target['lon'],
-        "actual_aqi": target['aqi'],
-        "gp_predicted_aqi": gp_point['predicted_aqi'],
-        "gp_uncertainty_std": gp_point['std_dev'],
+        "actual_aqi": actual,
+        "gp_predicted_aqi": gp_pred,
+        "idw_predicted_aqi": round(idw_pred, 1),
+        "persistence_predicted_aqi": round(city_avg, 1),
+        "gp_uncertainty_std": gp_std,
         "gp_confidence": gp_point['confidence'],
-        "spatial_baseline_aqi": round(baseline_pred, 1),
+        "gp_error": gp_error,
+        "idw_error": idw_error,
+        "persistence_error": pers_error,
+        # Legacy compatibility keys (for map.js existing code)
+        "spatial_baseline_aqi": round(idw_pred, 1),
         "city_avg_baseline_aqi": round(city_avg, 1),
-        "gp_error": round(gp_error, 2),
-        "spatial_baseline_error": round(baseline_error, 2),
-        "city_avg_error": round(city_avg_error, 2),
-        "gp_beats_spatial_baseline": gp_error < baseline_error,
-        "gp_beats_city_avg": gp_error < city_avg_error,
+        "spatial_baseline_error": idw_error,
+        "city_avg_error": pers_error,
+        "gp_beats_spatial_baseline": gp_error < idw_error,
+        "gp_beats_city_avg": gp_error < pers_error,
+        "gp_beats_idw": gp_error < idw_error,
+        "gp_beats_persistence": gp_error < pers_error,
+        "package_stability": {
+            "typical_reduction": TYPICAL_REDUCTION,
+            "lower_bound": round(TYPICAL_REDUCTION - gp_std, 1),
+            "upper_bound": round(TYPICAL_REDUCTION + gp_std, 1),
+            "note": f"[MODELED] At this location uncertainty +/-{gp_std} AQI -- package effect is correlational, not causal.",
+        },
         "nearest_neighbors": [{"name": s['name'], "aqi": s['aqi']} for s in nearest_3],
         "n_stations_used": len(remaining),
         "method": "gaussian-process-spatial",
-        "note": "[MODELED] Spatial extrapolation to unseen location — not a physical sensor reading.",
+        "baselines": {
+            "idw": "Inverse Distance Weighting (Shepard p=2)",
+            "persistence": "City-mean of remaining stations",
+        },
+        "note": "[MODELED] Spatial extrapolation to unseen location -- not a physical sensor reading.",
     }

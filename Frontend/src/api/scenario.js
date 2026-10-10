@@ -21,12 +21,21 @@ export const runSimulation = (payload) =>
   apiFetch('/scenario/simulate', { method: 'POST', body: JSON.stringify(payload) });
 
 /**
- * Fetch pre-ranked ROI leaderboard for a city.
+ * Fetch ROI leaderboard for a city, dynamically reflecting active levers or GRAP-max.
  * @param {string} city
  * @param {number} baselineAqi
+ * @param {Record<string, any>} [params]
  */
-export const getRoiLeaderboard = (city, baselineAqi) =>
-  apiFetch(`/scenario/roi-leaderboard?city=${encodeURIComponent(city)}&baseline_aqi=${baselineAqi}`);
+export const getRoiLeaderboard = (city, baselineAqi, params = {}) => {
+  const q = new URLSearchParams({
+    city,
+    baseline_aqi: baselineAqi,
+  });
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null) q.append(k, v);
+  });
+  return apiFetch(`/scenario/roi-leaderboard?${q.toString()}`);
+};
 
 /**
  * Find best intervention packages under budget constraint.
