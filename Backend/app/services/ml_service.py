@@ -561,3 +561,157 @@ def get_model_metrics() -> dict:
         return {"error": "metrics.json not found", "path": str(metrics_path)}
     with open(metrics_path) as f:
         return json.load(f)
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# 9. Sensor Loss Simulation  (Addition 2A — Final Round)
+# ═════════════════════════════════════════════════════════════════════════════
+
+def simulate_sensor_loss(
+    all_stations: list[dict],    # [{name, lat, lon, aqi}, ...]
+    loss_pct: float,             # 10, 30, or 50
+    seed: int = 42,
+) -> dict:
+    """
+    Randomly drop loss_pct% of stations, re-run GP interpolation,
+    measure prediction error at dropped locations.
+    Uses existing interpolate_city_surface() — no model changes.
+    """
+    import random
+    rng = random.Random(seed)
+
+    if len(all_stations) < 3:
+        return {"error": "Need at least 3 stations for sensor loss simulation"}
+
+    n_drop = max(1, int(len(all_stations) * loss_pct / 100))
+    n_drop = min(n_drop, len(all_stations) - 2)  # keep at least 2 active
+
+    dropped = rng.sample(all_stations, n_drop)
+    dropped_names = {s['name'] for s in dropped}
+    remaining = [s for s in all_stations if s['name'] not in dropped_names]
+
+    # Baseline: full-sensor GP
+    baseline_grid = interpolate_city_surface(remaining + dropped, grid_resolution=30)
+    baseline_avg_std = sum(p['std_dev'] for p in baseline_grid) / len(baseline_grid) if baseline_grid else 0
+
+    # Degraded: reduced-sensor GP
+    degraded_grid = interpolate_city_surface(remaining, grid_resolution=30)
+    degraded_avg_std = sum(p['std_dev'] for p in degraded_grid) / len(degraded_grid) if degraded_grid else 0
+
+    # Measure error at each dropped station location
+    station_errors = []
+    for station in dropped:
+        nearest = min(
+            degraded_grid,
+            key=lambda p: (p['lat'] - station['lat'])**2 + (p['lon'] - station['lon'])**2
+        )
+        error = abs(nearest['predicted_aqi'] - station['aqi'])
+        station_errors.append({
+            "station_name": station['name'],
+            "actual_aqi": station['aqi'],
+            "predicted_aqi": nearest['predicted_aqi'],
+            "std_dev": nearest['std_dev'],
+            "confidence": nearest['confidence'],
+            "error": round(error, 2),
+        })
+
+    # Also compute persistence baseline: predict each dropped station as avg of 3 nearest active
+    persistence_errors = []
+    for station in dropped:
+        nearest_active = sorted(
+            remaining,
+            key=lambda s: (s['lat'] - station['lat'])**2 + (s['lon'] - station['lon'])**2
+        )[:3]
+        if nearest_active:
+            simple_pred = sum(s['aqi'] for s in nearest_active) / len(nearest_active)
+            persistence_errors.append(abs(simple_pred - station['aqi']))
+
+    mae = sum(e['error'] for e in station_errors) / len(station_errors) if station_errors else 0
+    persistence_mae = sum(persistence_errors) / len(persistence_errors) if persistence_errors else 0
+
+    return {
+        "loss_pct": loss_pct,
+        "total_stations": len(all_stations),
+        "active_stations": len(remaining),
+        "dropped_count": len(dropped),
+        "dropped_stations": [{"name": s['name'], "lat": s['lat'], "lon": s['lon'], "aqi": s['aqi']} for s in dropped],
+        "active_station_names": [s['name'] for s in remaining],
+        "gp_mae_at_dropped": round(mae, 2),
+        "persistence_baseline_mae": round(persistence_mae, 2),
+        "gp_beats_baseline": mae < persistence_mae,
+        "baseline_avg_std": round(baseline_avg_std, 2),
+        "degraded_avg_std": round(degraded_avg_std, 2),
+        "uncertainty_increase_pct": round((degraded_avg_std - baseline_avg_std) / (baseline_avg_std + 1e-9) * 100, 1),
+        "station_errors": station_errors,
+        "degraded_grid": degraded_grid,
+        "method": "gaussian-process-spatial",
+        "note": "[MODELED] Spatial extrapolation under simulated sensor failure — not live sensor readings.",
+    }
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# 10. Held-Out Location Forecasting  (Addition 2B — Final Round)
+# ═════════════════════════════════════════════════════════════════════════════
+
+def held_out_location_demo(
+    all_stations: list[dict],    # [{name, lat, lon, aqi}, ...]
+    held_out_name: str,
+) -> dict:
+    """
+    Withhold one station from GP interpolation, predict its AQI
+    from neighboring stations only. Compare GP vs simple baseline.
+    """
+    # Find the target station
+    target = None
+    for s in all_stations:
+        if held_out_name.lower() in s['name'].lower():
+            target = s
+            break
+    if target is None:
+        return {"error": f"Station '{held_out_name}' not found in {[s['name'] for s in all_stations]}"}
+
+    remaining = [s for s in all_stations if s['name'] != target['name']]
+    if len(remaining) < 2:
+        return {"error": "Need at least 2 remaining stations for interpolation"}
+
+    # GP prediction (our method)
+    grid = interpolate_city_surface(remaining, grid_resolution=40)
+    gp_point = min(
+        grid,
+        key=lambda p: (p['lat'] - target['lat'])**2 + (p['lon'] - target['lon'])**2
+    )
+
+    # Simple spatial baseline: average of 3 nearest active neighbors
+    nearest_3 = sorted(
+        remaining,
+        key=lambda s: (s['lat'] - target['lat'])**2 + (s['lon'] - target['lon'])**2
+    )[:3]
+    baseline_pred = sum(s['aqi'] for s in nearest_3) / len(nearest_3)
+
+    # Persistence baseline: use the city-wide average
+    city_avg = sum(s['aqi'] for s in remaining) / len(remaining)
+
+    gp_error = abs(gp_point['predicted_aqi'] - target['aqi'])
+    baseline_error = abs(baseline_pred - target['aqi'])
+    city_avg_error = abs(city_avg - target['aqi'])
+
+    return {
+        "held_out_station": target['name'],
+        "held_out_lat": target['lat'],
+        "held_out_lon": target['lon'],
+        "actual_aqi": target['aqi'],
+        "gp_predicted_aqi": gp_point['predicted_aqi'],
+        "gp_uncertainty_std": gp_point['std_dev'],
+        "gp_confidence": gp_point['confidence'],
+        "spatial_baseline_aqi": round(baseline_pred, 1),
+        "city_avg_baseline_aqi": round(city_avg, 1),
+        "gp_error": round(gp_error, 2),
+        "spatial_baseline_error": round(baseline_error, 2),
+        "city_avg_error": round(city_avg_error, 2),
+        "gp_beats_spatial_baseline": gp_error < baseline_error,
+        "gp_beats_city_avg": gp_error < city_avg_error,
+        "nearest_neighbors": [{"name": s['name'], "aqi": s['aqi']} for s in nearest_3],
+        "n_stations_used": len(remaining),
+        "method": "gaussian-process-spatial",
+        "note": "[MODELED] Spatial extrapolation to unseen location — not a physical sensor reading.",
+    }

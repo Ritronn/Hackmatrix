@@ -105,8 +105,6 @@ def build_roi_leaderboard(city: str, baseline_aqi: float) -> ROILeaderboardRespo
         "industry": ScenarioInput(city=city, baseline_aqi=baseline_aqi, industrial_curtailment_pct=40),
         "mist":     ScenarioInput(city=city, baseline_aqi=baseline_aqi, mist_units=100),
         "const":    ScenarioInput(city=city, baseline_aqi=baseline_aqi, construction_halt_pct=100),
-        "metro":    ScenarioInput(city=city, baseline_aqi=baseline_aqi, metro_subsidy=True),
-        "stubble":  ScenarioInput(city=city, baseline_aqi=baseline_aqi, stubble_interception=True),
     }
 
     entries: list[ROIEntry] = []
@@ -133,3 +131,99 @@ def build_roi_leaderboard(city: str, baseline_aqi: float) -> ROILeaderboardRespo
         baseline_aqi=baseline_aqi,
         interventions=entries,
     )
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# Budget-Constrained Intervention Planning  (Addition 1 — Final Round)
+# ═════════════════════════════════════════════════════════════════════════════
+
+from itertools import combinations as _combinations
+
+# Max-level inputs per intervention key
+_MAX_LEVELS = {
+    "traffic":  {"traffic_restriction_pct": 50},
+    "industry": {"industrial_curtailment_pct": 40},
+    "mist":     {"mist_units": 100},
+    "const":    {"construction_halt_pct": 100},
+}
+
+
+def find_best_packages(
+    budget_crore: float,
+    baseline_aqi: float = 187.0,
+    unavailable: list[str] | None = None,
+    city: str = "Delhi",
+) -> dict:
+    """
+    Enumerate all non-empty subsets of available interventions,
+    keep those fitting within budget, rank by AQI reduction.
+    Returns top-3 feasible packages, 1 infeasible example,
+    and sensitivity analysis for ±10 Cr budget shift.
+    """
+    unavailable = unavailable or []
+    all_keys = [k for k in _MAX_LEVELS if k not in unavailable]
+
+    packages: list[dict] = []
+    for r in range(1, len(all_keys) + 1):
+        for combo in _combinations(all_keys, r):
+            # Build ScenarioInput with selected interventions at max level
+            kwargs = {"city": city, "baseline_aqi": baseline_aqi}
+            for key in combo:
+                kwargs.update(_MAX_LEVELS[key])
+            inp = ScenarioInput(**kwargs)
+            result = run_scenario(inp)
+
+            cost = result.total_cost_crore
+            drop = result.aqi_reduction
+            packages.append({
+                "interventions": [_NAMES[k] for k in combo],
+                "keys": list(combo),
+                "total_cost_crore": round(cost, 2),
+                "aqi_reduction": round(drop, 1),
+                "simulated_aqi": result.simulated_aqi,
+                "reduction_pct": result.reduction_pct,
+                "feasible": cost <= budget_crore,
+                "roi": round(drop / cost, 3) if cost > 0 else 0.0,
+                "er_visits_avoided": result.er_visits_avoided_per_day,
+                "economic_saving_crore": result.economic_saving_crore,
+            })
+
+    feasible = sorted(
+        [p for p in packages if p["feasible"]],
+        key=lambda x: x["aqi_reduction"],
+        reverse=True,
+    )
+    infeasible = sorted(
+        [p for p in packages if not p["feasible"]],
+        key=lambda x: x["aqi_reduction"],
+        reverse=True,
+    )
+
+    # Sensitivity: how does the best package change with ±10 Cr?
+    sensitivity = {}
+    for delta_label, delta in [("minus_10cr", -10), ("plus_10cr", +10)]:
+        alt_budget = max(5, budget_crore + delta)
+        alt_feasible = sorted(
+            [p for p in packages if p["total_cost_crore"] <= alt_budget],
+            key=lambda x: x["aqi_reduction"],
+            reverse=True,
+        )
+        sensitivity[delta_label] = {
+            "budget_crore": alt_budget,
+            "best_aqi_reduction": alt_feasible[0]["aqi_reduction"] if alt_feasible else 0,
+            "best_package": alt_feasible[0]["interventions"] if alt_feasible else [],
+            "n_feasible": len(alt_feasible),
+        }
+
+    return {
+        "budget_crore": budget_crore,
+        "baseline_aqi": baseline_aqi,
+        "unavailable": unavailable,
+        "top_packages": feasible[:3],
+        "infeasible_example": infeasible[0] if infeasible else None,
+        "total_combos_evaluated": len(packages),
+        "n_feasible": len(feasible),
+        "n_infeasible": len(infeasible),
+        "sensitivity": sensitivity,
+        "cost_assumptions_note": "All costs are illustrative estimates in ₹ Crore — clearly labeled as modeled data.",
+    }

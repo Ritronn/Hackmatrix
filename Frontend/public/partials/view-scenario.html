@@ -9,6 +9,7 @@
       <div class="mode-switcher">
         <button class="mode-btn mode-btn--active" id="btn-mode-sim">Standard What-If</button>
         <button class="mode-btn" id="btn-mode-mayor"><i data-lucide="award"></i> Mayor Mode (₹50 Cr)</button>
+        <button class="mode-btn" id="btn-mode-budget"><i data-lucide="calculator"></i> Budget Planner</button>
       </div>
     </div>
   </div>
@@ -32,6 +33,97 @@
       <div class="mayor-budget__nums">
         <span>Budget Allocated: <strong id="budget-allocated">₹36.0 Cr</strong></span>
         <span>Remaining: <strong id="budget-remaining">₹14.0 Cr</strong> of ₹50.0 Cr Total</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Budget Planner Mode (Addition 1 — Final Round) -->
+  <div class="bento-card budget-planner-card" id="budget-planner-deck" style="display: none;">
+    <div class="budget-planner__header">
+      <div>
+        <span class="label-xs text-cyan">BUDGET-CONSTRAINED INTERVENTION OPTIMIZATION</span>
+        <h3 class="card-heading">Find Best Intervention Packages Under Budget</h3>
+        <p class="label-xs muted">Enumerates all intervention combinations, ranks by AQI reduction within budget limit</p>
+      </div>
+    </div>
+    
+    <div class="budget-controls-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-top: 20px;">
+      <!-- Budget Slider -->
+      <div class="control-lever">
+        <div class="lever-top">
+          <div class="lever-title-group">
+            <i data-lucide="wallet" class="lever-icon text-gold"></i>
+            <div>
+              <span class="lever-name">Available Budget</span>
+              <span class="lever-desc">Constraint for intervention package search</span>
+            </div>
+          </div>
+          <span class="lever-val-display" id="val-budget">₹50.0 Cr</span>
+        </div>
+        <input type="range" class="custom-range lever-slider" id="slider-budget" min="10" max="100" value="50" step="5" />
+        <div class="lever-foot"><span>₹10 Cr</span><span>₹100 Cr</span></div>
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+          <button class="btn-preset" data-budget="30">₹30 Cr</button>
+          <button class="btn-preset" data-budget="50">₹50 Cr</button>
+          <button class="btn-preset" data-budget="80">₹80 Cr</button>
+        </div>
+      </div>
+
+      <!-- Unavailable Interventions -->
+      <div style="padding: 16px; background: rgba(255,255,255,0.02); border-radius: 12px;">
+        <div style="margin-bottom: 12px;">
+          <span class="lever-name" style="font-size: 0.9rem;">Mark as Unavailable</span>
+          <span class="lever-desc" style="display: block; margin-top: 4px;">Simulate blocked interventions</span>
+        </div>
+        <div id="unavailable-checkboxes" style="display: flex; flex-direction: column; gap: 8px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer;">
+            <input type="checkbox" value="traffic" class="unavailable-check" />
+            <span>Odd-Even Traffic</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer;">
+            <input type="checkbox" value="industry" class="unavailable-check" />
+            <span>Industrial Curtailment</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer;">
+            <input type="checkbox" value="mist" class="unavailable-check" />
+            <span>Mist Guns</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer;">
+            <input type="checkbox" value="const" class="unavailable-check" />
+            <span>Construction Halt</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 20px; text-align: center;">
+      <button class="btn-primary" id="btn-find-best-plan" style="padding: 12px 32px; font-size: 1rem;">
+        <i data-lucide="search"></i> Find Best Intervention Packages
+      </button>
+    </div>
+
+    <!-- Results -->
+    <div id="budget-plan-results" style="margin-top: 32px; display: none;">
+      <div style="margin-bottom: 16px;">
+        <span class="label-xs text-green">OPTIMAL PACKAGES (FEASIBLE)</span>
+        <div id="budget-combos-evaluated" style="margin-top: 4px; font-size: 0.85rem; opacity: 0.7;"></div>
+      </div>
+      <div id="budget-packages-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+        <!-- Filled dynamically -->
+      </div>
+      
+      <div style="margin-top: 24px;">
+        <span class="label-xs text-red">INFEASIBLE EXAMPLE (OVER BUDGET)</span>
+      </div>
+      <div id="budget-infeasible-card" style="margin-top: 12px;">
+        <!-- Filled dynamically -->
+      </div>
+
+      <div style="margin-top: 24px; padding: 16px; background: rgba(59, 130, 246, 0.08); border-left: 3px solid #3B82F6; border-radius: 8px;">
+        <span class="label-xs text-cyan">SENSITIVITY ANALYSIS</span>
+        <div id="budget-sensitivity" style="margin-top: 12px; display: flex; gap: 24px; font-size: 0.9rem;">
+          <!-- Filled dynamically -->
+        </div>
       </div>
     </div>
   </div>
@@ -108,21 +200,16 @@
         <div class="lever-foot"><span>0%</span><span class="muted">Cost: ~₹8 Cr civic penalty</span><span>100% Total Halt</span></div>
       </div>
 
-      <div class="toggles-row">
-        <label class="toggle-card">
-          <input type="checkbox" id="toggle-metro" checked />
-          <div class="toggle-card__inner">
-            <i data-lucide="train"></i>
-            <div><strong>Free Metro & EV Bus Fares</strong><span>Incentivize mode shift during peak inversion</span></div>
-          </div>
-        </label>
-        <label class="toggle-card">
-          <input type="checkbox" id="toggle-stubble" checked />
-          <div class="toggle-card__inner">
-            <i data-lucide="flame"></i>
-            <div><strong>Stubble Drone Interception</strong><span>Bio-decomposer deployment in buffer wards</span></div>
-          </div>
-        </label>
+
+
+      <div style="margin-top: 20px;">
+        <button class="action-btn-primary" id="btn-run-scenario" style="width: 100%; padding: 14px 20px; font-size: 13.5px; justify-content: center;">
+          <i data-lucide="play-circle"></i>
+          <span id="btn-run-scenario-text">Simulate Policy Interventions</span>
+        </button>
+        <div style="text-align: center; margin-top: 8px; font-size: 11px; opacity: 0.65;">
+          Executes XGBoost forecasting engine + CPCB civic response matrix
+        </div>
       </div>
     </div>
 
@@ -165,7 +252,7 @@
         <!-- ML Model Prediction (XGBoost) -->
         <div class="impact-ml-row" style="margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06);">
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-            <span class="label-xs text-cyan">XGBOOST ML MODEL PREDICTION</span>
+            <span class="label-xs text-cyan">XGBOOST ML MODEL — CITY-WIDE WEIGHTED PREDICTION</span>
             <span class="badge-pill" style="font-size: 10px;" id="ml-scenario-method">—</span>
           </div>
           <div style="display: flex; align-items: center; gap: 20px;">
@@ -175,6 +262,14 @@
             <div>
               <span class="impact-diff-val" style="font-size: 0.9rem;" id="ml-scenario-drop">—</span>
             </div>
+          </div>
+          <!-- Per-zone breakdown — populated after Simulate is clicked -->
+          <div id="ml-zone-breakdown" style="display:none; margin-top: 12px; padding: 10px 12px;
+               background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+            <!-- filled by scenario.js -->
+          </div>
+          <div style="margin-top: 8px; font-size: 10px; opacity: 0.45; font-style: italic;">
+            Weighted avg across traffic corridors (35%), industrial belt (24%), residential (41%)
           </div>
         </div>
       </div>
@@ -193,33 +288,11 @@
               <tr><th>Rank</th><th>Intervention Strategy</th><th>AQI Drop</th><th>Cost</th><th>ROI (Drop / ₹ Cr)</th><th>Feasibility</th></tr>
             </thead>
             <tbody id="roi-table-body">
-              <tr class="roi-row--top">
-                <td><span class="rank-badge rank-1">#1</span></td>
-                <td><strong>Anti-Smog Mist Guns</strong></td>
-                <td class="text-green">-10 AQI</td><td>₹6.5 Cr</td>
-                <td><strong class="text-gold">+1.54 / Cr</strong></td>
-                <td><span class="badge-tag badge-tag--high">High</span></td>
-              </tr>
               <tr>
-                <td><span class="rank-badge rank-2">#2</span></td>
-                <td><strong>Odd-Even Traffic Rationing</strong></td>
-                <td class="text-green">-18 AQI</td><td>₹12.0 Cr</td>
-                <td><strong class="text-gold">+1.50 / Cr</strong></td>
-                <td><span class="badge-tag badge-tag--med">Medium</span></td>
-              </tr>
-              <tr>
-                <td><span class="rank-badge rank-3">#3</span></td>
-                <td><strong>Industrial Kiln Curtailment</strong></td>
-                <td class="text-green">-14 AQI</td><td>₹15.0 Cr</td>
-                <td><strong class="text-gold">+0.93 / Cr</strong></td>
-                <td><span class="badge-tag badge-tag--low">Low</span></td>
-              </tr>
-              <tr>
-                <td><span class="rank-badge">#4</span></td>
-                <td><strong>Construction Halting</strong></td>
-                <td class="text-green">-8 AQI</td><td>₹8.0 Cr</td>
-                <td><strong class="text-gold">+1.00 / Cr</strong></td>
-                <td><span class="badge-tag badge-tag--med">Medium</span></td>
+                <td colspan="6" style="text-align:center; padding: 20px; opacity: 0.5; font-size: 0.85rem;">
+                  <i data-lucide="loader-2" style="display:inline-block; animation: spin 1s linear infinite; width:14px; height:14px; vertical-align:middle; margin-right:6px;"></i>
+                  Computing ROI from live baseline AQI...
+                </td>
               </tr>
             </tbody>
           </table>

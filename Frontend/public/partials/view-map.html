@@ -64,6 +64,47 @@
         <button class="layer-pill" id="toggle-confidence" title="Toggle Confidence Overlay">
           <i data-lucide="shield-check"></i><span>Uncertainty Veil</span>
         </button>
+        <button class="layer-pill" id="btn-demo-presets-toggle" title="Show Demo Scenarios" style="background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.4);">
+          <i data-lucide="play-circle"></i><span>Demo Presets</span>
+        </button>
+      </div>
+
+      <!-- Demo Presets Panel (Addition — Final Round) -->
+      <div id="demo-presets-panel" style="position: absolute; top: 80px; right: 16px; width: 300px; background: rgba(17, 24, 39, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; display: none; z-index: 1000;">
+        <div style="margin-bottom: 12px;">
+          <span class="label-xs text-purple">DEMO SCENARIOS (PS REQUIREMENT)</span>
+          <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 4px;">4 required end-to-end demonstrations</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button class="demo-preset-btn" id="preset-normal" style="padding: 10px; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+            <div style="text-align: left;">
+              <div style="font-weight: 600; font-size: 0.9rem;">▶ Normal Operation</div>
+              <div style="font-size: 0.75rem; opacity: 0.8;">All sensors active, clean forecast</div>
+            </div>
+          </button>
+          <button class="demo-preset-btn" id="preset-sensor-loss" style="padding: 10px; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 8px; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="alert-triangle" style="width: 16px; height: 16px;"></i>
+            <div style="text-align: left;">
+              <div style="font-weight: 600; font-size: 0.9rem;">▶ 30% Sensor Loss</div>
+              <div style="font-size: 0.75rem; opacity: 0.8;">Simulate station failure</div>
+            </div>
+          </button>
+          <button class="demo-preset-btn" id="preset-held-out" style="padding: 10px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="target" style="width: 16px; height: 16px;"></i>
+            <div style="text-align: left;">
+              <div style="font-weight: 600; font-size: 0.9rem;">▶ Held-Out: Anand Vihar</div>
+              <div style="font-size: 0.75rem; opacity: 0.8;">GP prediction at unseen location</div>
+            </div>
+          </button>
+          <button class="demo-preset-btn" id="preset-budget-exceeded" style="padding: 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i>
+            <div style="text-align: left;">
+              <div style="font-weight: 600; font-size: 0.9rem;">▶ Budget Exceeded (₹30 Cr)</div>
+              <div style="font-size: 0.75rem; opacity: 0.8;">Max interventions over budget</div>
+            </div>
+          </button>
+        </div>
       </div>
 
       <!-- AQI Legend -->
@@ -147,3 +188,106 @@
 
   </div>
 </div>
+
+
+  <!-- Sensor Loss Panel (Addition 2A — Final Round) -->
+  <div class="bento-card" id="sensor-loss-panel" style="display: none; margin-top: 20px;">
+    <div class="bento-card__title-bar">
+      <div>
+        <span class="label-xs text-amber">SENSOR LOSS SIMULATION (PS REQUIREMENT)</span>
+        <h3 class="card-heading">Forecast Under Simulated Sensor Failure</h3>
+        <p class="label-xs muted">GP interpolation with reduced station coverage — measures uncertainty increase</p>
+      </div>
+    </div>
+    <div style="display: flex; gap: 12px; margin: 20px 0;">
+      <button class="btn-preset" data-loss="10">10% Loss</button>
+      <button class="btn-preset" data-loss="30">30% Loss</button>
+      <button class="btn-preset" data-loss="50">50% Loss</button>
+    </div>
+    <div id="sensor-loss-results" style="display: none;">
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px;">
+        <div class="mini-stat-card">
+          <span class="mini-stat-label">Active Stations</span>
+          <span class="mini-stat-val" id="sensor-loss-active">—</span>
+        </div>
+        <div class="mini-stat-card">
+          <span class="mini-stat-label">Dropped Stations</span>
+          <span class="mini-stat-val" id="sensor-loss-dropped">—</span>
+        </div>
+        <div class="mini-stat-card">
+          <span class="mini-stat-label">GP MAE at Dropped</span>
+          <span class="mini-stat-val" id="sensor-loss-mae">—</span>
+        </div>
+      </div>
+      <div style="padding: 16px; background: rgba(251, 191, 36, 0.08); border-left: 3px solid #FBBF24; border-radius: 8px; margin-bottom: 20px;">
+        <div style="font-size: 0.9rem; margin-bottom: 8px;"><strong>Uncertainty Increase:</strong></div>
+        <div style="font-size: 1.2rem; font-weight: 600; color: #FBBF24;" id="sensor-loss-uncertainty">—</div>
+        <div style="font-size: 0.8rem; margin-top: 8px; opacity: 0.8;" id="sensor-loss-comparison">—</div>
+      </div>
+      <div style="font-size: 0.75rem; opacity: 0.6; font-style: italic;">
+        [MODELED] Spatial extrapolation under simulated sensor failure — not live sensor readings.
+      </div>
+    </div>
+  </div>
+
+  <!-- Held-Out Location Panel (Addition 2B — Final Round) -->
+  <div class="bento-card" id="held-out-panel" style="display: none; margin-top: 20px;">
+    <div class="bento-card__title-bar">
+      <div>
+        <span class="label-xs text-cyan">HELD-OUT LOCATION FORECASTING (PS REQUIREMENT)</span>
+        <h3 class="card-heading">Predict AQI at Unseen Location</h3>
+        <p class="label-xs muted">Withhold one station, predict from neighbors using GP — validates model generalization</p>
+      </div>
+    </div>
+    <div style="margin: 20px 0;">
+      <label style="display: block; margin-bottom: 8px; font-size: 0.9rem; font-weight: 600;">Select Station to Withhold:</label>
+      <select id="held-out-station-select" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; font-size: 0.9rem;">
+        <option value="Anand Vihar">Anand Vihar</option>
+        <option value="ITO">ITO</option>
+        <option value="R K Puram">R K Puram</option>
+        <option value="Punjabi Bagh">Punjabi Bagh</option>
+        <option value="Dwarka">Dwarka</option>
+        <option value="Rohini">Rohini</option>
+      </select>
+      <button class="btn-primary" id="btn-run-held-out" style="margin-top: 12px; width: 100%;">
+        <i data-lucide="target"></i> Run Held-Out Prediction
+      </button>
+    </div>
+    <div id="held-out-results" style="display: none;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+        <div style="padding: 16px; background: rgba(59, 130, 246, 0.08); border-radius: 12px;">
+          <span class="label-xs text-cyan">[MODELED] GP PREDICTION</span>
+          <div style="font-size: 2rem; font-weight: 700; margin: 8px 0;" id="held-out-gp-pred">—</div>
+          <div style="font-size: 0.85rem; opacity: 0.8;">Uncertainty: ±<span id="held-out-gp-std">—</span> AQI</div>
+        </div>
+        <div style="padding: 16px; background: rgba(34, 197, 94, 0.08); border-radius: 12px;">
+          <span class="label-xs text-green">[OBSERVED] ACTUAL READING</span>
+          <div style="font-size: 2rem; font-weight: 700; margin: 8px 0;" id="held-out-actual">—</div>
+          <div style="font-size: 0.85rem; opacity: 0.8;">Live sensor measurement</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;">
+        <div class="mini-stat-card">
+          <span class="mini-stat-label">GP Error</span>
+          <span class="mini-stat-val" id="held-out-gp-error">—</span>
+        </div>
+        <div class="mini-stat-card">
+          <span class="mini-stat-label">Spatial Baseline Error</span>
+          <span class="mini-stat-val" id="held-out-baseline-error">—</span>
+        </div>
+        <div class="mini-stat-card">
+          <span class="mini-stat-label">City Avg Error</span>
+          <span class="mini-stat-val" id="held-out-city-error">—</span>
+        </div>
+      </div>
+      <div style="padding: 16px; background: rgba(34, 197, 94, 0.08); border-left: 3px solid #22C55E; border-radius: 8px;">
+        <div style="font-size: 0.9rem; font-weight: 600; color: #22C55E;" id="held-out-verdict">—</div>
+        <div style="font-size: 0.8rem; margin-top: 8px; opacity: 0.8;">
+          <strong>Nearest Neighbors Used:</strong> <span id="held-out-neighbors">—</span>
+        </div>
+      </div>
+      <div style="font-size: 0.75rem; opacity: 0.6; font-style: italic; margin-top: 12px;">
+        [MODELED] Spatial extrapolation to unseen location — not a physical sensor reading.
+      </div>
+    </div>
+  </div>
