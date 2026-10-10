@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ── 5. Dashboard — fetch live data ──────────────────────
   initMapControls();
-  loadCityData('Pune');
+  loadCityData('Delhi');
 
   // ── 6. Digital Twin Map ─────────────────────────────────
   initDigitalTwinMap();

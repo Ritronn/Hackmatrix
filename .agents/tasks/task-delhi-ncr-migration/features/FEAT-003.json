@@ -1,0 +1,44 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Update backend Python files to prioritize Delhi NCR. Change aqi_service.py DEFAULT_SLUGS to ['delhi'], add Delhi NCR city mappings (delhi, delhi/punjabi-bagh, noida, gurgaon) and reorder CITY_SLUGS to prioritize Delhi. Expand wards.py _DELHI_META from 3 wards to 9 wards (North, South, East, West, Central Delhi zones) with DPCC-aligned interventions. Update scenario.py and drift.py Query defaults to 'Delhi'.",
+  "status": "completed",
+  "steps": [
+    "Update Backend/app/services/aqi_service.py line 36: change DEFAULT_SLUGS from ['delhi'] (already correct, verify)",
+    "Update Backend/app/services/aqi_service.py lines 41-61: reorder CITY_SLUGS dictionary to place delhi, noida, gurgaon entries at the top before pune, mumbai, nashik",
+    "Update Backend/app/services/aqi_service.py line 42: verify delhi entry is ['delhi', 'delhi/punjabi-bagh'] (currently shows this pattern, confirm)",
+    "Update Backend/app/services/aqi_service.py line 43: add or verify noida entry is ['noida', 'delhi']",
+    "Update Backend/app/services/aqi_service.py line 44: add or verify gurgaon entry is ['gurgaon', 'delhi']",
+    "Update Backend/app/routes/wards.py lines 30-38: expand _DELHI_META list from 3 entries to 9 entries covering: Anand Vihar (East Delhi, Transport Hub + Stubble), ITO Junction (Central Delhi, Traffic Congestion), Wazirpur Industrial (North West Delhi, Industrial Emissions), R K Puram (South Delhi, Ring Road Vehicular), Dwarka Sector 8 (South West Delhi, Construction Dust), Punjabi Bagh (West Delhi, Highway Traffic), Rohini Sector 16 (North Delhi, Construction), Lodhi Road (Central Delhi, Ambient Background), Mundka Industrial (West Delhi, Industrial + Freight)",
+    "Update Backend/app/routes/wards.py line 30: verify first entry is Anand Vihar with zone 'East Delhi', dominant_driver 'Transport Hub + Stubble Influx', recommended_action 'Deploy Mist Cannons + Heavy Truck Ban on NH24', keywords ['Anand Vihar', 'Kaushambi', 'Patparganj']",
+    "Update Backend/app/routes/wards.py line 35: add ITO Junction entry with zone 'Central Delhi', dominant_driver 'Traffic Congestion', recommended_action 'Traffic Signal Synchronization + Metro Subsidy', keywords ['ITO', 'Pragati Maidan', 'Mandi House']",
+    "Update Backend/app/routes/wards.py line 36: add Wazirpur Industrial with zone 'North West Delhi', dominant_driver 'Small-Scale Industrial Emissions', recommended_action 'Industrial Stack Scrubber Audit & Emission Mandates', keywords ['Wazirpur', 'Ashok Vihar', 'Jahangirpuri']",
+    "Update Backend/app/routes/wards.py line 37: add R K Puram with zone 'South Delhi', dominant_driver 'Vehicular Congestion (Ring Road)', recommended_action 'Heavy Vehicle Diversion & Anti-Smog Mist Guns', keywords ['R K Puram', 'RK Puram', 'Sri Aurobindo']",
+    "Update Backend/app/routes/wards.py line 38: add remaining wards (Dwarka, Punjabi Bagh, Rohini, Lodhi Road, Mundka) following the same dict structure",
+    "Update Backend/app/routes/wards.py line 95: change fallback from _PUNE_META to _DELHI_META in _CITY_META.get() default parameter",
+    "Update Backend/app/routes/scenario.py line 20: change Query default from 'Delhi' (already correct, verify city parameter default is 'Delhi')",
+    "Update Backend/app/routes/drift.py line 18: change Query default from 'Delhi' (already correct, verify city parameter default is 'Delhi')"
+  ],
+  "acceptance_criteria": [
+    "aqi_service.py DEFAULT_SLUGS is ['delhi']",
+    "aqi_service.py CITY_SLUGS has delhi, noida, gurgaon entries at the top",
+    "aqi_service.py delhi entry includes both 'delhi' and 'delhi/punjabi-bagh' slugs",
+    "wards.py _DELHI_META has 9 ward entries covering major Delhi zones",
+    "wards.py _DELHI_META entries include DPCC-aligned interventions (mist cannons, truck bans, metro subsidy, scrubber audits)",
+    "wards.py fallback defaults to _DELHI_META instead of _PUNE_META",
+    "scenario.py city Query parameter defaults to 'Delhi'",
+    "drift.py city Query parameter defaults to 'Delhi'"
+  ],
+  "verification": [
+    "Run: cd Backend && python -m pytest tests/ (if tests exist) or manual API testing",
+    "Start backend: cd Backend && uvicorn main:app --reload --port 8000",
+    "Test: curl http://localhost:8000/twin/Delhi/current and verify response includes Delhi stations",
+    "Test: curl http://localhost:8000/wards/Delhi and verify response includes 9 wards with Delhi zones",
+    "Test: curl http://localhost:8000/scenario/roi-leaderboard (no city param) and verify it uses Delhi default",
+    "Test: curl http://localhost:8000/drift/status (no city param) and verify it uses Delhi default",
+    "Test: curl http://localhost:8000/twin/Noida/current and verify Noida data is returned",
+    "Test: curl http://localhost:8000/twin/Gurgaon/current and verify Gurgaon data is returned"
+  ],
+  "blocked_reason": null,
+  "findings": "All acceptance criteria met. aqi_service.py DEFAULT_SLUGS=['delhi'], CITY_SLUGS prioritizes delhi/noida/gurgaon at top, delhi entry includes both 'delhi' and 'delhi/punjabi-bagh' slugs. wards.py _DELHI_META has 9 ward entries covering major Delhi zones (Anand Vihar, ITO Junction, Wazirpur Industrial, R K Puram, Dwarka Sector 8, Punjabi Bagh, Rohini Sector 16, Lodhi Road, Mundka Industrial) with DPCC-aligned interventions (mist cannons, truck bans, metro subsidy, scrubber audits). wards.py line 160 fallback uses _DELHI_META. scenario.py and drift.py both default city parameter to 'Delhi'. All code verified via Python imports - no syntax errors. Backend ready for Delhi NCR as default region."
+}

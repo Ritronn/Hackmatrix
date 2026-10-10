@@ -1,0 +1,11 @@
+{
+  "task_id": "task-delhi-ncr-migration",
+  "task_description": "Migrate Hackmatrix digital twin from Pune (Maharashtra) to Delhi NCR defaults. Update all frontend JS, HTML, and backend Python files to default to Delhi, with Delhi NCR satellite cities (Noida, Gurgaon) as secondary options. ML model already trained on Delhi CPCB data.",
+  "status": "pending",
+  "feature_order": [
+    "FEAT-001",
+    "FEAT-002",
+    "FEAT-003"
+  ],
+  "blocked_reason": null
+}

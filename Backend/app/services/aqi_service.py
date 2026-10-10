@@ -34,9 +34,11 @@ AQI_BANDS: list[AQIBand] = [
 # City name (lowercase) → list of WAQI slug strings.
 # All slugs are tried in parallel; slugs returning "-" AQI or errors are skipped.
 CITY_SLUGS: dict[str, list[str]] = {
+    "delhi":            ["delhi", "delhi/punjabi-bagh"],
+    "noida":            ["noida", "delhi"],
+    "gurgaon":          ["gurgaon", "delhi"],
     "pune":             ["pune", "pimpri"],
     "mumbai":           ["mumbai", "bandra"],
-    "delhi":            ["delhi", "delhi/punjabi-bagh"],
     "nashik":           ["nashik", "@9071"],
     "thane":            ["thane"],
     "nagpur":           ["nagpur", "@9070"],
@@ -52,7 +54,7 @@ CITY_SLUGS: dict[str, list[str]] = {
     "ahmedabad":        ["ahmedabad"],
 }
 
-DEFAULT_SLUGS = ["pune"]
+DEFAULT_SLUGS = ["delhi"]
 
 # How old a reading can be before we flag it as stale (48 h is generous)
 STALE_THRESHOLD = timedelta(hours=48)

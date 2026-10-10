@@ -33,13 +33,14 @@ function aqiBadgeClass(aqi) {
 
 // ── City centre coordinates ───────────────────────────────────────────────────
 const CITY_CENTRES = {
+  delhi:   [77.2090, 28.6139],
+  noida:   [77.3910, 28.5355],
+  gurgaon: [77.0266, 28.4595],
   pune:    [73.8567, 18.5204],
   mumbai:  [72.8777, 19.0760],
-  delhi:   [77.2090, 28.6139],
   nashik:  [73.7898, 19.9975],
   thane:   [72.9781, 19.2183],
   nagpur:  [79.0882, 21.1458],
-  akurdi:  [73.7741, 18.6480],
 };
 
 export function initDigitalTwinMap() {
@@ -56,14 +57,14 @@ export function initDigitalTwinMap() {
   let currentSpeed = 1;
   let stationForecastsMap = {};
 
-  function initMap(city = 'pune') {
+  function initMap(city = 'delhi') {
     const container = document.getElementById('maptiler-map');
     if (!container) return;
 
     // Destroy previous instance if switching city
     if (map) { map.remove(); map = null; markersOnMap = []; heatmapLoaded = false; }
 
-    const centre = CITY_CENTRES[city.toLowerCase()] ?? CITY_CENTRES.pune;
+    const centre = CITY_CENTRES[city.toLowerCase()] ?? CITY_CENTRES.delhi;
 
     map = new maptilersdk.Map({
       container: 'maptiler-map',
@@ -251,7 +252,7 @@ export function initDigitalTwinMap() {
   renderParticles();
 
   // ── Load live station data → markers + heatmap ────────────────────────────
-  async function loadStationData(cityName = 'Pune') {
+  async function loadStationData(cityName = 'Delhi') {
     try {
       const [aqiData, weather] = await Promise.all([
         getCityAQI(cityName),

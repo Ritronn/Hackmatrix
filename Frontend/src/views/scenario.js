@@ -103,8 +103,8 @@ export function initScenarioSimulator() {
   async function calculateScenario() {
     updateLabels();
 
-    const city = 'Delhi';
-    const baselineAqi = window._currentAqi ?? 187;
+    const city = window._currentCity ?? 'Delhi';
+    const baselineAqi = window._currentAqi ?? 142;
 
     const payload = {
       city:                       city,

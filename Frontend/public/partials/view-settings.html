@@ -12,30 +12,30 @@
     <h3 class="card-heading">Select Active Urban Digital Twin</h3>
     <span class="label-xs muted">Tested across 26 Indian CPCB cities from Kaggle Dataset</span>
     <div class="city-selector-grid">
-      <div class="city-card city-card--active" data-city="pune">
-        <div class="city-card__top"><span class="city-name">Pune</span><span class="badge-status city-card__aqi-badge">— AQI</span></div>
-        <div class="city-card__meta"><span>18 Active Stations</span><span>Valley Inversion & High Transit</span></div>
-        <span class="active-indicator">● Active Twin</span>
+      <div class="city-card city-card--active" data-city="delhi">
+        <div class="city-card__top"><span class="city-name">Delhi</span><span class="badge-status city-card__aqi-badge">— AQI</span></div>
+        <div class="city-card__meta"><span>34 Active Stations</span><span>Indo-Gangetic Thermal Inversion & Stubble Burning</span></div>
+        <span class="active-indicator">● Active Twin • Primary</span>
+      </div>
+      <div class="city-card" data-city="noida">
+        <div class="city-card__top"><span class="city-name">Noida</span><span class="badge-status city-card__aqi-badge">— AQI</span></div>
+        <div class="city-card__meta"><span>8 Active Stations</span><span>NCR Industrial & IT Corridor</span></div>
+      </div>
+      <div class="city-card" data-city="gurgaon">
+        <div class="city-card__top"><span class="city-name">Gurgaon</span><span class="badge-status city-card__aqi-badge">— AQI</span></div>
+        <div class="city-card__meta"><span>6 Active Stations</span><span>NCR Cyber Hub & Manesar Transit</span></div>
       </div>
       <div class="city-card" data-city="mumbai">
         <div class="city-card__top"><span class="city-name">Mumbai</span><span class="badge-status city-card__aqi-badge">— AQI</span></div>
         <div class="city-card__meta"><span>22 Active Stations</span><span>Marine Boundary Layer & Coastal</span></div>
       </div>
-      <div class="city-card" data-city="nashik">
-        <div class="city-card__top"><span class="city-name">Nashik</span><span class="badge-status city-card__aqi-badge">— AQI</span></div>
-        <div class="city-card__meta"><span>8 Active Stations</span><span>Godavari Basin & Industrial MIDC</span></div>
-      </div>
-      <div class="city-card" data-city="akurdi">
-        <div class="city-card__top"><span class="city-name">Akurdi (PCMC)</span><span class="badge-status city-card__aqi-badge">— AQI</span></div>
-        <div class="city-card__meta"><span>12 Active Stations</span><span>Automotive & Foundry Sector</span></div>
-      </div>
-      <div class="city-card" data-city="thane">
-        <div class="city-card__top"><span class="city-name">Thane</span><span class="badge-status city-card__aqi-badge">— AQI</span></div>
-        <div class="city-card__meta"><span>14 Active Stations</span><span>Chemical Hub & Heavy Freight</span></div>
+      <div class="city-card" data-city="pune">
+        <div class="city-card__top"><span class="city-name">Pune</span><span class="badge-status city-card__aqi-badge">— AQI</span></div>
+        <div class="city-card__meta"><span>18 Active Stations</span><span>Valley Inversion & High Transit</span></div>
       </div>
       <div class="city-card" data-city="nagpur">
         <div class="city-card__top"><span class="city-name">Nagpur</span><span class="badge-status city-card__aqi-badge">— AQI</span></div>
-        <div class="city-card__meta"><span>10 Active Stations</span><span>Central Maharashtra Transit Belt</span></div>
+        <div class="city-card__meta"><span>10 Active Stations</span><span>Central India Transit Belt</span></div>
       </div>
     </div>
   </div>
@@ -73,8 +73,8 @@
       </div>
       <button class="btn-text-action" id="btn-copy-apikey"><i data-lucide="copy"></i> Copy Demo API Key</button>
     </div>
-    <pre class="code-block"><code>GET  /api/v1/twin/pune/forecast?horizon=72h
-POST /api/v1/twin/pune/simulate { "traffic_curb": 0.30, "mist_units": 45 }
-GET  /api/v1/twin/akurdi/attribution</code></pre>
+    <pre class="code-block"><code>GET  /api/v1/twin/delhi/forecast?horizon=72h
+POST /api/v1/twin/delhi/simulate { "traffic_curb": 0.30, "mist_units": 45 }
+GET  /api/v1/twin/delhi/attribution</code></pre>
   </div>
 </div>
