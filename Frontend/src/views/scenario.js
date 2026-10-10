@@ -361,6 +361,114 @@ export function initScenarioSimulator() {
     });
   });
 
+  // ── Helper: render an intervention tier badge ────────────────────────────
+  function tierBadge(level) {
+    const map = {
+      'low':    { bg: 'rgba(234,179,8,0.15)',  color: '#FBBF24', label: 'GRAP I-II' },
+      'medium': { bg: 'rgba(249,115,22,0.15)', color: '#FB923C', label: 'GRAP III'  },
+      'high':   { bg: 'rgba(239,68,68,0.15)',  color: '#F87171', label: 'GRAP IV'   },
+    };
+    const t = map[level] ?? { bg: 'rgba(255,255,255,0.08)', color: '#aaa', label: level };
+    return `<span style="font-size:10px; padding:2px 6px; border-radius:4px; background:${t.bg}; color:${t.color}; font-weight:700; letter-spacing:0.5px;">${t.label}</span>`;
+  }
+
+  // ── Helper: render a feasible package card ───────────────────────────────
+  function renderPackageCard(pkg, idx, budget, isTop = true) {
+    const borderColor = isTop ? 'rgba(34,197,94,0.3)'   : 'rgba(239,68,68,0.4)';
+    const bgColor     = isTop ? 'rgba(34,197,94,0.08)'  : 'rgba(239,68,68,0.08)';
+    const badge3type  = pkg.meets_3type_requirement
+      ? `<span style="font-size:10px; padding:2px 8px; border-radius:4px; background:rgba(59,130,246,0.2); color:#60A5FA; font-weight:700;">✓ 3-Type GRAP Package</span>`
+      : '';
+
+    // Parse intervention labels to extract tier level
+    const interventionRows = pkg.interventions.map((label, i) => {
+      const lvlMatch = label.match(/\[(LOW|MEDIUM|HIGH)\]$/);
+      const lvl      = lvlMatch ? lvlMatch[1].toLowerCase() : 'high';
+      const cleanLabel = label.replace(/\s*\[.*\]$/, '');
+      const src  = pkg.level_sources?.[i] ?? '';
+      return `
+        <li style="margin-bottom: 6px;">
+          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            ${tierBadge(lvl)}
+            <span style="font-weight:500;">${cleanLabel}</span>
+          </div>
+          ${src ? `<div style="font-size:10px; color:#6B7280; margin-top:2px; padding-left:2px;">📎 ${src}</div>` : ''}
+        </li>`;
+    }).join('');
+
+    // Operational limits summary
+    const opLimits = pkg.operational_limits ?? {};
+    const opRows = Object.entries(opLimits).map(([key, lim]) => {
+      const notice = lim.min_notice_days > 0 ? `${lim.min_notice_days}d notice` : 'No notice needed';
+      const court  = lim.requires_court_order ? '⚖️ Court/NGT order required' : '✓ Executive order sufficient';
+      return `<span style="font-size:10px; background:rgba(255,255,255,0.04); border-radius:4px; padding:2px 6px; display:inline-block; margin:2px;">${court} · ${notice}</span>`;
+    }).join('');
+
+    const overBudgetNote = !isTop
+      ? `<div style="margin-top:10px; font-size:0.82rem; color:#F87171;">
+           Would require <strong>₹${(pkg.total_cost_crore - budget).toFixed(1)} Cr additional funding</strong> to implement.
+         </div>` : '';
+
+    return `
+      <div style="padding: 18px; background: ${bgColor}; border: 2px solid ${borderColor}; border-radius: 14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:6px;">
+          ${isTop
+            ? `<span class="rank-badge rank-${idx + 1}" style="font-size:0.9rem;">#${idx + 1} Best</span>`
+            : `<span style="font-size:0.9rem; font-weight:700; color:#F87171;">❌ Over Budget</span>`
+          }
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            ${badge3type}
+            ${isTop
+              ? `<span style="font-size:10px; padding:2px 8px; border-radius:4px; background:rgba(34,197,94,0.2); color:#22C55E; font-weight:700;">✓ Feasible</span>`
+              : `<span style="font-size:10px; padding:2px 8px; border-radius:4px; background:rgba(239,68,68,0.2); color:#EF4444; font-weight:700;">Exceeds ₹${budget} Cr</span>`
+            }
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <strong style="display:block; margin-bottom:8px; font-size:0.9rem; color:#CBD5E1;">GRAP Intervention Measures:</strong>
+          <ul style="font-size:0.85rem; line-height:1.7; list-style:none; padding:0; margin:0;">
+            ${interventionRows}
+          </ul>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.08);">
+          <div>
+            <span class="label-xs muted">Total Monthly Cost</span>
+            <div style="font-size:1.2rem; font-weight:600; color:${isTop ? '#EFD395' : '#F87171'};">₹${pkg.total_cost_crore} Cr</div>
+            <div style="font-size:10px; color:#6B7280; margin-top:2px;">Per enforcement month</div>
+          </div>
+          <div>
+            <span class="label-xs muted">Modeled AQI Reduction</span>
+            <div style="font-size:1.2rem; font-weight:600; color:#22C55E;">-${pkg.aqi_reduction} AQI</div>
+            <div style="font-size:10px; color:#6B7280; margin-top:2px;">→ ${pkg.simulated_aqi} AQI simulated</div>
+          </div>
+          <div>
+            <span class="label-xs muted">Cost-Effectiveness (ROI)</span>
+            <div style="font-size:1rem; font-weight:600; color:#F59E0B;">${pkg.roi} AQI/₹Cr</div>
+            <div style="font-size:10px; color:#6B7280; margin-top:2px;">AQI reduction per Crore spent</div>
+          </div>
+          <div>
+            <span class="label-xs muted">Health Impact (IHME GBD 2019)</span>
+            <div style="font-size:0.9rem; font-weight:500; color:#34D399;">${pkg.er_visits_avoided} ER visits/day avoided</div>
+            <div style="font-size:10px; color:#6B7280; margin-top:2px;">₹${pkg.economic_saving_crore} Cr economic benefit/day</div>
+          </div>
+        </div>
+
+        ${opLimits && Object.keys(opLimits).length > 0 ? `
+        <div style="margin-top:12px; padding:8px; background:rgba(255,255,255,0.03); border-radius:6px;">
+          <div style="font-size:10px; color:#9CA3AF; margin-bottom:4px; font-weight:600; letter-spacing:0.5px;">OPERATIONAL CONSTRAINTS</div>
+          <div>${opRows}</div>
+        </div>` : ''}
+
+        ${overBudgetNote}
+
+        <div style="margin-top:10px; font-size:10px; color:#4B5563; font-style:italic;">
+          [MODELED ESTIMATE] Sources: CPCB GRAP 2023, IIT-Delhi SAFAR 2020, MoEF 2018, TERI 2021
+        </div>
+      </div>`;
+  }
+
   // Find best plan
   btnFindBestPlan?.addEventListener('click', async () => {
     const budget = parseFloat(sliderBudget?.value ?? 50);
@@ -369,7 +477,8 @@ export function initScenarioSimulator() {
     const unavailable = Array.from(unavailableChecks).map(c => c.value);
 
     btnFindBestPlan.disabled = true;
-    btnFindBestPlan.innerHTML = '<i data-lucide="loader"></i> Computing...';
+    btnFindBestPlan.innerHTML = '<i data-lucide="loader-2" class="spin-animation"></i> Computing GRAP Packages...';
+    if (window.lucide) window.lucide.createIcons();
 
     try {
       const result = await getBudgetPlan({
@@ -379,112 +488,84 @@ export function initScenarioSimulator() {
         city: 'Delhi',
       });
 
-      // Show results
       if (budgetResultsDiv) budgetResultsDiv.style.display = 'block';
-      
-      // Stats
+
+      // Stats header
       if (budgetCombosEval) {
-        budgetCombosEval.textContent = `Evaluated ${result.total_combos_evaluated} combinations | ${result.n_feasible} feasible under ₹${budget} Cr budget`;
+        const n3type = result.top_packages.filter(p => p.meets_3type_requirement).length;
+        budgetCombosEval.innerHTML =
+          `Evaluated <strong>${result.total_combos_evaluated}</strong> intervention combinations &nbsp;·&nbsp; ` +
+          `<strong style="color:#22C55E">${result.n_feasible}</strong> feasible under ₹${budget} Cr &nbsp;·&nbsp; ` +
+          `<strong style="color:#60A5FA">${n3type}</strong> meet ≥3-type GRAP requirement` +
+          `<br/><span style="font-size:10px; color:#6B7280; font-style:italic; margin-top:4px; display:block;">` +
+          `${result.cost_assumptions_note}</span>`;
       }
 
-      // Top 3 feasible packages
+      // Top feasible packages
       if (budgetPackagesGrid) {
-        budgetPackagesGrid.innerHTML = result.top_packages.slice(0, 3).map((pkg, idx) => `
-          <div class="budget-package-card" style="padding: 16px; background: rgba(34, 197, 94, 0.08); border: 2px solid rgba(34, 197, 94, 0.3); border-radius: 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <span class="rank-badge rank-${idx + 1}" style="font-size: 0.9rem;">#${idx + 1} Best</span>
-              <span class="badge-pill" style="background: rgba(34, 197, 94, 0.2); color: #22C55E;">✓ Feasible</span>
-            </div>
-            <div style="margin-bottom: 12px;">
-              <strong style="display: block; margin-bottom: 8px; font-size: 1.1rem;">Interventions:</strong>
-              <ul style="font-size: 0.85rem; line-height: 1.6; padding-left: 20px;">
-                ${pkg.interventions.map(i => `<li>${i}</li>`).join('')}
-              </ul>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
-              <div>
-                <span class="label-xs muted">Total Cost</span>
-                <div style="font-size: 1.2rem; font-weight: 600; color: #EFD395;">₹${pkg.total_cost_crore} Cr</div>
-              </div>
-              <div>
-                <span class="label-xs muted">AQI Reduction</span>
-                <div style="font-size: 1.2rem; font-weight: 600; color: #22C55E;">-${pkg.aqi_reduction} AQI</div>
-              </div>
-              <div>
-                <span class="label-xs muted">Simulated AQI</span>
-                <div style="font-size: 1rem; font-weight: 500;">${pkg.simulated_aqi} AQI</div>
-              </div>
-              <div>
-                <span class="label-xs muted">ROI</span>
-                <div style="font-size: 1rem; font-weight: 500; color: #F59E0B;">${pkg.roi} / Cr</div>
-              </div>
-            </div>
-            <div style="margin-top: 12px; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 6px; font-size: 0.8rem; opacity: 0.8;">
-              <strong>Health Impact:</strong> ${pkg.er_visits_avoided} ER visits avoided/day | ₹${pkg.economic_saving_crore} Cr saved
-            </div>
-            <div style="margin-top: 8px; font-size: 0.75rem; opacity: 0.6; font-style: italic;">
-              [MODELED INTERVENTION ESTIMATE]
-            </div>
-          </div>
-        `).join('');
+        if (!result.top_packages?.length) {
+          budgetPackagesGrid.innerHTML = `<div style="text-align:center; padding:24px; color:#9CA3AF; font-size:0.9rem;">
+            No feasible packages found under ₹${budget} Cr. Try increasing the budget.
+          </div>`;
+        } else {
+          budgetPackagesGrid.innerHTML = result.top_packages.slice(0, 3)
+            .map((pkg, idx) => renderPackageCard(pkg, idx, budget, true))
+            .join('');
+        }
       }
 
       // Infeasible example
       if (budgetInfeasibleCard && result.infeasible_example) {
-        const inf = result.infeasible_example;
-        budgetInfeasibleCard.innerHTML = `
-          <div class="budget-package-card" style="padding: 16px; background: rgba(239, 68, 68, 0.08); border: 2px solid rgba(239, 68, 68, 0.4); border-radius: 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <span class="badge-pill" style="background: rgba(239, 68, 68, 0.2); color: #EF4444; font-size: 0.9rem;">❌ Over Budget</span>
-              <span style="font-size: 0.85rem; color: #EF4444; font-weight: 600;">Exceeds ₹${budget} Cr limit</span>
-            </div>
-            <div style="margin-bottom: 12px;">
-              <strong style="display: block; margin-bottom: 8px;">Interventions:</strong>
-              <ul style="font-size: 0.85rem; line-height: 1.6; padding-left: 20px;">
-                ${inf.interventions.map(i => `<li>${i}</li>`).join('')}
-              </ul>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">
-              <div>
-                <span class="label-xs muted">Total Cost</span>
-                <div style="font-size: 1.2rem; font-weight: 600; color: #EF4444;">₹${inf.total_cost_crore} Cr</div>
-              </div>
-              <div>
-                <span class="label-xs muted">AQI Reduction</span>
-                <div style="font-size: 1.2rem; font-weight: 600; color: #22C55E;">-${inf.aqi_reduction} AQI</div>
-              </div>
-            </div>
-            <div style="margin-top: 12px; font-size: 0.8rem; opacity: 0.8;">
-              This package would deliver <strong>-${inf.aqi_reduction} AQI reduction</strong> but costs <strong>₹${(inf.total_cost_crore - budget).toFixed(1)} Cr over budget</strong>.
-            </div>
-          </div>
-        `;
+        budgetInfeasibleCard.innerHTML = renderPackageCard(result.infeasible_example, 0, budget, false);
       }
 
-      // Sensitivity
+      // Sensitivity analysis (budget ±10 Cr)
       if (budgetSensitivity && result.sensitivity) {
-        const minus10 = result.sensitivity.minus_10cr;
-        const plus10 = result.sensitivity.plus_10cr;
+        const m10  = result.sensitivity.minus_10cr;
+        const p10  = result.sensitivity.plus_10cr;
+        const costSens = result.cost_sensitivity;
+
         budgetSensitivity.innerHTML = `
-          <div>
-            <strong>Budget - ₹10 Cr (₹${minus10.budget_crore} Cr):</strong><br/>
-            Best: -${minus10.best_aqi_reduction} AQI | ${minus10.n_feasible} feasible packages<br/>
-            <span style="font-size: 0.85rem; opacity: 0.7;">${minus10.best_package.slice(0, 2).join(', ')}${minus10.best_package.length > 2 ? ', ...' : ''}</span>
+          <div style="flex:1; min-width:200px;">
+            <div style="font-size:0.8rem; font-weight:700; color:#F87171; margin-bottom:6px;">
+              📉 If budget cut by ₹10 Cr → ₹${m10.budget_crore} Cr:
+            </div>
+            <div style="font-size:0.85rem;">Best outcome: <strong>-${m10.best_aqi_reduction} AQI</strong></div>
+            <div style="font-size:0.75rem; color:#9CA3AF; margin-top:4px;">${m10.n_feasible} feasible packages
+              ${m10.meets_3type ? ' · ✓ 3-type still possible' : ' · ⚠ 3-type may not be feasible'}</div>
+            <div style="font-size:0.7rem; color:#6B7280; margin-top:4px;">${m10.best_package.slice(0,2).join(' + ')}${m10.best_package.length > 2 ? ' + ...' : ''}</div>
           </div>
-          <div>
-            <strong>Budget + ₹10 Cr (₹${plus10.budget_crore} Cr):</strong><br/>
-            Best: -${plus10.best_aqi_reduction} AQI | ${plus10.n_feasible} feasible packages<br/>
-            <span style="font-size: 0.85rem; opacity: 0.7;">${plus10.best_package.slice(0, 2).join(', ')}${plus10.best_package.length > 2 ? ', ...' : ''}</span>
+          <div style="flex:1; min-width:200px;">
+            <div style="font-size:0.8rem; font-weight:700; color:#22C55E; margin-bottom:6px;">
+              📈 If budget increased by ₹10 Cr → ₹${p10.budget_crore} Cr:
+            </div>
+            <div style="font-size:0.85rem;">Best outcome: <strong>-${p10.best_aqi_reduction} AQI</strong></div>
+            <div style="font-size:0.75rem; color:#9CA3AF; margin-top:4px;">${p10.n_feasible} feasible packages
+              ${p10.meets_3type ? ' · ✓ 3-type feasible' : ''}</div>
+            <div style="font-size:0.7rem; color:#6B7280; margin-top:4px;">${p10.best_package.slice(0,2).join(' + ')}${p10.best_package.length > 2 ? ' + ...' : ''}</div>
           </div>
+          ${costSens?.length ? `
+          <div style="flex:1; min-width:200px;">
+            <div style="font-size:0.8rem; font-weight:700; color:#F59E0B; margin-bottom:6px;">
+              ✂ Cost-Sensitivity (drop one item from best package):
+            </div>
+            ${costSens.map(c => `
+              <div style="font-size:0.75rem; margin-bottom:4px;">
+                <span style="color:#EF4444;">Remove ${c.removed.split(' ')[0]}...</span>
+                → save <strong style="color:#EFD395">₹${c.cost_saved_crore} Cr</strong>
+                but lose <strong style="color:#F87171">-${c.aqi_reduction_lost} AQI</strong>
+                (${c.new_aqi_reduction} AQI remaining)
+              </div>`).join('')}
+          </div>` : ''}
         `;
       }
 
-      // Re-initialize lucide icons
       if (window.lucide) window.lucide.createIcons();
 
     } catch (err) {
       console.error('[budget-planner] API error:', err);
-      alert('Failed to compute budget plan. Check console for details.');
+      if (budgetResultsDiv) budgetResultsDiv.style.display = 'none';
+      if (budgetCombosEval) budgetCombosEval.innerHTML = `<span style="color:#F87171;">⚠ Failed to compute — check backend is running.</span>`;
     } finally {
       btnFindBestPlan.disabled = false;
       btnFindBestPlan.innerHTML = '<i data-lucide="search"></i> Find Best Intervention Packages';

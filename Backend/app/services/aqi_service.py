@@ -34,24 +34,8 @@ AQI_BANDS: list[AQIBand] = [
 # City name (lowercase) → list of WAQI slug strings.
 # All slugs are tried in parallel; slugs returning "-" AQI or errors are skipped.
 CITY_SLUGS: dict[str, list[str]] = {
-    "delhi":            ["delhi", "delhi/punjabi-bagh"],
-    "noida":            ["noida", "delhi"],
-    "gurgaon":          ["gurgaon", "delhi"],
-    "pune":             ["pune", "pimpri"],
-    "mumbai":           ["mumbai", "bandra"],
-    "nashik":           ["nashik", "@9071"],
-    "thane":            ["thane"],
-    "nagpur":           ["nagpur", "@9070"],
-    "akurdi":           ["pimpri", "pune"],
-    "pcmc":             ["pimpri", "pune"],
-    "pimpri-chinchwad": ["pimpri", "pune"],
-    "maharashtra":      ["pune", "mumbai"],
-    "kolkata":          ["kolkata"],
-    "chennai":          ["chennai"],
-    "bangalore":        ["bangalore"],
-    "bengaluru":        ["bangalore"],
-    "hyderabad":        ["hyderabad"],
-    "ahmedabad":        ["ahmedabad"],
+    "delhi": ["delhi", "delhi/punjabi-bagh"],
+    "noida": ["noida", "delhi"],
 }
 
 DEFAULT_SLUGS = ["delhi"]
@@ -151,7 +135,10 @@ async def fetch_city_aqi(city: str) -> CityAQIResponse:
     Fetch AQI for a city using curated WAQI slug feeds.
     All slugs for the city are fetched in parallel; valid results are aggregated.
     """
-    key   = city.lower().strip()
+    key = city.lower().strip()
+    if key not in ("delhi", "noida"):
+        key = "delhi"
+        city = "Delhi"
     slugs = CITY_SLUGS.get(key, DEFAULT_SLUGS)
 
     async with httpx.AsyncClient() as client:

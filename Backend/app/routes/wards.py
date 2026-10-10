@@ -13,41 +13,6 @@ router = APIRouter(prefix="/wards", tags=["Wards"])
 
 # ── Ward metadata: only structural/contextual fields — NO static AQI ─────────
 # aqi and pm25 are placeholders; they get overwritten by live WAQI data.
-_PUNE_META = [
-    dict(ward_name="Bhosari MIDC",         zone="PCMC Industrial",  dominant_driver="Industrial Emissions + Metal Dust",  recommended_action="Stack Scrubber Audit & Dust Collector Mandate",       keywords=["Bhosari", "Chakan", "MIDC", "Alandi"]),
-    dict(ward_name="Akurdi Chowk",          zone="PCMC Central",     dominant_driver="Highway Freight + SME Engineering",  recommended_action="Anti-Smog Mist Cannons & Heavy Transit Diversion",   keywords=["Akurdi", "Nigdi", "Pimpri", "Chinchwad"]),
-    dict(ward_name="Katraj Bypass",         zone="South Pune",       dominant_driver="Diesel Truck Corridor",              recommended_action="Night Heavy Vehicle Windows & EV Freight Corridors",  keywords=["Katraj", "Dhankawadi", "Kondhwa"]),
-    dict(ward_name="Shivaji Nagar",         zone="Central Pune",     dominant_driver="Vehicular Congestion",               recommended_action="Traffic Signal Synchronization & PMPML Bus Priority",  keywords=["Shivaji", "Shivajinagar", "Swargate", "Pune"]),
-    dict(ward_name="Hadapsar / Magarpatta", zone="East Pune",        dominant_driver="IT Commute + Road Re-suspension",    recommended_action="Mechanized Vacuum Sweepers on Kharadi-Hadapsar Road", keywords=["Hadapsar", "Magarpatta", "Kharadi"]),
-    dict(ward_name="Wakad / Hinjawadi",     zone="PCMC / IT Park",   dominant_driver="Construction Dust & Commute",        recommended_action="Construction Site Enclosures & Tech-Park Shuttles",   keywords=["Wakad", "Hinjawadi", "Baner"]),
-    dict(ward_name="Kothrud / Paud Road",   zone="West Pune",        dominant_driver="Valley Basin Inversion",             recommended_action="Low-Emission Neighborhood Zone Enforcement",          keywords=["Kothrud", "Karve", "Erandwane"]),
-    dict(ward_name="Viman Nagar",           zone="North East Pune",  dominant_driver="Airport Transit + Civil Works",      recommended_action="Dust Suppression Misting along Nagar Road",           keywords=["Viman", "Nagar Road", "Airport"]),
-    dict(ward_name="Pashan / IISER Belt",   zone="West Green Zone",  dominant_driver="Ambient Background",                 recommended_action="Urban Forest Canopy Protection & Bio-Monitoring",    keywords=["Pashan", "IISER", "Bavdhan", "Aundh"]),
-]
-
-_MUMBAI_META = [
-    dict(ward_name="Deonar / Chembur",      zone="Eastern Suburbs",  dominant_driver="Refinery Emissions + Landfill VOCs", recommended_action="VOC Leak Detection & Waste Capping Interventions",   keywords=["Deonar", "Chembur", "Trombay"]),
-    dict(ward_name="Andheri East",          zone="Western Suburbs",  dominant_driver="Metro Works + Airport Traffic",      recommended_action="Mechanized Sweeping & Construction Barricading",      keywords=["Andheri", "Chakala", "SEEPZ"]),
-    dict(ward_name="Bandra Kurla Complex",  zone="Central Business", dominant_driver="Commercial Commute Fleet",           recommended_action="Mandatory Zero-Emission Commercial Shuttles",          keywords=["Bandra", "Kurla", "BKC"]),
-    dict(ward_name="Sion / Kurla Junction", zone="Central Mumbai",   dominant_driver="EEH Highway Diesel Traffic",         recommended_action="High-Pressure Anti-Smog Guns on Flyover Corridors",   keywords=["Sion", "Kurla", "Dharavi"]),
-    dict(ward_name="Borivali West",         zone="North Suburbs",    dominant_driver="Ambient Background (Sanjay Gandhi NP)", recommended_action="National Park Eco-Buffer Zone Safeguarding",     keywords=["Borivali", "Kandivali", "Dahisar"]),
-    dict(ward_name="Worli Sea Face",        zone="South Central",    dominant_driver="Marine Boundary Dispersion",         recommended_action="Continuous Coastal Baseline Air Station Tracking",    keywords=["Worli", "Prabhadevi", "Dadar"]),
-    dict(ward_name="Colaba",                zone="South Mumbai",     dominant_driver="Coastal Sea Breeze Dilution",        recommended_action="Heritage Area Pedestrianization & Canopy Care",       keywords=["Colaba", "Cuffe Parade", "Nariman"]),
-]
-
-_NASHIK_META = [
-    dict(ward_name="Satpur MIDC",           zone="Industrial West",  dominant_driver="Engineering Ancillaries + Dust",    recommended_action="Industrial Zone Emission Scrubbing Audits",           keywords=["Satpur", "MIDC", "Ambad"]),
-    dict(ward_name="Nashik Road Station",   zone="Rail Corridor",    dominant_driver="Inter-City Bus & Diesel Transit",   recommended_action="EV Feeder Buses & Clean Transit Terminal Policy",      keywords=["Nashik Road", "Deolali", "Panchavati"]),
-    dict(ward_name="Panchavati",            zone="Godavari Basin",   dominant_driver="River Basin Atmospheric Inversion", recommended_action="Low-Emission Heritage Zone & Sweeping",               keywords=["Panchavati", "Godavari", "Nashik City"]),
-    dict(ward_name="Gangapur Road",         zone="North West Green", dominant_driver="Ambient Background",                recommended_action="Green Corridor Maintenance & Urban Forest Expansion", keywords=["Gangapur", "Nashik"]),
-]
-
-_THANE_META = [
-    dict(ward_name="Wagle Estate",          zone="Industrial Thane", dominant_driver="Chemical & Small Industrial Units", recommended_action="Stack Air Filter Mandates & Inspection Patrols",      keywords=["Wagle", "Thane", "Majiwada"]),
-    dict(ward_name="Ghodbunder Road",       zone="Freight Transit",  dominant_driver="Interstate Heavy Truck Traffic",    recommended_action="Heavy Freight Speed Management & Mist Guns",           keywords=["Ghodbunder", "Thane", "Kapurbawdi"]),
-    dict(ward_name="Upvan Lake Belt",       zone="Yeoor Foothills",  dominant_driver="Ambient Background",                recommended_action="Eco-Sensitive Zone Preservation",                      keywords=["Upvan", "Yeoor", "Thane West"]),
-]
-
 _DELHI_META = [
     dict(ward_name="Anand Vihar",           zone="East Delhi",       dominant_driver="Transport Hub + Stubble Influx",      recommended_action="Deploy Mist Cannons + Heavy Truck Ban on NH24",        keywords=["Anand Vihar", "Kaushambi", "Patparganj"]),
     dict(ward_name="ITO Junction",          zone="Central Delhi",    dominant_driver="Traffic Congestion",                   recommended_action="Traffic Signal Synchronization + Metro Subsidy",       keywords=["ITO", "Pragati Maidan", "Mandi House"]),
@@ -60,26 +25,9 @@ _DELHI_META = [
     dict(ward_name="Mundka Industrial",     zone="West Delhi",       dominant_driver="Industrial + Freight Emissions",       recommended_action="Industrial Zone EV Freight Transition",               keywords=["Mundka", "Bawana", "Tikri"]),
 ]
 
-_AKURDI_META = [
-    dict(ward_name="Akurdi Khandoba Mal",   zone="MIDC Sector",      dominant_driver="Automotive & Foundry Emissions",    recommended_action="Deploy Mobile Mist Guns + Industrial Stack Checks",   keywords=["Akurdi", "Khandoba", "PCMC"]),
-    dict(ward_name="Thergaon / Dange Chowk",zone="PCMC Chokepoint",  dominant_driver="Peak Traffic Choke + Bus Transit",  recommended_action="Flyover Traffic Flow Decongestion & Sweeper Deployment", keywords=["Thergaon", "Dange", "Rahatani"]),
-    dict(ward_name="Akurdi Railway Station",zone="Transit Hub",       dominant_driver="Auto-Rickshaw Idling & Rail Dust",  recommended_action="Shared EV Feeder Fleets & Anti-Idling Enforcement",   keywords=["Akurdi", "Railway", "Station"]),
-    dict(ward_name="Nigdi Pradhikaran",     zone="NH48 Corridor",    dominant_driver="Highway Transit Dust",              recommended_action="Green Acoustic & Particulate Barrier Plantation",     keywords=["Nigdi", "Pradhikaran", "NH48"]),
-    dict(ward_name="Pradhikaran Sector 24", zone="Residential",      dominant_driver="Ambient Background",                recommended_action="Maintain Tree Cover Density & Rooftop Sensors",       keywords=["Pradhikaran", "Sector 24", "Akurdi"]),
-]
-
 _CITY_META: dict[str, list[dict]] = {
-    "delhi":            _DELHI_META,
-    "noida":            _DELHI_META,
-    "gurgaon":          _DELHI_META,
-    "pune":             _PUNE_META,
-    "akurdi":           _AKURDI_META,
-    "pcmc":             _AKURDI_META,
-    "pimpri-chinchwad": _AKURDI_META,
-    "mumbai":           _MUMBAI_META,
-    "nashik":           _NASHIK_META,
-    "thane":            _THANE_META,
-    "maharashtra":      _PUNE_META,
+    "delhi": _DELHI_META,
+    "noida": _DELHI_META,
 }
 
 

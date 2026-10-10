@@ -19,16 +19,9 @@ const BAND_CLASS = {
   'Severe':       'badge-status--severe',
 };
 
-// ── City centre coordinates (shared with map.js) ──────────────────────────────
 const CITY_CENTRES = {
-  delhi:   [77.2090, 28.6139],
-  noida:   [77.3910, 28.5355],
-  gurgaon: [77.0266, 28.4595],
-  pune:    [73.8567, 18.5204],
-  mumbai:  [72.8777, 19.0760],
-  nashik:  [73.7898, 19.9975],
-  thane:   [72.9781, 19.2183],
-  nagpur:  [79.0882, 21.1458],
+  delhi: [77.2090, 28.6139],
+  noida: [77.3910, 28.5355],
 };
 
 /**

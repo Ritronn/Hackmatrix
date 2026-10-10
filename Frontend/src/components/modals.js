@@ -118,9 +118,9 @@ export function initGlobalModals() {
           );
           aqi = matched ? matched.aqi : Math.round(delhiData.avg_aqi);
         } else if (cityKey && cityKey !== 'delhi') {
-          // Non-Delhi city items — fetch their own data
-          const cityNameMap = { mumbai: 'Mumbai', pune: 'Pune', noida: 'Noida', gurgaon: 'Gurgaon', thane: 'Thane' };
-          const cityName = cityNameMap[cityKey] ?? cityKey;
+          // Noida / NCR items — fetch their own data
+          const cityNameMap = { noida: 'Noida', delhi: 'Delhi' };
+          const cityName = cityNameMap[cityKey] ?? 'Delhi';
           const data = await getCityAQI(cityName);
           aqi = Math.round(data.avg_aqi);
         } else if (cityKey === 'delhi' && delhiData) {
@@ -162,22 +162,14 @@ export function initGlobalModals() {
       const cityKey   = item.getAttribute('data-city');
       const stationId = item.getAttribute('data-station');
 
-      // Map the search item to a city name the backend understands
+      // Map the search item strictly to Delhi or Noida
       const cityMap = {
-        delhi:   'Delhi',
-        noida:   'Noida',
-        gurgaon: 'Gurgaon',
-        pune:    'Pune',
-        mumbai:  'Mumbai',
-        nashik:  'Nashik',
-        delhi:   'Delhi',
-        thane:   'Thane',
-        nagpur:  'Nagpur',
-        akurdi:  'Akurdi',
+        delhi: 'Delhi',
+        noida: 'Noida',
       };
 
       // Items with data-station are all Delhi-area stations
-      const city = stationId ? 'Delhi' : (cityMap[cityKey] ?? cityKey ?? 'Delhi');
+      const city = stationId ? 'Delhi' : (cityMap[cityKey] ?? 'Delhi');
 
       // Update station label immediately
       const stationName = item.querySelector('strong')?.textContent;

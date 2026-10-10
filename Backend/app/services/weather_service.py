@@ -38,11 +38,12 @@ def _wind_components(speed_ms: float, direction_deg: float) -> tuple[float, floa
 
 
 async def fetch_weather(city: str) -> WeatherData:
-    """Fetch current weather for a city from OpenWeatherMap with fallback."""
+    """Fetch current weather for a city from OpenWeatherMap with fallback (Delhi/Noida only)."""
+    norm_city = "Noida" if "noida" in (city or "").lower() else "Delhi"
     key = settings.openweather_api_key
     url = f"{OWM_BASE}/weather"
     params = {
-        "q": f"{city},IN",
+        "q": f"{norm_city},IN",
         "appid": key,
         "units": "metric",
     }

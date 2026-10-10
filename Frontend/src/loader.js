@@ -14,7 +14,6 @@ const PARTIALS = [
   { url: '/partials/view-scenario.html',  target: '#slot-scenario'   },
   { url: '/partials/view-wards.html',     target: '#slot-wards'      },
   { url: '/partials/view-accuracy.html',  target: '#slot-accuracy'   },
-  { url: '/partials/view-settings.html',  target: '#slot-settings'   },
   { url: '/partials/modals.html',         target: '#slot-modals'     },
   { url: '/partials/ai-advisor.html',     target: '#slot-ai-advisor' },
 ];
