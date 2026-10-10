@@ -42,7 +42,7 @@ export function initGlobalModals() {
   document.getElementById('drift-alert-trigger')?.addEventListener('click', async () => {
     openModal('modal-drift-backdrop');
     try {
-      const city = window._currentCity ?? 'Pune';
+      const city = window._currentCity ?? 'Delhi';
       const data = await getDriftStatus(city);
       if (data.active_anomalies > 0 && data.events.length > 0) {
         const e = data.events.find(ev => ev.is_anomaly) ?? data.events[0];
@@ -89,16 +89,16 @@ export function initGlobalModals() {
 
   // Pre-load live AQI into search item badges
   async function loadSearchBadges() {
-    // Fetch Pune data once for the station-level items (all 4 pins are Pune stations)
-    let puneData = null;
-    try { puneData = await getCityAQI('Pune'); } catch (_) {}
+    // Fetch Delhi data once for the station-level items (all 4 pins are Delhi stations)
+    let delhiData = null;
+    try { delhiData = await getCityAQI('Delhi'); } catch (_) {}
 
     // Keywords per pin ID to match against live station names
     const kwMap = {
-      anand:  ['Akurdi', 'Nigdi', 'Pimpri'],
-      ito:    ['Shivaji', 'Swargate', 'Pune'],
-      dwarka: ['Bhosari', 'MIDC'],
-      lodhi:  ['Pashan', 'IISER', 'Aundh'],
+      anand:  ['Anand Vihar', 'Kaushambi', 'Patparganj'],
+      ito:    ['ITO', 'Pragati Maidan', 'Mandi House'],
+      dwarka: ['Dwarka', 'NSIT', 'Palam'],
+      lodhi:  ['Lodhi', 'Safdarjung', 'JLN'],
     };
 
     for (const item of searchItems) {
@@ -110,21 +110,21 @@ export function initGlobalModals() {
       try {
         let aqi = null;
 
-        if (station && puneData) {
+        if (station && delhiData) {
           // Match this pin to the closest live station by keyword
           const kws     = kwMap[station] ?? [];
-          const matched = puneData.stations.find((s) =>
+          const matched = delhiData.stations.find((s) =>
             kws.some((kw) => s.station_name.toLowerCase().includes(kw.toLowerCase()))
           );
-          aqi = matched ? matched.aqi : Math.round(puneData.avg_aqi);
-        } else if (cityKey && cityKey !== 'pune') {
-          // Non-Pune city items — fetch their own data
-          const cityNameMap = { mumbai: 'Mumbai', nashik: 'Nashik', delhi: 'Delhi', thane: 'Thane' };
+          aqi = matched ? matched.aqi : Math.round(delhiData.avg_aqi);
+        } else if (cityKey && cityKey !== 'delhi') {
+          // Non-Delhi city items — fetch their own data
+          const cityNameMap = { mumbai: 'Mumbai', pune: 'Pune', noida: 'Noida', gurgaon: 'Gurgaon', thane: 'Thane' };
           const cityName = cityNameMap[cityKey] ?? cityKey;
           const data = await getCityAQI(cityName);
           aqi = Math.round(data.avg_aqi);
-        } else if (cityKey === 'pune' && puneData) {
-          aqi = Math.round(puneData.avg_aqi);
+        } else if (cityKey === 'delhi' && delhiData) {
+          aqi = Math.round(delhiData.avg_aqi);
         }
 
         if (aqi !== null) {
@@ -164,6 +164,9 @@ export function initGlobalModals() {
 
       // Map the search item to a city name the backend understands
       const cityMap = {
+        delhi:   'Delhi',
+        noida:   'Noida',
+        gurgaon: 'Gurgaon',
         pune:    'Pune',
         mumbai:  'Mumbai',
         nashik:  'Nashik',
@@ -173,8 +176,8 @@ export function initGlobalModals() {
         akurdi:  'Akurdi',
       };
 
-      // Items with data-station are all Pune-area stations
-      const city = stationId ? 'Pune' : (cityMap[cityKey] ?? cityKey ?? 'Pune');
+      // Items with data-station are all Delhi-area stations
+      const city = stationId ? 'Delhi' : (cityMap[cityKey] ?? cityKey ?? 'Delhi');
 
       // Update station label immediately
       const stationName = item.querySelector('strong')?.textContent;
@@ -197,7 +200,7 @@ export function initGlobalModals() {
     contentEl.innerHTML = '<p style="color:var(--muted);font-size:12px;">⋯ Generating briefing from live data...</p>';
 
     try {
-      const city = window._currentCity ?? 'Pune';
+      const city = window._currentCity ?? 'Delhi';
       const data = await getDailyBriefing(city);
 
       // Build section HTML from backend response
@@ -226,15 +229,15 @@ export function initGlobalModals() {
         </div>
         <div class="briefing-section">
           <h4>Executive Summary</h4>
-          <p>Air quality across Maharashtra urban corridors (Pune, PCMC, Mumbai, Akurdi) currently sits at <strong>${window._currentAqi ?? 142} AQI (Moderate to Poor)</strong>. Western Ghats valley inversion and industrial transit entrapment prevent vertical dispersion.</p>
+          <p>Air quality across Delhi NCR urban corridors (Delhi, Noida, Gurgaon, Faridabad) currently sits at <strong>${window._currentAqi ?? 186} AQI (Poor to Very Poor)</strong>. Indo-Gangetic plain atmospheric trapping and thermal inversion prevent vertical dispersion.</p>
         </div>
         <div class="briefing-section">
           <h4>Source Attribution</h4>
-          <p>Vehicular and freight transit drives <strong>44%</strong> of particulate mass, industrial clusters (MIDC Bhosari / Akurdi / Chembur) contribute <strong>26%</strong>, and road/construction dust accounts for <strong>20%</strong>.</p>
+          <p>Vehicular and freight transit drives <strong>44%</strong> of particulate mass. Stubble burning (Punjab/Haryana seasonal) contributes <strong>26%</strong>, and road dust plus construction accounts for <strong>20%</strong>.</p>
         </div>
         <div class="briefing-section">
           <h4>Recommended Interventions</h4>
-          <p>A <strong>30% heavy vehicle freight restriction</strong> on the NH48 corridor with <strong>45 mobile mist units</strong> yields an immediate <strong>-38 AQI reduction</strong>, avoiding ~110 respiratory ER admissions over 48 hours.</p>
+          <p>A <strong>30% heavy vehicle freight restriction</strong> on Ring Road and GT Karnal Road with <strong>45 mobile mist units</strong> yields an immediate <strong>-38 AQI reduction</strong>, avoiding ~110 respiratory ER admissions over 48 hours.</p>
         </div>
       `;
     }

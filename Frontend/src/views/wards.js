@@ -73,7 +73,7 @@ export function initWardsAnalytics() {
 
   // ── Fetch live ward data when view is first opened ────────────────────────
   async function loadWards() {
-    const city = window._currentCity ?? 'Pune';
+    const city = window._currentCity ?? 'Delhi';
     try {
       const data = await getWards(city);
       renderWardsTable(data.wards);

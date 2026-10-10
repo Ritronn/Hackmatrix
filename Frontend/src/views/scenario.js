@@ -102,8 +102,8 @@ export function initScenarioSimulator() {
   async function calculateScenario() {
     updateLabels();
 
-    const city = 'Delhi';
-    const baselineAqi = window._currentAqi ?? 187;
+    const city = window._currentCity ?? 'Delhi';
+    const baselineAqi = window._currentAqi ?? 142;
 
     const payload = {
       city:                       city,
@@ -258,8 +258,8 @@ export function initScenarioSimulator() {
   // ── Load ROI leaderboard from backend ─────────────────────────────────────
   async function loadRoiLeaderboard() {
     try {
-      const city     = 'Delhi';
-      const baseline = window._currentAqi  ?? 187;
+      const city     = window._currentCity ?? 'Delhi';
+      const baseline = window._currentAqi  ?? 142;
       const data = await getRoiLeaderboard(city, baseline);
       renderRoiTable(data.interventions);
     } catch (err) {

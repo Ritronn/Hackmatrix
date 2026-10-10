@@ -1,0 +1,46 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Update frontend HTML partials to reference Delhi NCR. Change index.html avatar tooltip from Maharashtra to Delhi NCR, update modals.html quick search stations to Delhi NCR stations (Anand Vihar, ITO, Dwarka, Lodhi Road), update ai-advisor.html subtitle and prompt chips to Delhi NCR context, update view-dashboard.html location chips to show Delhi/Noida/Gurgaon/Mumbai (replacing Pune/Akurdi/Nashik), update view-settings.html to show Delhi as primary active twin with Noida and Gurgaon cards, and update view-wards.html description to reference Delhi NCR.",
+  "status": "completed",
+  "steps": [
+    "Update Frontend/index.html line 69: change avatar tooltip from 'City Admin: Delhi NCR Twin' (already correct, verify)",
+    "Update Frontend/public/partials/modals.html lines 39-58: replace search item station names and descriptions with Delhi NCR stations: Line 39-42 change to 'Anand Vihar' / 'East Delhi • Transport Hub & Stubble Influx', Line 43-46 to 'ITO Junction' / 'Central Delhi • Traffic Congestion CPCB', Line 47-50 to 'Dwarka Sector 8' / 'South-West Delhi • Metro Works & Residential', Line 51-54 to 'Lodhi Road' / 'Central Delhi • IMD Green Belt & Background'",
+    "Update Frontend/public/partials/modals.html lines 30-34 (drift modal): change affected station from 'Anand Vihar, East Delhi — DPCC' (already Delhi, verify correct)",
+    "Update Frontend/public/partials/modals.html line 47: change root cause diagnosis text to reference 'Unscheduled stubble burning influx from Punjab/Haryana combined with cold night-time boundary layer compression trapping vehicular particulate matter across Indo-Gangetic plain corridor' (already mentions Haryana, verify)",
+    "Update Frontend/public/partials/modals.html line 99 (briefing modal subtitle): change from 'Delhi NCR Urban Centers' (already correct, verify)",
+    "Update Frontend/public/partials/ai-advisor.html line 13: change subtitle from 'Grounded in Live Model Telemetry' (verify current text is appropriate for Delhi NCR)",
+    "Update Frontend/public/partials/ai-advisor.html lines 35-37: update prompt chips to Delhi NCR context: Line 35 change to 'Should Delhi-NCR schools restrict outdoor sports tomorrow?', Line 36 to 'Why did Anand Vihar and Wazirpur spike today?', Line 37 to 'What happens if we restrict freight on GT Karnal Road and Ring Road by 30%?'",
+    "Update Frontend/public/partials/view-dashboard.html lines 157-160: replace location chips with: Line 157 'Delhi, DL' (keep active), Line 158 'Noida, UP', Line 159 'Gurgaon, HR', Line 160 'Mumbai, MH' (replace Pune chip with Mumbai)",
+    "Update Frontend/public/partials/view-settings.html line 15: verify Delhi card shows 'Active Twin • Primary' indicator (already has active indicator)",
+    "Update Frontend/public/partials/view-settings.html lines 20-30: add Noida and Gurgaon city cards after Delhi card, before Mumbai card. Insert two new city-card divs with data-city='noida' and data-city='gurgaon', following the pattern of existing cards",
+    "Update Frontend/public/partials/view-settings.html line 16: change Delhi card meta text to '34 Active Stations' and 'Indo-Gangetic Thermal Inversion & Stubble Burning'",
+    "Update Frontend/public/partials/view-settings.html lines 47-48: update API endpoint examples from /twin/pune/ to /twin/delhi/",
+    "Update Frontend/public/partials/view-wards.html line 5: change description from 'Granular ward comparisons across Delhi NCR urban centers (Delhi, Noida, Gurgaon, Faridabad)' (already correct, verify)"
+  ],
+  "acceptance_criteria": [
+    "index.html avatar tooltip references 'Delhi NCR Twin'",
+    "modals.html search items list Delhi stations: Anand Vihar, ITO, Dwarka, Lodhi Road",
+    "modals.html drift modal references Delhi station (Anand Vihar)",
+    "modals.html briefing modal subtitle references 'Delhi NCR Urban Centers'",
+    "ai-advisor.html prompt chips reference Delhi NCR: schools, Anand Vihar spike, GT Karnal Road freight",
+    "view-dashboard.html location chips show Delhi, Noida, Gurgaon, Mumbai (no Pune/Akurdi/Nashik)",
+    "view-settings.html shows Delhi as Active Twin with 34 stations, includes Noida and Gurgaon cards",
+    "view-settings.html API examples use /twin/delhi/ paths",
+    "view-wards.html description mentions Delhi NCR urban centers"
+  ],
+  "verification": [
+    "Run: cd Frontend && npm run dev",
+    "Open http://localhost:5173",
+    "Hover over avatar in nav rail and verify tooltip says 'City Admin: Delhi NCR Twin'",
+    "Click search button (magnifying glass) and verify station list shows Anand Vihar, ITO, Dwarka, Lodhi Road",
+    "Click Twin Drift alert and verify it references Anand Vihar, East Delhi",
+    "Click AI Advisor FAB and verify prompt chips reference Delhi-NCR schools, Anand Vihar, GT Karnal Road",
+    "Verify dashboard location chips show Delhi, Noida, Gurgaon, Mumbai (no Pune)",
+    "Navigate to Settings view and verify Delhi is marked Active Twin, Noida and Gurgaon cards are present",
+    "Verify API endpoint examples in Settings use /twin/delhi/ paths",
+    "Navigate to Wards view and verify description mentions Delhi NCR"
+  ],
+  "blocked_reason": null,
+  "findings": "All HTML partials successfully migrated to Delhi NCR defaults. Station names in modals.html updated to Anand Vihar, ITO Junction, Dwarka Sector 8, and Lodhi Road with correct zone descriptions. AI advisor prompt chips updated to Delhi NCR scenarios (schools, Anand Vihar spike, GT Karnal Road). Location chips on dashboard updated to Delhi/Noida/Gurgaon/Mumbai. Settings view updated with 34 stations for Delhi, Noida and Gurgaon cards present, API examples changed to /twin/delhi/. Root cause diagnosis updated to reference Punjab/Haryana. Build completed successfully with no errors."
+}

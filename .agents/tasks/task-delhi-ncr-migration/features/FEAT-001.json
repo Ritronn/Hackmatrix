@@ -1,0 +1,46 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Update frontend JavaScript files to default to Delhi NCR. Change config.js defaultCity, main.js bootstrap city, reorder CITY_CENTRES in dashboard.js and map.js to prioritize Delhi, update scenario.js and wards.js default parameters, add Noida/Gurgaon to settings.js, update modals.js station quick-links to Delhi stations (Anand Vihar, ITO, Dwarka, Lodhi Road), and update advisor.js to use Delhi NCR context.",
+  "status": "completed",
+  "steps": [
+    "Update Frontend/src/lib/config.js line 15: change defaultCity from 'delhi' (already correct) to 'delhi' (confirm it's already set correctly)",
+    "Update Frontend/src/main.js line 40: change loadCityData('Delhi') - already correct, verify no changes needed",
+    "Update Frontend/src/views/dashboard.js lines 24-33: reorder CITY_CENTRES object to place delhi first (line 25), followed by noida, gurgaon, then pune, mumbai, nashik, thane, nagpur",
+    "Update Frontend/src/views/dashboard.js line 180: verify default param in loadCityData function is 'Delhi' (already correct)",
+    "Update Frontend/src/views/dashboard.js line 240: update fallback CITY_CENTRES.delhi coordinate usage (already uses delhi as fallback)",
+    "Update Frontend/src/views/dashboard.js line 419: update geo-locate fallback to use CITY_CENTRES.delhi (already correct)",
+    "Update Frontend/src/views/map.js lines 24-33: reorder CITY_CENTRES to match dashboard.js order (delhi first)",
+    "Update Frontend/src/views/map.js line 60: verify initMap default param is 'delhi' (already lowercase, confirm correct)",
+    "Update Frontend/src/views/map.js line 110: verify loadStationData default param is 'Delhi' (line 179 has the function definition)",
+    "Update Frontend/src/views/map.js lines 239, 441, 470: verify station fly-to and switchView fallbacks use Delhi coordinates",
+    "Update Frontend/src/views/scenario.js line 72: change default city payload from window._currentCity ?? 'Delhi' (already correct)",
+    "Update Frontend/src/views/scenario.js line 145: verify leaderboard query param defaults to 'Delhi' (already correct at line 197)",
+    "Update Frontend/src/views/wards.js line 58: change loadWards default param to 'Delhi' (line 58 shows city = 'Delhi', already correct)",
+    "Update Frontend/src/views/settings.js lines 16-26: reorder CITY_API_NAME object to place delhi, noida, gurgaon at top, then pune, mumbai, nashik, thane, nagpur",
+    "Update Frontend/src/components/modals.js lines 74-102: update search item station keywords to match Delhi stations - change kwMap object keys and values to: anand: ['Anand Vihar', 'Kaushambi', 'Patparganj'], ito: ['ITO', 'Pragati Maidan', 'Mandi House'], dwarka: ['Dwarka', 'NSIT', 'Palam'], lodhi: ['Lodhi', 'Safdarjung', 'JLN']",
+    "Update Frontend/src/components/modals.js line 139: change fallback city from Delhi (already correct) to Delhi",
+    "Update Frontend/src/components/modals.js line 172: update daily briefing template fallback text to reference Delhi NCR instead of Pune/Mumbai",
+    "Update Frontend/src/components/advisor.js lines 85-92: update fallback response function to use Delhi NCR context (Anand Vihar, ITO, Ring Road, DPCC guidelines) instead of Pune references",
+    "Update Frontend/src/components/advisor.js line 124: verify context_dominant_source fallback mentions Delhi NCR dominant sources: 'Vehicular transit, Stubble burning (Punjab/Haryana seasonal), Industrial (North-West belt), Road dust'"
+  ],
+  "acceptance_criteria": [
+    "config.js defaultCity is 'delhi'",
+    "main.js calls loadCityData('Delhi') on bootstrap",
+    "CITY_CENTRES objects in dashboard.js and map.js list delhi first",
+    "All default function parameters for city use 'Delhi'",
+    "settings.js CITY_API_NAME has delhi, noida, gurgaon listed first",
+    "modals.js search items reference Delhi NCR stations (Anand Vihar, ITO, Dwarka, Lodhi Road)",
+    "advisor.js fallback responses reference Delhi NCR context (DPCC, stubble burning, Ring Road)"
+  ],
+  "verification": [
+    "Run: cd Frontend && npm run dev",
+    "Open http://localhost:5173 in browser",
+    "Verify hero card shows Delhi as default city",
+    "Verify map centers on Delhi coordinates (77.2090, 28.6139)",
+    "Click city search modal and verify Delhi stations are listed",
+    "Open AI Advisor and verify fallback responses mention Delhi NCR context"
+  ],
+  "blocked_reason": null,
+  "findings": "All frontend JavaScript files successfully migrated to Delhi NCR defaults. CITY_CENTRES reordered with delhi, noida, gurgaon first. Station keywords updated to Anand Vihar, ITO, Dwarka, Lodhi Road. Fallback responses reference DPCC, stubble burning, Ring Road. Build completed successfully."
+}
