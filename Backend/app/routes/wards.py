@@ -49,9 +49,15 @@ _THANE_META = [
 ]
 
 _DELHI_META = [
-    dict(ward_name="Anand Vihar",           zone="East Delhi",       dominant_driver="Transport + Stubble",               recommended_action="Deploy Mist Cannons + Heavy Truck Ban",               keywords=["Anand Vihar", "Kaushambi", "Patparganj"]),
-    dict(ward_name="ITO Junction",          zone="Central Delhi",    dominant_driver="Traffic Congestion",                recommended_action="Traffic Signal Synchronization + Metro Subsidy",      keywords=["ITO", "Pragati Maidan", "Mandi House"]),
-    dict(ward_name="Lodhi Road",            zone="South Delhi",      dominant_driver="Ambient Background",                recommended_action="Green Canopy Maintenance & Monitoring",               keywords=["Lodhi", "Safdarjung", "Lutyens"]),
+    dict(ward_name="Anand Vihar",           zone="East Delhi",       dominant_driver="Transport Hub + Stubble Influx",      recommended_action="Deploy Mist Cannons + Heavy Truck Ban on NH24",        keywords=["Anand Vihar", "Kaushambi", "Patparganj"]),
+    dict(ward_name="ITO Junction",          zone="Central Delhi",    dominant_driver="Traffic Congestion",                   recommended_action="Traffic Signal Synchronization + Metro Subsidy",       keywords=["ITO", "Pragati Maidan", "Mandi House"]),
+    dict(ward_name="Wazirpur Industrial",   zone="North West Delhi", dominant_driver="Small-Scale Industrial Emissions",     recommended_action="Industrial Stack Scrubber Audit & Emission Mandates", keywords=["Wazirpur", "Ashok Vihar", "Jahangirpuri"]),
+    dict(ward_name="R K Puram",             zone="South Delhi",      dominant_driver="Vehicular Congestion (Ring Road)",     recommended_action="Heavy Vehicle Diversion & Anti-Smog Mist Guns",       keywords=["R K Puram", "RK Puram", "Sri Aurobindo"]),
+    dict(ward_name="Dwarka Sector 8",       zone="South West Delhi", dominant_driver="Construction Dust & Metro Works",     recommended_action="Construction Site Enclosures & Dust Suppression",     keywords=["Dwarka", "NSIT", "Palam"]),
+    dict(ward_name="Punjabi Bagh",          zone="West Delhi",       dominant_driver="Highway Traffic + Road Dust",          recommended_action="Mechanized Vacuum Sweepers on Ring Road Stretch",     keywords=["Punjabi Bagh", "Patel Nagar", "Shadipur"]),
+    dict(ward_name="Rohini Sector 16",      zone="North Delhi",      dominant_driver="Construction + Vehicular Dust",       recommended_action="Green Belt Expansion & Dust Barrier Plantation",      keywords=["Rohini", "Alipur", "Narela"]),
+    dict(ward_name="Lodhi Road",            zone="Central Delhi",    dominant_driver="Ambient Background",                   recommended_action="Green Canopy Maintenance & Monitoring",               keywords=["Lodhi", "Safdarjung", "JLN", "Lutyens"]),
+    dict(ward_name="Mundka Industrial",     zone="West Delhi",       dominant_driver="Industrial + Freight Emissions",       recommended_action="Industrial Zone EV Freight Transition",               keywords=["Mundka", "Bawana", "Tikri"]),
 ]
 
 _AKURDI_META = [
@@ -63,6 +69,9 @@ _AKURDI_META = [
 ]
 
 _CITY_META: dict[str, list[dict]] = {
+    "delhi":            _DELHI_META,
+    "noida":            _DELHI_META,
+    "gurgaon":          _DELHI_META,
     "pune":             _PUNE_META,
     "akurdi":           _AKURDI_META,
     "pcmc":             _AKURDI_META,
@@ -71,7 +80,6 @@ _CITY_META: dict[str, list[dict]] = {
     "nashik":           _NASHIK_META,
     "thane":            _THANE_META,
     "maharashtra":      _PUNE_META,
-    "delhi":            _DELHI_META,
 }
 
 
@@ -146,10 +154,10 @@ async def get_wards(
     Return ward-level AQI rankings for a city.
     AQI values are fetched live from WAQI and matched to ward locations by keyword.
     Optional filter by category: severe | moderate | good | all.
-    Falls back gracefully to Pune metadata if city not explicitly configured.
+    Falls back gracefully to Delhi metadata if city not explicitly configured.
     """
     key       = city.lower().strip()
-    meta_list = _CITY_META.get(key, _PUNE_META)
+    meta_list = _CITY_META.get(key, _DELHI_META)
 
     try:
         wards = await _build_wards_with_live_aqi(city, meta_list)

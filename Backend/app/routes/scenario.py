@@ -26,7 +26,7 @@ async def simulate_scenario(inp: ScenarioInput):
 
 @router.get("/roi-leaderboard", response_model=ROILeaderboardResponse)
 async def get_roi_leaderboard(
-    city: str = Query("Pune"),
+    city: str = Query("Delhi"),
     baseline_aqi: float = Query(158.0, ge=0),
 ):
     """
