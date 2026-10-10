@@ -36,3 +36,6 @@ Frontend/.vite/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+
+/docs

@@ -78,3 +78,21 @@ export const getShapImageUrl = (imageType = 'all') => {
   return `${base}/forecast/shap-images/${imageType}`;
 };
 
+/**
+ * Simulate sensor loss at X% of monitoring stations.
+ * @param {string} city
+ * @param {number} [lossPct=30]
+ * @param {number} [seed=42]
+ */
+export const getSensorLoss = (city, lossPct = 30, seed = 42) =>
+  apiFetch(`/forecast/${encodeURIComponent(city)}/sensor-loss?loss_pct=${lossPct}&seed=${seed}`);
+
+/**
+ * Withhold one station and predict its AQI from neighbors (held-out validation).
+ * @param {string} city
+ * @param {string} [station='Anand Vihar']
+ */
+export const getHeldOut = (city, station = 'Anand Vihar') =>
+  apiFetch(`/forecast/${encodeURIComponent(city)}/held-out?station=${encodeURIComponent(station)}`);
+
+

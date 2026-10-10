@@ -631,15 +631,15 @@ export function initDigitalTwinMap() {
         resizeCanvas();
         scatterParticles();
       });
-      const city = (window._currentCity ?? 'Pune').toLowerCase();
+      const city = (window._currentCity ?? 'Delhi').toLowerCase();
       if (!mapDataLoaded) {
         mapDataLoaded = true;
         initMap(city);
       } else if (map) {
         // Fly to new city centre if city changed
-        const centre = CITY_CENTRES[city] ?? CITY_CENTRES.pune;
+        const centre = CITY_CENTRES[city] ?? CITY_CENTRES.delhi;
         map.flyTo({ center: centre, zoom: 11, speed: 1.2 });
-        loadStationData(window._currentCity ?? 'Pune');
+        loadStationData(window._currentCity ?? 'Delhi');
         // MapTiler needs resize notification after becoming visible
         setTimeout(() => { map.resize(); resizeCanvas(); }, 50);
         setTimeout(() => { map.resize(); resizeCanvas(); }, 300);
@@ -653,9 +653,212 @@ export function initDigitalTwinMap() {
     _origLoadCity?.(cityName);
     if (map && mapDataLoaded) {
       const key = cityName.toLowerCase();
-      const centre = CITY_CENTRES[key] ?? CITY_CENTRES.pune;
+      const centre = CITY_CENTRES[key] ?? CITY_CENTRES.delhi;
       map.flyTo({ center: centre, zoom: 11, speed: 1.2 });
       loadStationData(cityName);
     }
   };
+
+
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // Demo Presets & Sensor Loss / Held-Out Panels (Addition 2 — Final Round)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  const demoPresetsToggle = document.getElementById('btn-demo-presets-toggle');
+  const demoPresetsPanel = document.getElementById('demo-presets-panel');
+  const sensorLossPanel = document.getElementById('sensor-loss-panel');
+  const heldOutPanel = document.getElementById('held-out-panel');
+
+  // Toggle demo presets panel
+  demoPresetsToggle?.addEventListener('click', () => {
+    if (demoPresetsPanel) {
+      const isVisible = demoPresetsPanel.style.display !== 'none';
+      demoPresetsPanel.style.display = isVisible ? 'none' : 'block';
+    }
+  });
+
+  // Preset 1: Normal Operation
+  document.getElementById('preset-normal')?.addEventListener('click', () => {
+    if (sensorLossPanel) sensorLossPanel.style.display = 'none';
+    if (heldOutPanel) heldOutPanel.style.display = 'none';
+    const resultsDiv = document.getElementById('sensor-loss-results');
+    if (resultsDiv) resultsDiv.style.display = 'none';
+    const heldOutResults = document.getElementById('held-out-results');
+    if (heldOutResults) heldOutResults.style.display = 'none';
+    
+    // Reload normal map view
+    const city = window._currentCity ?? 'Delhi';
+    loadStationData(city);
+    alert('✅ Normal Operation: All sensors active, clean forecast displayed.');
+  });
+
+  // Preset 2: 30% Sensor Loss
+  document.getElementById('preset-sensor-loss')?.addEventListener('click', () => {
+    if (sensorLossPanel) sensorLossPanel.style.display = 'block';
+    if (heldOutPanel) heldOutPanel.style.display = 'none';
+    runSensorLossSimulation(30);
+  });
+
+  // Preset 3: Held-Out Location
+  document.getElementById('preset-held-out')?.addEventListener('click', () => {
+    if (sensorLossPanel) sensorLossPanel.style.display = 'none';
+    if (heldOutPanel) heldOutPanel.style.display = 'block';
+    const select = document.getElementById('held-out-station-select');
+    if (select) select.value = 'Anand Vihar';
+    runHeldOutPrediction('Anand Vihar');
+  });
+
+  // Preset 4: Budget Exceeded
+  document.getElementById('preset-budget-exceeded')?.addEventListener('click', () => {
+    // Switch to scenario view and trigger budget planner with ₹30 Cr budget
+    window.switchView('scenario');
+    setTimeout(() => {
+      const btnBudgetMode = document.getElementById('btn-mode-budget');
+      btnBudgetMode?.click();
+      const sliderBudget = document.getElementById('slider-budget');
+      if (sliderBudget) sliderBudget.value = '30';
+      const valBudget = document.getElementById('val-budget');
+      if (valBudget) valBudget.textContent = '₹30 Cr';
+      setTimeout(() => {
+        document.getElementById('btn-find-best-plan')?.click();
+      }, 300);
+    }, 500);
+  });
+
+  // Sensor Loss Simulation
+  async function runSensorLossSimulation(lossPct) {
+    const city = window._currentCity ?? 'Delhi';
+    const resultsDiv = document.getElementById('sensor-loss-results');
+    
+    try {
+      const { getSensorLoss } = await import('../api/forecast.js');
+      const result = await getSensorLoss(city, lossPct);
+      
+      if (resultsDiv) resultsDiv.style.display = 'block';
+      
+      const activeEl = document.getElementById('sensor-loss-active');
+      const droppedEl = document.getElementById('sensor-loss-dropped');
+      const maeEl = document.getElementById('sensor-loss-mae');
+      const uncertaintyEl = document.getElementById('sensor-loss-uncertainty');
+      const comparisonEl = document.getElementById('sensor-loss-comparison');
+      
+      if (activeEl) activeEl.textContent = result.active_stations;
+      if (droppedEl) droppedEl.textContent = result.dropped_count;
+      if (maeEl) maeEl.textContent = `${result.gp_mae_at_dropped} AQI`;
+      if (uncertaintyEl) uncertaintyEl.textContent = `+${result.uncertainty_increase_pct}% increase in avg std_dev`;
+      if (comparisonEl) {
+        const verdict = result.gp_beats_baseline 
+          ? `✅ GP MAE (${result.gp_mae_at_dropped}) < Baseline MAE (${result.persistence_baseline_mae})`
+          : `GP MAE ${result.gp_mae_at_dropped} vs Baseline ${result.persistence_baseline_mae}`;
+        comparisonEl.textContent = verdict;
+      }
+
+      // Update map markers to show dropped stations in grey
+      markersOnMap.forEach(m => {
+        const isDropped = result.dropped_stations.some(s => s.name === m._stationName);
+        if (isDropped) {
+          m.getElement().style.filter = 'grayscale(100%)';
+          m.getElement().style.opacity = '0.5';
+        } else {
+          m.getElement().style.filter = 'none';
+          m.getElement().style.opacity = '1';
+        }
+      });
+
+      console.log('[sensor-loss] Simulation result:', result);
+      
+    } catch (err) {
+      console.error('[sensor-loss] Error:', err);
+      alert('Failed to run sensor loss simulation. Check console.');
+    }
+  }
+
+  // Sensor loss preset buttons
+  document.querySelectorAll('.btn-preset[data-loss]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const lossPct = parseInt(btn.getAttribute('data-loss'));
+      runSensorLossSimulation(lossPct);
+    });
+  });
+
+  // Held-Out Location Prediction
+  async function runHeldOutPrediction(stationName) {
+    const city = window._currentCity ?? 'Delhi';
+    const resultsDiv = document.getElementById('held-out-results');
+    
+    try {
+      const { getHeldOut } = await import('../api/forecast.js');
+      const result = await getHeldOut(city, stationName);
+      
+      if (resultsDiv) resultsDiv.style.display = 'block';
+      
+      const gpPredEl = document.getElementById('held-out-gp-pred');
+      const gpStdEl = document.getElementById('held-out-gp-std');
+      const actualEl = document.getElementById('held-out-actual');
+      const gpErrorEl = document.getElementById('held-out-gp-error');
+      const baselineErrorEl = document.getElementById('held-out-baseline-error');
+      const cityErrorEl = document.getElementById('held-out-city-error');
+      const verdictEl = document.getElementById('held-out-verdict');
+      const neighborsEl = document.getElementById('held-out-neighbors');
+      
+      if (gpPredEl) gpPredEl.textContent = `${result.gp_predicted_aqi} AQI`;
+      if (gpStdEl) gpStdEl.textContent = result.gp_uncertainty_std;
+      if (actualEl) actualEl.textContent = `${result.actual_aqi} AQI`;
+      if (gpErrorEl) gpErrorEl.textContent = `${result.gp_error} AQI`;
+      if (baselineErrorEl) baselineErrorEl.textContent = `${result.spatial_baseline_error} AQI`;
+      if (cityErrorEl) cityErrorEl.textContent = `${result.city_avg_error} AQI`;
+      
+      if (verdictEl) {
+        const gpBeatsSpatial = result.gp_beats_spatial_baseline;
+        const gpBeatsCity = result.gp_beats_city_avg;
+        let verdict = '';
+        if (gpBeatsSpatial && gpBeatsCity) {
+          verdict = '✅ GP beats both spatial baseline and city average!';
+        } else if (gpBeatsSpatial) {
+          verdict = '✅ GP beats simple spatial interpolation baseline';
+        } else if (gpBeatsCity) {
+          verdict = '✅ GP beats city average baseline';
+        } else {
+          verdict = 'GP error is comparable to baselines';
+        }
+        verdictEl.textContent = verdict;
+      }
+      
+      if (neighborsEl && result.nearest_neighbors) {
+        neighborsEl.textContent = result.nearest_neighbors.map(n => `${n.name} (${n.aqi} AQI)`).join(', ');
+      }
+
+      // Highlight held-out station on map with dashed ring
+      markersOnMap.forEach(m => {
+        if (m._stationName === result.held_out_station) {
+          m.getElement().style.border = '3px dashed #3B82F6';
+          m.getElement().style.boxShadow = '0 0 0 6px rgba(59, 130, 246, 0.3)';
+        } else {
+          m.getElement().style.border = '2px solid rgba(255,255,255,0.4)';
+          m.getElement().style.boxShadow = 'none';
+        }
+      });
+
+      console.log('[held-out] Prediction result:', result);
+      
+    } catch (err) {
+      console.error('[held-out] Error:', err);
+      alert('Failed to run held-out prediction. Check console.');
+    }
+  }
+
+  // Held-out run button
+  document.getElementById('btn-run-held-out')?.addEventListener('click', () => {
+    const select = document.getElementById('held-out-station-select');
+    const stationName = select ? select.value : 'Anand Vihar';
+    runHeldOutPrediction(stationName);
+  });
+
+  // Initialize map if view-map is already active on load
+  const activeView = document.querySelector('.app-view--active');
+  if (activeView && activeView.id === 'view-map') {
+    mapDataLoaded = true;
+    initMap((window._currentCity ?? 'Delhi').toLowerCase());
+  }
 }

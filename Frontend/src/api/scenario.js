@@ -27,3 +27,16 @@ export const runSimulation = (payload) =>
  */
 export const getRoiLeaderboard = (city, baselineAqi) =>
   apiFetch(`/scenario/roi-leaderboard?city=${encodeURIComponent(city)}&baseline_aqi=${baselineAqi}`);
+
+/**
+ * Find best intervention packages under budget constraint.
+ * @param {{
+ *   budget_crore: number,
+ *   baseline_aqi: number,
+ *   unavailable_interventions?: string[],
+ *   city?: string
+ * }} payload
+ */
+export const getBudgetPlan = (payload) =>
+  apiFetch('/scenario/budget-plan', { method: 'POST', body: JSON.stringify(payload) });
+
