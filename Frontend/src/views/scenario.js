@@ -7,6 +7,7 @@
  */
 import { runSimulation, getRoiLeaderboard, getBudgetPlan } from '../api/scenario.js';
 import { runMLScenario } from '../api/forecast.js';
+import { getCityAQI } from '../api/aqi.js';
 
 const FEASIBILITY_CLASS = { High: 'badge-tag--high', Medium: 'badge-tag--med', Low: 'badge-tag--low' };
 
@@ -255,11 +256,64 @@ export function initScenarioSimulator() {
     // Don't auto-calculate — user must hit Simulate to confirm intent
   });
 
+  // ── Ensure live baseline AQI dynamically from API ───────────────────────
+  async function ensureLiveBaseline() {
+    let baseline = window._currentAqi;
+    if (!baseline) {
+      try {
+        const data = await getCityAQI('Delhi');
+        if (data?.avg_aqi) {
+          baseline = Math.round(data.avg_aqi);
+          window._currentAqi = baseline;
+        }
+      } catch (err) {
+        console.warn('[scenario] Live AQI fetch failed, using fallback (187):', err);
+        baseline = 187;
+      }
+    }
+    baseline = baseline ?? 187;
+
+    const baseEl = document.getElementById('sim-baseline-aqi');
+    if (baseEl) baseEl.innerHTML = `${baseline} <small>AQI</small>`;
+
+    const baseBadge = document.getElementById('sim-baseline-badge');
+    if (baseBadge) {
+      const label = baseline <= 50 ? 'Good' :
+                    baseline <= 100 ? 'Satisfactory' :
+                    baseline <= 200 ? 'Moderate' :
+                    baseline <= 300 ? 'Poor' :
+                    baseline <= 400 ? 'Very Poor' : 'Severe';
+      baseBadge.textContent = `${label} Air Quality`;
+      baseBadge.className = `badge-status ${
+        baseline <= 100 ? 'badge-status--good' :
+        baseline <= 200 ? 'badge-status--moderate' :
+        'badge-status--poor'
+      }`;
+    }
+
+    // Default simulated outcome to match baseline prior to user pulling levers
+    const simAqi = document.getElementById('sim-aqi-result');
+    if (simAqi && (simAqi.textContent.includes('142') || !simAqi.textContent.trim())) {
+      simAqi.innerHTML = `${baseline} <small>AQI</small>`;
+      const simBadge = document.getElementById('sim-badge-result');
+      if (simBadge && baseBadge) {
+        simBadge.textContent = baseBadge.textContent;
+        simBadge.className = baseBadge.className;
+      }
+      const simDiffVal = document.getElementById('sim-diff-val');
+      if (simDiffVal) simDiffVal.textContent = '0 AQI';
+      const simDiffPct = document.getElementById('sim-diff-pct');
+      if (simDiffPct) simDiffPct.textContent = '0.0% Overall';
+    }
+
+    return baseline;
+  }
+
   // ── Load ROI leaderboard from backend ─────────────────────────────────────
   async function loadRoiLeaderboard() {
     try {
       const city     = 'Delhi';
-      const baseline = window._currentAqi  ?? 187;
+      const baseline = await ensureLiveBaseline();
       const data = await getRoiLeaderboard(city, baseline);
       renderRoiTable(data.interventions);
     } catch (err) {
@@ -267,16 +321,17 @@ export function initScenarioSimulator() {
     }
   }
 
-  // Initial runs — do NOT auto-calculate scenario; user must press Simulate.
-  // This ensures the displayed baseline stays unmodified on first load.
+  // Initial runs
   updateLabels();
-  loadRoiLeaderboard();
+  ensureLiveBaseline().then(() => loadRoiLeaderboard());
 
-  // Refresh leaderboard when view becomes active
+  // Refresh leaderboard and baseline when view becomes active
   const origSwitch = window.switchView;
   window.switchView = function (viewName) {
     origSwitch?.(viewName);
-    if (viewName === 'scenario') loadRoiLeaderboard();
+    if (viewName === 'scenario') {
+      ensureLiveBaseline().then(() => loadRoiLeaderboard());
+    }
   };
 
   // ══════════════════════════════════════════════════════════════════════════
