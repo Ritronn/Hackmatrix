@@ -67,14 +67,14 @@ export function initAIAdvisor() {
   function fallbackResponse(q) {
     const l = q.toLowerCase();
     const aqi = window._currentAqi ? `${Math.round(window._currentAqi)} AQI` : 'current AQI';
-    const city = window._currentCity ?? 'the city';
+    const city = window._currentCity ?? 'Delhi NCR';
     if (l.includes('school') || l.includes('close'))
-      return `The digital twin is currently showing elevated pollution levels in ${city}. Under MPCB guidelines, outdoor sports and morning assemblies should be suspended when AQI exceeds 200 in PCMC schools.`;
-    if (l.includes('akurdi') || l.includes('bhosari') || l.includes('anand') || l.includes('spike'))
-      return `Industrial corridors in ${city} show elevated readings due to cold night-time boundary layer compression trapping foundry emissions and highway freight diesel exhaust. Check live station data for exact values.`;
-    if (l.includes('traffic') || l.includes('restrict'))
-      return `A freight restriction along major corridors in ${city} can reduce AQI by 10–20 points and deliver significant healthcare cost savings. Scenario simulator can model exact impact.`;
-    return `${city} air quality is currently <strong>${aqi}</strong>. Vehicular and industrial transit are the primary drivers of particulate load. Anti-smog mist guns and traffic management offer the best immediate ROI. (Note: AI advisor is in offline mode — live Gemini responses are unavailable.)`;
+      return `The digital twin is currently showing elevated pollution levels in ${city}. Under DPCC guidelines, outdoor sports and morning assemblies should be suspended when AQI exceeds 200 in Delhi-NCR schools.`;
+    if (l.includes('anand') || l.includes('vihar') || l.includes('ito') || l.includes('spike'))
+      return `Industrial corridors and traffic hotspots like Anand Vihar and ITO in ${city} show elevated readings due to cold night-time boundary layer compression trapping industrial emissions and vehicular exhaust. Check live station data for exact values.`;
+    if (l.includes('traffic') || l.includes('restrict') || l.includes('ring road'))
+      return `A freight restriction along Ring Road and major corridors in ${city} can reduce AQI by 10–20 points and deliver significant healthcare cost savings. Scenario simulator can model exact impact.`;
+    return `${city} air quality is currently <strong>${aqi}</strong>. Vehicular transit and stubble burning from Punjab/Haryana are the primary drivers of particulate load. Anti-smog mist guns and traffic management offer the best immediate ROI. (Note: AI advisor is in offline mode — live Gemini responses are unavailable.)`;
   }
 
   // ── Send query to Gemini backend ──────────────────────────────────────────
@@ -86,12 +86,12 @@ export function initAIAdvisor() {
     try {
       const result = await askAdvisor({
         question:                query,
-        city:                    window._currentCity ?? 'Pune',
+        city:                    window._currentCity ?? 'Delhi',
         language:                currentLang,
         context_aqi:             window._currentAqi ?? null,
         context_forecast_peak:   window._currentAqi ? window._currentAqi * 1.08 : null,
         // Use live attribution if ML team has written it, else a generic description
-        context_dominant_source: window._currentAttribution ?? 'Vehicular transit, Industrial manufacturing (MIDC), Road dust',
+        context_dominant_source: window._attributionData?.dominant_source ?? 'Vehicular transit, Stubble burning (Punjab/Haryana seasonal), Industrial (North-West belt), Road dust',
       });
       removeLoadingBubble();
       appendMessage(result.answer, false);

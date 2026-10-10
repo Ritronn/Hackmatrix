@@ -33,13 +33,14 @@ function aqiBadgeClass(aqi) {
 
 // ── City centre coordinates ───────────────────────────────────────────────────
 const CITY_CENTRES = {
+  delhi:   [77.2090, 28.6139],
+  noida:   [77.3910, 28.5355],
+  gurgaon: [77.0266, 28.4595],
   pune:    [73.8567, 18.5204],
   mumbai:  [72.8777, 19.0760],
-  delhi:   [77.2090, 28.6139],
   nashik:  [73.7898, 19.9975],
   thane:   [72.9781, 19.2183],
   nagpur:  [79.0882, 21.1458],
-  akurdi:  [73.7741, 18.6480],
 };
 
 export function initDigitalTwinMap() {
@@ -56,14 +57,14 @@ export function initDigitalTwinMap() {
   let currentSpeed = 1;
   let stationForecastsMap = {};
 
-  function initMap(city = 'pune') {
+  function initMap(city = 'delhi') {
     const container = document.getElementById('maptiler-map');
     if (!container) return;
 
     // Destroy previous instance if switching city
     if (map) { map.remove(); map = null; markersOnMap = []; heatmapLoaded = false; }
 
-    const centre = CITY_CENTRES[city.toLowerCase()] ?? CITY_CENTRES.pune;
+    const centre = CITY_CENTRES[city.toLowerCase()] ?? CITY_CENTRES.delhi;
 
     map = new maptilersdk.Map({
       container: 'maptiler-map',
@@ -251,7 +252,7 @@ export function initDigitalTwinMap() {
   renderParticles();
 
   // ── Load live station data → markers + heatmap ────────────────────────────
-  async function loadStationData(cityName = 'Pune') {
+  async function loadStationData(cityName = 'Delhi') {
     try {
       const [aqiData, weather] = await Promise.all([
         getCityAQI(cityName),
@@ -631,15 +632,15 @@ export function initDigitalTwinMap() {
         resizeCanvas();
         scatterParticles();
       });
-      const city = (window._currentCity ?? 'Pune').toLowerCase();
+      const city = (window._currentCity ?? 'Delhi').toLowerCase();
       if (!mapDataLoaded) {
         mapDataLoaded = true;
         initMap(city);
       } else if (map) {
         // Fly to new city centre if city changed
-        const centre = CITY_CENTRES[city] ?? CITY_CENTRES.pune;
+        const centre = CITY_CENTRES[city] ?? CITY_CENTRES.delhi;
         map.flyTo({ center: centre, zoom: 11, speed: 1.2 });
-        loadStationData(window._currentCity ?? 'Pune');
+        loadStationData(window._currentCity ?? 'Delhi');
         // MapTiler needs resize notification after becoming visible
         setTimeout(() => { map.resize(); resizeCanvas(); }, 50);
         setTimeout(() => { map.resize(); resizeCanvas(); }, 300);
@@ -653,7 +654,7 @@ export function initDigitalTwinMap() {
     _origLoadCity?.(cityName);
     if (map && mapDataLoaded) {
       const key = cityName.toLowerCase();
-      const centre = CITY_CENTRES[key] ?? CITY_CENTRES.pune;
+      const centre = CITY_CENTRES[key] ?? CITY_CENTRES.delhi;
       map.flyTo({ center: centre, zoom: 11, speed: 1.2 });
       loadStationData(cityName);
     }

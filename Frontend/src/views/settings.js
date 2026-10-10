@@ -21,13 +21,14 @@ export function initSettingsAndCities() {
 
   // City name → what we send to the backend
   const CITY_API_NAME = {
+    delhi:     'Delhi',
+    noida:     'Noida',
+    gurgaon:   'Gurgaon',
     pune:      'Pune',
     mumbai:    'Mumbai',
     nashik:    'Nashik',
-    akurdi:    'Akurdi',
     thane:     'Thane',
     nagpur:    'Nagpur',
-    delhi:     'Delhi',
   };
 
   // ── Pre-load AQI badges for all city cards ────────────────────────────────

@@ -21,13 +21,14 @@ const BAND_CLASS = {
 
 // ── City centre coordinates (shared with map.js) ──────────────────────────────
 const CITY_CENTRES = {
+  delhi:   [77.2090, 28.6139],
+  noida:   [77.3910, 28.5355],
+  gurgaon: [77.0266, 28.4595],
   pune:    [73.8567, 18.5204],
   mumbai:  [72.8777, 19.0760],
-  delhi:   [77.2090, 28.6139],
   nashik:  [73.7898, 19.9975],
   thane:   [72.9781, 19.2183],
   nagpur:  [79.0882, 21.1458],
-  akurdi:  [73.7741, 18.6480],
 };
 
 /**
@@ -327,7 +328,7 @@ function applyAttributionData(data) {
 }
 
 /** Load live data for a given city and update the hero card. */
-export async function loadCityData(city = 'Pune') {
+export async function loadCityData(city = 'Delhi') {
   // Show loading state
   const aqiEl = document.getElementById('hero-aqi');
   if (aqiEl) aqiEl.textContent = '—';
@@ -348,7 +349,7 @@ export async function loadCityData(city = 'Pune') {
 
     // Reposition minimap if already loaded
     if (window._dashboardMiniMap) {
-      const centre = CITY_CENTRES[city.toLowerCase()] ?? CITY_CENTRES.pune;
+      const centre = CITY_CENTRES[city.toLowerCase()] ?? CITY_CENTRES.delhi;
       window._dashboardMiniMap.flyTo({ center: centre, zoom: 11, speed: 1.2 });
       if (window._renderDashboardMiniMapMarkers) {
         window._renderDashboardMiniMapMarkers(aqiData.stations);
@@ -465,7 +466,7 @@ export function initMapControls() {
       container: 'dashboard-minimap',
       apiKey: MAPTILER_KEY,
       style: maptilersdk.MapStyle.STREETS.DARK,
-      center: CITY_CENTRES.pune,
+      center: CITY_CENTRES.delhi,
       zoom: 11,
       pitch: 0,
       interactive: true,
@@ -504,13 +505,13 @@ export function initMapControls() {
       chips.forEach((c) => c.classList.remove('loc-chip--active'));
       chip.classList.add('loc-chip--active');
       const name = chip.querySelector('span')?.textContent?.trim() ?? '';
-      // Parse "Pune, MH" → "Pune"
+      // Parse "Delhi, DL" → "Delhi"
       const cityName = name.split(',')[0].trim();
       if (heroStation) heroStation.textContent = name;
 
       // Fly minimap to city
       if (miniMap) {
-        const centre = CITY_CENTRES[cityName.toLowerCase()] ?? CITY_CENTRES.pune;
+        const centre = CITY_CENTRES[cityName.toLowerCase()] ?? CITY_CENTRES.delhi;
         miniMap.flyTo({ center: centre, zoom: 11, speed: 1.2 });
       }
 
@@ -529,8 +530,8 @@ export function initMapControls() {
 
   document.getElementById('ctrl-locate')?.addEventListener('click', () => {
     if (miniMap) {
-      const city = (window._currentCity ?? 'Pune').toLowerCase();
-      const centre = CITY_CENTRES[city] ?? CITY_CENTRES.pune;
+      const city = (window._currentCity ?? 'Delhi').toLowerCase();
+      const centre = CITY_CENTRES[city] ?? CITY_CENTRES.delhi;
       miniMap.flyTo({ center: centre, zoom: 11, speed: 1.2 });
     }
   });
