@@ -41,8 +41,7 @@ async def get_station(station_id: str):
 async def get_hotspot_map(city: str):
     """
     Return interpolated hotspot map data for a city.
-    If the ML team has precomputed GP interpolation results in Redis, those are served.
-    Otherwise falls back to station-only scatter points.
+    Priority: Redis cache → live GP interpolation (ML) → station-only scatter.
     """
     redis = await get_redis()
     cache_key = f"hotspots:{city.lower()}:latest"
@@ -52,12 +51,42 @@ async def get_hotspot_map(city: str):
         data = json.loads(cached)
         return HotspotMapResponse(**data)
 
-    # Fallback: use raw station readings as scatter points
+    # Fetch live station readings
     try:
         city_data = await fetch_city_aqi(city)
     except Exception as e:
         raise HTTPException(status_code=502, detail=str(e))
 
+    # Try ML GP interpolation
+    try:
+        from app.services.ml_service import models_ready, interpolate_city_surface
+        if models_ready():
+            station_data = [
+                {'name': s.station_name, 'lat': s.latitude,
+                 'lon': s.longitude, 'aqi': float(s.aqi)}
+                for s in city_data.stations
+                if s.latitude and s.longitude
+            ]
+            if len(station_data) >= 2:
+                grid = interpolate_city_surface(station_data, grid_resolution=40)
+                points = [
+                    HotspotPoint(
+                        latitude=p['lat'], longitude=p['lon'],
+                        aqi=p['predicted_aqi'],
+                        confidence=p['confidence'],
+                    )
+                    for p in grid
+                ]
+                return HotspotMapResponse(
+                    city=city,
+                    points=points,
+                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    source="gp-interpolation",
+                )
+    except Exception as e:
+        print(f"[aqi] GP interpolation failed, falling back to station-only: {e}")
+
+    # Fallback: use raw station readings as scatter points
     points = [
         HotspotPoint(
             latitude=s.latitude,
@@ -74,3 +103,4 @@ async def get_hotspot_map(city: str):
         timestamp=datetime.now(timezone.utc).isoformat(),
         source="station-only",
     )
+

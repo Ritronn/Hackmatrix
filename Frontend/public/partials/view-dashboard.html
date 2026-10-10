@@ -72,38 +72,14 @@
             <i data-lucide="chevron-down"></i>
           </div>
         </div>
-        <div class="forecast-list">
+        <div class="forecast-list" id="forecast-list">
           <div class="forecast-row">
             <div class="forecast-row__left">
-              <div class="forecast-icon-box forecast-icon-box--poor"><i data-lucide="cloud-rain"></i></div>
-              <div class="forecast-row__aqi"><span class="forecast-aqi-high">187</span><span class="forecast-aqi-low">/160</span></div>
+              <div class="forecast-icon-box forecast-icon-box--moderate"><i data-lucide="loader"></i></div>
+              <div class="forecast-row__aqi"><span class="forecast-aqi-high">—</span></div>
             </div>
-            <div class="forecast-row__date">Today</div>
-            <div class="forecast-row__day">Thursday</div>
-          </div>
-          <div class="forecast-row">
-            <div class="forecast-row__left">
-              <div class="forecast-icon-box forecast-icon-box--severe"><i data-lucide="cloud-lightning"></i></div>
-              <div class="forecast-row__aqi"><span class="forecast-aqi-high">203</span><span class="forecast-aqi-low">/178</span></div>
-            </div>
-            <div class="forecast-row__date">26 Sept</div>
-            <div class="forecast-row__day">Friday</div>
-          </div>
-          <div class="forecast-row">
-            <div class="forecast-row__left">
-              <div class="forecast-icon-box forecast-icon-box--poor"><i data-lucide="cloud-sun"></i></div>
-              <div class="forecast-row__aqi"><span class="forecast-aqi-high">175</span><span class="forecast-aqi-low">/148</span></div>
-            </div>
-            <div class="forecast-row__date">27 Sept</div>
-            <div class="forecast-row__day">Saturday</div>
-          </div>
-          <div class="forecast-row">
-            <div class="forecast-row__left">
-              <div class="forecast-icon-box forecast-icon-box--moderate"><i data-lucide="sun"></i></div>
-              <div class="forecast-row__aqi"><span class="forecast-aqi-high">152</span><span class="forecast-aqi-low">/125</span></div>
-            </div>
-            <div class="forecast-row__date">28 Sept</div>
-            <div class="forecast-row__day">Sunday</div>
+            <div class="forecast-row__date">Loading forecast…</div>
+            <div class="forecast-row__day">—</div>
           </div>
         </div>
         <div class="sim-preview-box">
@@ -190,12 +166,12 @@
               </svg>
             </div>
             <div class="highlight-main-val highlight-main-val--center">
-              <span class="highlight-num">5.50</span>
+              <span class="highlight-num" id="health-index-val">—</span>
               <span class="highlight-unit">INDEX</span>
             </div>
             <div class="highlight-sub-row">
-              <div class="sub-metric"><span class="sub-metric__label">Est. ER Visits</span><span class="sub-metric__val">+340</span></div>
-              <div class="sub-metric"><span class="sub-metric__label">Advisory</span><span class="sub-metric__val" style="color: #F87171;">Mask Advised</span></div>
+              <div class="sub-metric"><span class="sub-metric__label">Est. ER Visits</span><span class="sub-metric__val" id="health-er-val">—</span></div>
+              <div class="sub-metric"><span class="sub-metric__label">Advisory</span><span class="sub-metric__val" id="health-advisory-val" style="color: #F87171;">—</span></div>
             </div>
           </div>
 
@@ -220,13 +196,27 @@
                 </defs>
               </svg>
               <div class="arc-labels">
-                <div class="arc-lbl"><span class="arc-lbl__icon">📉</span><span class="arc-lbl__text">Lower: 160</span></div>
-                <div class="arc-lbl"><span class="arc-lbl__icon">📈</span><span class="arc-lbl__text">Upper: 210</span></div>
+                <div class="arc-lbl"><span class="arc-lbl__icon">📉</span><span class="arc-lbl__text" id="conf-band-lower">Lower: —</span></div>
+                <div class="arc-lbl"><span class="arc-lbl__icon">📈</span><span class="arc-lbl__text" id="conf-band-upper">Upper: —</span></div>
               </div>
             </div>
             <div class="highlight-sub-row" style="margin-top: 14px;">
-              <div class="sub-metric"><span class="sub-metric__label">Observed Actual</span><span class="sub-metric__val">187 AQI</span></div>
-              <div class="sub-metric"><span class="sub-metric__label">7-Day Accuracy</span><span class="sub-metric__val" style="color: #34D399;">84.2%</span></div>
+              <div class="sub-metric"><span class="sub-metric__label">Forecast</span><span class="sub-metric__val" id="forecast-tomorrow">—</span></div>
+              <div class="sub-metric"><span class="sub-metric__label">Confidence</span><span class="sub-metric__val" style="color: #34D399;" id="forecast-confidence">—</span></div>
+            </div>
+          </div>
+
+          <!-- Card 4: Pollution Source Attribution -->
+          <div class="bento-card highlight-card">
+            <span class="highlight-card__title">Pollution Source Attribution</span>
+            <div style="display:flex;justify-content:center;padding:8px 0;">
+              <canvas id="attribution-donut" width="120" height="120"></canvas>
+            </div>
+            <div class="highlight-sub-row" style="flex-wrap:wrap;gap:4px;">
+              <div class="sub-metric"><span class="sub-metric__label" style="color:#EF4444;">● Traffic</span><span class="sub-metric__val" id="attr-traffic">—</span></div>
+              <div class="sub-metric"><span class="sub-metric__label" style="color:#F59E0B;">● Industrial</span><span class="sub-metric__val" id="attr-industrial">—</span></div>
+              <div class="sub-metric"><span class="sub-metric__label" style="color:#8B5CF6;">● Dust</span><span class="sub-metric__val" id="attr-dust">—</span></div>
+              <div class="sub-metric"><span class="sub-metric__label" style="color:#38BDF8;">● Weather</span><span class="sub-metric__val" id="attr-weather">—</span></div>
             </div>
           </div>
 

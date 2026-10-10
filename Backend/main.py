@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.redis_client import get_redis, close_redis
-from app.routes import aqi, weather, scenario, drift, wards, advisor
+from app.routes import aqi, weather, scenario, drift, wards, advisor, forecast
 
 
 @asynccontextmanager
@@ -24,6 +24,17 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"[startup] WARNING: Redis not reachable — {e}")
         print("          Drift detection and stream ingestion will be unavailable.")
+
+    # Load ML models (XGBoost forecasting + quantile models)
+    try:
+        from app.services.ml_service import load_models
+        success = load_models()
+        if success:
+            print("[startup] ML models loaded successfully")
+        else:
+            print("[startup] WARNING: ML models failed to load — forecast endpoints will return 503")
+    except Exception as e:
+        print(f"[startup] WARNING: ML model loading error — {e}")
 
     yield  # app runs here
 
@@ -60,6 +71,7 @@ app.include_router(scenario.router)
 app.include_router(drift.router)
 app.include_router(wards.router)
 app.include_router(advisor.router)
+app.include_router(forecast.router)
 
 
 # ── Health check ─────────────────────────────────────────────────────────────

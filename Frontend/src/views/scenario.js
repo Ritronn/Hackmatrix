@@ -5,6 +5,7 @@
  * ROI leaderboard is fetched from /scenario/roi-leaderboard on load.
  */
 import { runSimulation, getRoiLeaderboard } from '../api/scenario.js';
+import { runMLScenario } from '../api/forecast.js';
 
 const FEASIBILITY_CLASS = { High: 'badge-tag--high', Medium: 'badge-tag--med', Low: 'badge-tag--low' };
 
@@ -85,9 +86,12 @@ export function initScenarioSimulator() {
   async function calculateScenario() {
     updateLabels();
 
+    const city = window._currentCity ?? 'Pune';
+    const baselineAqi = window._currentAqi ?? 142;
+
     const payload = {
-      city:                       window._currentCity ?? 'Pune',
-      baseline_aqi:               window._currentAqi  ?? 142,
+      city:                       city,
+      baseline_aqi:               baselineAqi,
       traffic_restriction_pct:    parseFloat(sliderTraffic?.value  ?? 30),
       industrial_curtailment_pct: parseFloat(sliderIndustry?.value ?? 20),
       mist_units:                 parseInt(sliderMist?.value        ?? 45, 10),
@@ -135,6 +139,29 @@ export function initScenarioSimulator() {
           mayorScore.style.color = '#efd395';
         }
       }
+
+      // ── ML-backed scenario (XGBoost model, non-blocking) ──────────────
+      runMLScenario(city, {
+        baseline_aqi: baselineAqi,
+        traffic_reduction_pct: payload.traffic_restriction_pct,
+        industrial_curtailment_pct: payload.industrial_curtailment_pct,
+        construction_halt_pct: payload.construction_halt_pct,
+        station_type: 'residential_background',
+      }).then((mlResult) => {
+        // Show ML model prediction alongside linear model
+        const mlEl = document.getElementById('ml-scenario-aqi');
+        if (mlEl) mlEl.textContent = `${mlResult.scenario_predicted_aqi} AQI`;
+        const mlDropEl = document.getElementById('ml-scenario-drop');
+        if (mlDropEl) mlDropEl.textContent = `▼ -${mlResult.aqi_reduction} AQI (${mlResult.reduction_pct}%)`;
+        const mlMethodEl = document.getElementById('ml-scenario-method');
+        if (mlMethodEl) mlMethodEl.textContent = `Model: ${mlResult.method}`;
+        // Store globally for advisor
+        window._latestMLScenario = mlResult;
+        console.log('[scenario] ML scenario result:', mlResult);
+      }).catch((err) => {
+        console.warn('[scenario] ML scenario unavailable:', err.message);
+      });
+
     } catch (err) {
       console.warn('[scenario] API error, using local fallback.', err);
     }

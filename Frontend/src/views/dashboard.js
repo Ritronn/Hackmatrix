@@ -5,6 +5,7 @@
  */
 import { getCityAQI } from '../api/aqi.js';
 import { getWeather }  from '../api/weather.js';
+import { getForecast, getAttribution } from '../api/forecast.js';
 import * as maptilersdk from '@maptiler/sdk';
 import '@maptiler/sdk/dist/maptiler-sdk.css';
 
@@ -89,6 +90,9 @@ function applyAQIData(data) {
   window._currentCity = data.city;
   window._latestAqiData = data;
 
+  // Compute health risk from live AQI
+  applyHealthData(data.avg_aqi);
+
   // Update markers on dashboard minimap if it's already initialised
   if (window._renderDashboardMiniMapMarkers) {
     window._renderDashboardMiniMapMarkers(data.stations);
@@ -103,6 +107,55 @@ function aqiColor(aqi) {
   if (aqi <= 300) return '#FF9800';
   if (aqi <= 400) return '#F44336';
   return '#7B1FA2';
+}
+
+/** Map AQI to CSS band class suffix */
+function getAqiBand(aqi) {
+  if (aqi <= 100) return 'good';
+  if (aqi <= 200) return 'moderate';
+  if (aqi <= 300) return 'poor';
+  return 'severe';
+}
+
+/** Map AQI to lucide weather icon name */
+function getForecastIcon(aqi) {
+  if (aqi <= 100) return 'sun';
+  if (aqi <= 200) return 'cloud-sun';
+  if (aqi <= 300) return 'cloud-rain';
+  return 'cloud-lightning';
+}
+
+/** Format ISO date string → e.g. "10 Oct" */
+function formatForecastDate(dateStr, idx) {
+  if (idx === 0) return 'Tomorrow';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+}
+
+/** Format ISO date string → weekday name */
+function formatForecastDay(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-IN', { weekday: 'long' });
+}
+
+/** Compute and display health risk from AQI */
+function applyHealthData(aqi) {
+  const healthIndex = Math.min(10, (aqi / 500) * 10).toFixed(1);
+  const healthEl = document.getElementById('health-index-val');
+  if (healthEl) healthEl.textContent = healthIndex;
+
+  const erVisits = Math.round((aqi / 100) * 68);
+  const erEl = document.getElementById('health-er-val');
+  if (erEl) erEl.textContent = `+${erVisits}`;
+
+  const advisoryEl = document.getElementById('health-advisory-val');
+  if (advisoryEl) {
+    if (aqi <= 50)       { advisoryEl.textContent = 'All Clear';        advisoryEl.style.color = '#34D399'; }
+    else if (aqi <= 100) { advisoryEl.textContent = 'Sensitive Groups';  advisoryEl.style.color = '#8BC34A'; }
+    else if (aqi <= 200) { advisoryEl.textContent = 'Limit Outdoor';     advisoryEl.style.color = '#FFC107'; }
+    else if (aqi <= 300) { advisoryEl.textContent = 'Mask Advised';      advisoryEl.style.color = '#F87171'; }
+    else                 { advisoryEl.textContent = 'Stay Indoors';      advisoryEl.style.color = '#EF4444'; }
+  }
 }
 
 /** Update hero card with live weather data. */
@@ -136,6 +189,143 @@ function applyWeatherData(data) {
   window._windAngle = (data.wind_direction_deg * Math.PI) / 180;
 }
 
+/** Apply ML forecast data to highlight cards and build dynamic forecast rows. */
+function applyForecastData(data) {
+  if (!data?.points?.length) return;
+
+  // Store globally for scenario/accuracy views
+  window._forecastPoints = data.points;
+
+  // ── Build dynamic forecast rows ────────────────────────────────────────
+  const listEl = document.getElementById('forecast-list');
+  if (listEl) {
+    listEl.innerHTML = '';
+    data.points.forEach((p, idx) => {
+      const band = getAqiBand(p.predicted_aqi);
+      const icon = getForecastIcon(p.predicted_aqi);
+      const dateLabel = formatForecastDate(p.date, idx);
+      const dayLabel  = formatForecastDay(p.date);
+
+      const row = document.createElement('div');
+      row.className = 'forecast-row';
+      row.innerHTML = `
+        <div class="forecast-row__left">
+          <div class="forecast-icon-box forecast-icon-box--${band}"><i data-lucide="${icon}"></i></div>
+          <div class="forecast-row__aqi"><span class="forecast-aqi-high">${Math.round(p.upper)}</span><span class="forecast-aqi-low">/${Math.round(p.lower)}</span></div>
+        </div>
+        <div class="forecast-row__date">${dateLabel}</div>
+        <div class="forecast-row__day">${dayLabel}</div>
+      `;
+      listEl.appendChild(row);
+    });
+    // Re-render Lucide icons for the injected markup
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  // ── Update confidence band card ────────────────────────────────────────
+  if (data.points[0]) {
+    const p = data.points[0];
+
+    const lowerEl = document.getElementById('conf-band-lower');
+    const upperEl = document.getElementById('conf-band-upper');
+    if (lowerEl) lowerEl.textContent = `Lower: ${Math.round(p.lower)}`;
+    if (upperEl) upperEl.textContent = `Upper: ${Math.round(p.upper)}`;
+
+    const forecastEl = document.getElementById('forecast-tomorrow');
+    if (forecastEl) forecastEl.textContent = `${Math.round(p.predicted_aqi)} AQI`;
+
+    const forecastConfEl = document.getElementById('forecast-confidence');
+    if (forecastConfEl) forecastConfEl.textContent = `${p.confidence_pct}%`;
+  }
+
+  // ── Update sub-metrics fallback ────────────────────────────────────────
+  const subMetrics = document.querySelectorAll('.sub-metric__val');
+  subMetrics.forEach((el) => {
+    const label = el.previousElementSibling?.textContent?.trim();
+    if (label === 'Tomorrow' && data.points[0]) {
+      el.textContent = Math.round(data.points[0].predicted_aqi);
+    }
+    if (label === 'Day 3' && data.points[2]) {
+      el.textContent = Math.round(data.points[2].predicted_aqi);
+    }
+  });
+
+  console.log('[dashboard] ML forecast applied:', data.points.length, 'days');
+}
+
+/** Apply ML attribution breakdown to the dashboard with donut chart. */
+function applyAttributionData(data) {
+  if (!data) return;
+
+  window._attributionData = data;
+
+  // Update legend numbers
+  const trafficEl    = document.getElementById('attr-traffic');
+  const industrialEl = document.getElementById('attr-industrial');
+  const dustEl       = document.getElementById('attr-dust');
+  const weatherEl    = document.getElementById('attr-weather');
+  const trafficShareEl = document.getElementById('traffic-share-val');
+
+  if (trafficEl)      trafficEl.textContent    = `${data.traffic_pct}%`;
+  if (industrialEl)   industrialEl.textContent  = `${data.industrial_pct}%`;
+  if (dustEl)         dustEl.textContent        = `${data.combustion_dust_pct}%`;
+  if (weatherEl)      weatherEl.textContent     = `${data.meteorology_pct}%`;
+  if (trafficShareEl) trafficShareEl.textContent = `${data.traffic_pct}%`;
+
+  // ── Draw donut chart ───────────────────────────────────────────────────
+  const canvas = document.getElementById('attribution-donut');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width, h = canvas.height;
+    const cx = w / 2, cy = h / 2;
+    const outerR = Math.min(cx, cy) - 4;
+    const innerR = outerR * 0.52;
+
+    ctx.clearRect(0, 0, w, h);
+
+    const slices = [
+      { pct: data.traffic_pct,          color: '#EF4444' },
+      { pct: data.industrial_pct,       color: '#F59E0B' },
+      { pct: data.combustion_dust_pct,   color: '#8B5CF6' },
+      { pct: data.meteorology_pct,       color: '#38BDF8' },
+      { pct: data.carry_over_pct,        color: '#6B7280' },
+    ];
+
+    const total = slices.reduce((s, sl) => s + sl.pct, 0) || 1;
+    let startAngle = -0.5 * Math.PI;
+
+    slices.forEach(slice => {
+      if (slice.pct <= 0) return;
+      const sliceAngle = 2 * Math.PI * (slice.pct / total);
+      ctx.fillStyle = slice.color;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, outerR, startAngle, startAngle + sliceAngle);
+      ctx.closePath();
+      ctx.fill();
+      startAngle += sliceAngle;
+    });
+
+    // Cut centre for donut
+    ctx.fillStyle = '#1a1d25';
+    ctx.beginPath();
+    ctx.arc(cx, cy, innerR, 0, 2 * Math.PI);
+    ctx.fill();
+
+    // Centre label
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 13px "Space Grotesk", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('SHAP', cx, cy - 5);
+    ctx.font = '9px "Space Grotesk", sans-serif';
+    ctx.fillStyle = '#9CA3AF';
+    ctx.fillText('Attribution', cx, cy + 8);
+  }
+
+  console.log('[dashboard] ML attribution applied:', data.method);
+}
+
 /** Load live data for a given city and update the hero card. */
 export async function loadCityData(city = 'Pune') {
   // Show loading state
@@ -164,6 +354,21 @@ export async function loadCityData(city = 'Pune') {
         window._renderDashboardMiniMapMarkers(aqiData.stations);
       }
     }
+
+    // ── Fetch ML forecast + attribution (non-blocking) ──────────────────
+    Promise.all([
+      getForecast(city).catch(() => null),
+      getAttribution(city).catch(() => null),
+    ]).then(([forecastData, attributionData]) => {
+      if (forecastData) {
+        window._latestForecast = forecastData;
+        applyForecastData(forecastData);
+      }
+      if (attributionData) {
+        window._latestAttribution = attributionData;
+        applyAttributionData(attributionData);
+      }
+    });
   } catch (err) {
     console.error('[dashboard] Failed to fetch live AQI data.', err);
     if (aqiEl) aqiEl.textContent = 'N/A';

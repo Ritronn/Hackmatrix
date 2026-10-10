@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "vite": "^5.4.21"
+    "vite": "^5.4.11"
   },
   "dependencies": {
     "@maptiler/sdk": "^4.1.0",

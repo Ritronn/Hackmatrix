@@ -71,6 +71,7 @@ class ForecastPoint(BaseModel):
 
 
 class ForecastResponse(BaseModel):
+    model_config = {"protected_namespaces": ()}
     city: str
     station_id: Optional[str] = None
     horizon_hours: int

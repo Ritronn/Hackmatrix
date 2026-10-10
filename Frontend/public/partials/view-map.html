@@ -58,6 +58,9 @@
         <button class="layer-pill layer-pill--active" id="toggle-heatmap" title="Toggle AQI Heatmap">
           <i data-lucide="thermometer"></i><span>AQI Heatmap</span>
         </button>
+        <button class="layer-pill" id="toggle-gp-interp" title="Toggle GP Spatial Interpolation Plumes">
+          <i data-lucide="layers"></i><span>GP Continuous Field</span>
+        </button>
         <button class="layer-pill" id="toggle-confidence" title="Toggle Confidence Overlay">
           <i data-lucide="shield-check"></i><span>Uncertainty Veil</span>
         </button>
@@ -79,7 +82,10 @@
         <div>
           <span class="label-xs text-gold">STATION TELEMETRY</span>
           <h3 class="inspector-title" id="inspect-name">Click a station pin</h3>
-          <span class="inspector-zone" id="inspect-zone">—</span>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <span class="inspector-zone" id="inspect-zone">—</span>
+            <span class="badge-tag badge-tag--med" id="inspect-type">Residential</span>
+          </div>
         </div>
         <span class="badge-status" id="inspect-badge">— AQI</span>
       </div>
@@ -90,27 +96,48 @@
         <div class="mini-stat-card"><span class="mini-stat-label">Wind</span><span class="mini-stat-val" id="inspect-wind">—</span></div>
       </div>
       <div class="inspector-attribution">
-        <div class="section-title-sm">Localized Source Attribution</div>
+        <div class="section-title-sm">Localized Source Attribution (SHAP)</div>
         <div class="attr-bar">
-          <div class="attr-segment attr-segment--traffic" style="width: 48%;" title="Traffic 48%"></div>
-          <div class="attr-segment attr-segment--biomass" style="width: 24%;" title="Biomass 24%"></div>
-          <div class="attr-segment attr-segment--industry" style="width: 16%;" title="Industry 16%"></div>
-          <div class="attr-segment attr-segment--dust" style="width: 12%;" title="Dust 12%"></div>
+          <div class="attr-segment attr-segment--traffic" id="attr-seg-traffic" style="width: 48%;" title="Traffic 48%"></div>
+          <div class="attr-segment attr-segment--biomass" id="attr-seg-biomass" style="width: 24%;" title="Biomass / Dust 24%"></div>
+          <div class="attr-segment attr-segment--industry" id="attr-seg-industry" style="width: 16%;" title="Industry 16%"></div>
+          <div class="attr-segment attr-segment--dust" id="attr-seg-weather" style="width: 12%;" title="Meteorology 12%"></div>
         </div>
         <div class="attr-legend">
-          <span><i class="dot dot-coral"></i> Traffic (48%)</span>
-          <span><i class="dot dot-gold"></i> Biomass (24%)</span>
-          <span><i class="dot dot-cyan"></i> Industry (16%)</span>
+          <span><i class="dot dot-coral"></i> Traffic (<span id="attr-val-traffic">48%</span>)</span>
+          <span><i class="dot dot-gold"></i> Dust/Biomass (<span id="attr-val-dust">24%</span>)</span>
+          <span><i class="dot dot-cyan"></i> Industry (<span id="attr-val-industry">16%</span>)</span>
+        </div>
+      </div>
+      <!-- 3-Day XGBoost Forecast Strip -->
+      <div class="inspector-model-box" style="padding: 10px 12px; border-radius: 12px; background: rgba(56,189,248,0.05); border: 1px solid rgba(56,189,248,0.15);">
+        <div class="section-title-sm" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>3-Day XGBoost Forecast</span>
+          <span class="label-xs text-cyan">v2-Quantiles</span>
+        </div>
+        <div id="inspect-forecast-strip" style="display:flex;gap:6px;margin-top:8px;">
+          <div style="flex:1;background:rgba(255,255,255,0.04);border-radius:8px;padding:6px;text-align:center;">
+            <div style="font-size:10px;color:var(--muted);">Tomorrow</div>
+            <div style="font-size:13px;font-weight:700;color:#fff;" id="inspect-fc-d1">—</div>
+          </div>
+          <div style="flex:1;background:rgba(255,255,255,0.04);border-radius:8px;padding:6px;text-align:center;">
+            <div style="font-size:10px;color:var(--muted);">Day 2</div>
+            <div style="font-size:13px;font-weight:700;color:#fff;" id="inspect-fc-d2">—</div>
+          </div>
+          <div style="flex:1;background:rgba(255,255,255,0.04);border-radius:8px;padding:6px;text-align:center;">
+            <div style="font-size:10px;color:var(--muted);">Day 3</div>
+            <div style="font-size:13px;font-weight:700;color:#fff;" id="inspect-fc-d3">—</div>
+          </div>
         </div>
       </div>
       <div class="inspector-model-box">
-        <div class="section-title-sm">90% Confidence Interval</div>
+        <div class="section-title-sm">90% Confidence Interval (q10–q90)</div>
         <div class="conf-band-visual">
           <span class="conf-num" id="conf-lower">— AQI</span>
           <div class="conf-bar"><div class="conf-point" id="conf-point" style="left: 50%;"></div></div>
           <span class="conf-num" id="conf-upper">— AQI</span>
         </div>
-        <span class="conf-note">Model certainty: High (Dense sensor coverage)</span>
+        <span class="conf-note" id="conf-note">Model certainty: High (Dense sensor coverage)</span>
       </div>
       <button class="action-btn-primary" id="btn-simulate-station">
         <i data-lucide="sliders-horizontal"></i>

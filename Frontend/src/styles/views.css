@@ -517,8 +517,24 @@
 }
 .step-num   { font-size: 10px; font-weight: 700; color: var(--c-coral); font-family: var(--font-headline); }
 .pipeline-step strong { font-size: 12px; color: #FFFFFF; }
-.pipeline-step span   { font-size: 10px; color: var(--muted); }
 .pipeline-arrow { color: var(--muted-dark); font-size: 16px; }
+
+/* SHAP Explainability Gallery & Lockdown Validation */
+.shap-gallery-tabs { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; }
+.shap-tab-btn {
+  padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  color: var(--muted); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  cursor: pointer; transition: all 0.2s ease;
+}
+.shap-tab-btn:hover { color: #FFFFFF; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); }
+.shap-tab-btn--active {
+  background: rgba(56,189,248,0.16) !important; color: var(--accent-cyan) !important;
+  border-color: rgba(56,189,248,0.45) !important; box-shadow: 0 0 12px rgba(56,189,248,0.15);
+}
+.lockdown-card { padding: 22px; }
+.lockdown-stat-box { transition: transform 0.2s ease, border-color 0.2s ease; }
+.lockdown-stat-box:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.15); }
+
 
 /* ═══════════════════════════════════════════════════════
    SETTINGS VIEW

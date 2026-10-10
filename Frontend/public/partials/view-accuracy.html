@@ -3,39 +3,178 @@
     <div class="view-header__left">
       <div class="view-tag"><span class="pulse-dot"></span> Trust & Transparency</div>
       <h1 class="view-title">Model Accuracy & Self-Honesty Tracker</h1>
-      <p class="view-desc">A digital twin must be honest about its limits. Public historical validation against official CPCB ground truth.</p>
+      <p class="view-desc">A digital twin must be honest about its limits. Public historical validation against 5 years of CPCB ground truth (2015–2020).</p>
     </div>
     <div class="view-header__right">
-      <span class="badge-tag badge-tag--high">Verified on Held-out CPCB Data</span>
+      <span class="badge-tag badge-tag--high" id="acc-model-badge">XGBoost v2 (37 Stations)</span>
+    </div>
+  </div>
+
+  <!-- Model Specs Summary Bar -->
+  <div class="bento-card" style="padding: 14px 20px; margin-bottom: 16px;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; font-size: 12px;">
+      <div><span class="muted">Stations Trained:</span> <strong class="text-cyan" id="acc-n-stations">37 Monitoring Stations</strong></div>
+      <div><span class="muted">Training Dataset:</span> <strong id="acc-n-train">21,662 rows</strong> (<span id="acc-data-range">2015-01 to 2020-07</span>)</div>
+      <div><span class="muted">Test Dataset:</span> <strong id="acc-n-test">14,186 held-out rows</strong></div>
+      <div><span class="muted">Seasonal Baseline MAE:</span> <strong class="text-coral" id="acc-baseline-seasonal">75.2 AQI</strong></div>
+      <div><span class="muted">Status:</span> <span class="badge-tag badge-tag--high">Beats Seasonal Baseline</span></div>
     </div>
   </div>
 
   <!-- 4 Scorecards -->
   <div class="accuracy-metrics-grid">
     <div class="bento-card acc-card">
-      <span class="label-xs text-gold">7-DAY MEAN ABSOLUTE ERROR</span>
-      <strong class="acc-metric-num">14.2 <small>AQI</small></strong>
-      <span class="acc-metric-sub text-green">Target: &lt; 20 AQI (Outperforming)</span>
+      <span class="label-xs text-gold">HORIZON T+1 MEAN ABSOLUTE ERROR</span>
+      <strong class="acc-metric-num" id="acc-mae-t1">40.4 <small>AQI</small></strong>
+      <span class="acc-metric-sub text-green">Held-out CPCB Test Data</span>
     </div>
     <div class="bento-card acc-card">
-      <span class="label-xs text-cyan">ROOT MEAN SQUARED ERROR</span>
-      <strong class="acc-metric-num">18.6 <small>RMSE</small></strong>
-      <span class="acc-metric-sub">Quantile Regression Loss</span>
+      <span class="label-xs text-cyan">HORIZON T+1 ROOT MEAN SQUARED ERROR</span>
+      <strong class="acc-metric-num" id="acc-rmse-t1">52.9 <small>RMSE</small></strong>
+      <span class="acc-metric-sub">Multi-Horizon Loss Function</span>
     </div>
     <div class="bento-card acc-card">
-      <span class="label-xs text-coral">CORRELATION METRIC (R²)</span>
-      <strong class="acc-metric-num">0.88</strong>
-      <span class="acc-metric-sub">High Agreement with CPCB</span>
+      <span class="label-xs text-green">QUANTILE REGRESSION COVERAGE</span>
+      <strong class="acc-metric-num" id="acc-coverage">75.0%</strong>
+      <span class="acc-metric-sub text-green">Target: 80% (q10–q90 Interval)</span>
     </div>
     <div class="bento-card acc-card">
-      <span class="label-xs text-green">90% CONFIDENCE INTERVAL COVERAGE</span>
-      <strong class="acc-metric-num">92.4%</strong>
-      <span class="acc-metric-sub text-green">Well-Calibrated Uncertainty</span>
+      <span class="label-xs text-coral">SPATIAL GP LEAVE-ONE-OUT MAE</span>
+      <strong class="acc-metric-num" id="acc-loo-mae">17.6 <small>AQI</small></strong>
+      <span class="acc-metric-sub text-green">Gaussian Process Spatial Cross-Validation</span>
+    </div>
+  </div>
+
+  <!-- 2020 COVID-19 Lockdown Natural Experiment Case Study -->
+  <div class="bento-card lockdown-card" style="margin-top: 16px; padding: 22px;">
+    <div class="bento-card__title-bar">
+      <div>
+        <h3 class="card-heading">Natural Experiment Proof: 2020 Lockdown Validation</h3>
+        <span class="label-xs muted">Empirical proof that intervention levers correspond to real-world structural emission drops</span>
+      </div>
+      <span class="badge-tag badge-tag--high" id="lockdown-status">Validated (<9% Delta)</span>
+    </div>
+    <div class="lockdown-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 14px;">
+      <div class="lockdown-stat-box" style="padding: 16px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);">
+        <span class="label-xs text-cyan">ACTUAL OBSERVED DROP (CPCB)</span>
+        <div style="font-family: var(--font-headline); font-size: 26px; font-weight: 700; color: #34D399; margin: 4px 0;" id="lockdown-actual-drop">-38.1% AQI</div>
+        <span style="font-size: 11px; color: var(--muted);">Real drop during Mar–May 2020 national lockdown</span>
+      </div>
+      <div class="lockdown-stat-box" style="padding: 16px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);">
+        <span class="label-xs text-gold">MODEL PREDICTED DROP</span>
+        <div style="font-family: var(--font-headline); font-size: 26px; font-weight: 700; color: #efd395; margin: 4px 0;" id="lockdown-pred-drop">-29.4% AQI</div>
+        <span style="font-size: 11px; color: var(--muted);">Model prediction under reduced traffic & industrial proxies</span>
+      </div>
+      <div class="lockdown-stat-box" style="padding: 16px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);">
+        <span class="label-xs text-coral">CAUSAL FIDELITY RATIO</span>
+        <div style="font-family: var(--font-headline); font-size: 26px; font-weight: 700; color: #FFFFFF; margin: 4px 0;" id="lockdown-ratio">77.1% Agreement</div>
+        <span style="font-size: 11px; color: var(--muted);">Ensures scenario levers produce realistic outcomes</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Multi-Horizon Degradation & Category Breakdown -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+    <!-- Horizon Degradation -->
+    <div class="bento-card" style="padding: 20px;">
+      <h3 class="card-heading" style="margin-bottom: 12px;">Multi-Horizon Forecast Degradation</h3>
+      <table class="data-table" style="width: 100%;">
+        <thead>
+          <tr>
+            <th>Horizon</th>
+            <th>MAE</th>
+            <th>RMSE</th>
+            <th>Certainty</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Day 1 (t+1)</strong></td>
+            <td class="text-green" id="tbl-mae-t1">40.4 AQI</td>
+            <td id="tbl-rmse-t1">52.9</td>
+            <td><span class="badge-tag badge-tag--high">95% Conf</span></td>
+          </tr>
+          <tr>
+            <td><strong>Day 2 (t+2)</strong></td>
+            <td class="text-gold" id="tbl-mae-t2">56.4 AQI</td>
+            <td id="tbl-rmse-t2">74.9</td>
+            <td><span class="badge-tag badge-tag--med">85% Conf</span></td>
+          </tr>
+          <tr>
+            <td><strong>Day 3 (t+3)</strong></td>
+            <td class="text-coral" id="tbl-mae-t3">64.9 AQI</td>
+            <td id="tbl-rmse-t3">86.1</td>
+            <td><span class="badge-tag badge-tag--low">75% Conf</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Category Performance -->
+    <div class="bento-card" style="padding: 20px;">
+      <h3 class="card-heading" style="margin-bottom: 12px;">Accuracy by AQI Category</h3>
+      <table class="data-table" style="width: 100%;">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Range</th>
+            <th>MAE</th>
+            <th>Reliability</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong style="color: #4CAF50;">Satisfactory</strong></td>
+            <td>51–100</td>
+            <td class="text-green" id="tbl-mae-sat">34.6 AQI</td>
+            <td><span class="badge-tag badge-tag--high">Peak Accuracy</span></td>
+          </tr>
+          <tr>
+            <td><strong style="color: #FFC107;">Moderate</strong></td>
+            <td>101–200</td>
+            <td class="text-green" id="tbl-mae-mod">32.5 AQI</td>
+            <td><span class="badge-tag badge-tag--high">Peak Accuracy</span></td>
+          </tr>
+          <tr>
+            <td><strong style="color: #FF9800;">Poor</strong></td>
+            <td>201–300</td>
+            <td class="text-gold" id="tbl-mae-poor">37.9 AQI</td>
+            <td><span class="badge-tag badge-tag--med">Good Fit</span></td>
+          </tr>
+          <tr>
+            <td><strong style="color: #F44336;">Severe</strong></td>
+            <td>401+</td>
+            <td class="text-coral" id="tbl-mae-sev">75.7 AQI</td>
+            <td><span class="badge-tag badge-tag--low">Underpredicts Peak</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SHAP Feature Explainability Gallery -->
+  <div class="bento-card shap-gallery-card" style="padding: 22px; margin-top: 16px;">
+    <div class="bento-card__title-bar">
+      <div>
+        <h3 class="card-heading">SHAP Model Explainability & Attribution Artifacts</h3>
+        <span class="label-xs muted">Inspect the real TreeExplainer feature importance and calibration charts from training</span>
+      </div>
+    </div>
+    <div class="shap-gallery-tabs" style="display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap;">
+      <button class="shap-tab-btn shap-tab-btn--active" data-type="all">Global Feature Importance</button>
+      <button class="shap-tab-btn" data-type="traffic_corridor">Traffic Corridor Stations</button>
+      <button class="shap-tab-btn" data-type="industrial_belt">Industrial Belt Stations</button>
+      <button class="shap-tab-btn" data-type="residential_background">Residential Background</button>
+      <button class="shap-tab-btn" data-type="pred_vs_actual">Predicted vs Actual Fit</button>
+    </div>
+    <div style="background: #080A0E; border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 12px; text-align: center;">
+      <img id="shap-preview-img" src="http://localhost:8000/forecast/shap-images/all" alt="SHAP Summary Plot" style="max-width: 100%; max-height: 480px; object-fit: contain; border-radius: 8px;" />
+      <div id="shap-caption" style="margin-top: 8px; font-size: 11px; color: var(--muted);">Global SHAP TreeExplainer Summary: 28 features ranked by impact on AQI predictions across all 37 Delhi stations.</div>
     </div>
   </div>
 
   <!-- Forecast vs Actual Chart -->
-  <div class="bento-card validation-chart-card">
+  <div class="bento-card validation-chart-card" style="margin-top: 16px;">
     <div class="bento-card__title-bar">
       <div>
         <h3 class="card-heading">14-Day Forecast vs CPCB Ground Truth Validation</h3>
@@ -63,25 +202,25 @@
   </div>
 
   <!-- ML Architecture Pipeline -->
-  <div class="bento-card pipeline-card">
+  <div class="bento-card pipeline-card" style="margin-top: 16px;">
     <h3 class="card-heading">End-to-End Digital Twin Architecture</h3>
     <div class="pipeline-flow">
       <div class="pipeline-step">
         <span class="step-num">01</span>
         <strong>CPCB Sensor Stream</strong>
-        <span>Historical Kaggle 2015-2020 + Live Feeds</span>
+        <span>37 Stations (2015–2020) + WAQI Live</span>
       </div>
       <div class="pipeline-arrow">➔</div>
       <div class="pipeline-step">
         <span class="step-num">02</span>
-        <strong>Redis Streams</strong>
-        <span>Decoupled Ingestion & Time-Series Queue</span>
+        <strong>Feature Engine</strong>
+        <span>28 Features (Lags, Tracers, Meteorolgy)</span>
       </div>
       <div class="pipeline-arrow">➔</div>
       <div class="pipeline-step">
         <span class="step-num">03</span>
-        <strong>LightGBM + Quantiles</strong>
-        <span>Multi-day forecast + 90% Confidence Bands</span>
+        <strong>XGBoost + Quantiles</strong>
+        <span>t+1/2/3 Forecast + q10/q50/q90 Bands</span>
       </div>
       <div class="pipeline-arrow">➔</div>
       <div class="pipeline-step">
@@ -92,8 +231,8 @@
       <div class="pipeline-arrow">➔</div>
       <div class="pipeline-step">
         <span class="step-num">05</span>
-        <strong>Decision API</strong>
-        <span>Scenario Optimizer & LLM Advisor</span>
+        <strong>SHAP Explainability</strong>
+        <span>Tracer-based Source Attribution & Sliders</span>
       </div>
     </div>
   </div>

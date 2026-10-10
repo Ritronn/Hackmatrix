@@ -12,6 +12,7 @@ import * as maptilersdk from '@maptiler/sdk';
 import '@maptiler/sdk/dist/maptiler-sdk.css';
 import { getCityAQI } from '../api/aqi.js';
 import { getWeather }  from '../api/weather.js';
+import { getStationForecasts, getInterpolation } from '../api/forecast.js';
 
 // ── AQI → hex colour (Indian AQI scale) ──────────────────────────────────────
 function aqiColor(aqi) {
@@ -50,8 +51,10 @@ export function initDigitalTwinMap() {
   let markersOnMap = [];
   let heatmapLoaded = false;
   let heatmapVisible = true;
+  let gpInterpVisible = false;
   let particlesVisible = true;
   let currentSpeed = 1;
+  let stationForecastsMap = {};
 
   function initMap(city = 'pune') {
     const container = document.getElementById('maptiler-map');
@@ -376,8 +379,79 @@ export function initDigitalTwinMap() {
         });
       }
 
+      // ── Fetch per-station ML forecasts asynchronously ──────────────────────
+      getStationForecasts(cityName).then((sfData) => {
+        if (sfData?.stations?.length) {
+          stationForecastsMap = {};
+          sfData.stations.forEach((s) => {
+            stationForecastsMap[s.station_name.toLowerCase()] = s;
+          });
+          // Re-populate inspector if a station was already selected
+          const activeStationName = document.getElementById('inspect-name')?.textContent;
+          if (activeStationName && activeStationName !== 'Click a station pin') {
+            populateInspectorWithML(activeStationName, aqiData.dominant_station?.aqi || 150);
+          }
+        }
+      }).catch(() => null);
+
     } catch (err) {
       console.warn('[map] Station data fetch failed.', err);
+    }
+  }
+
+  // ── Populate ML predictions & attribution for inspected station ───────────
+  function populateInspectorWithML(stationName, aqiVal) {
+    const get = (id) => document.getElementById(id);
+    const sNameLower = (stationName || '').toLowerCase();
+    const key = Object.keys(stationForecastsMap).find((k) =>
+      sNameLower.includes(k) || k.includes(sNameLower)
+    );
+    const sf = key ? stationForecastsMap[key] : null;
+
+    if (sf) {
+      // Station classification badge
+      const stType = sf.station_type || 'residential_background';
+      const typeEl = get('inspect-type');
+      if (typeEl) {
+        typeEl.textContent = stType.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+        typeEl.className = `badge-tag ${
+          stType.includes('traffic') ? 'badge-tag--high' :
+          stType.includes('industrial') ? 'badge-tag--low' : 'badge-tag--med'
+        }`;
+      }
+
+      // Attribution breakdown
+      const attr = sf.attribution;
+      if (attr) {
+        const tPct = Math.round(attr.traffic_pct);
+        const dPct = Math.round(attr.combustion_dust_pct);
+        const iPct = Math.round(attr.industrial_pct);
+        const wPct = Math.round(attr.meteorology_pct);
+        get('attr-seg-traffic')?.style.setProperty('width', `${tPct}%`);
+        get('attr-seg-biomass')?.style.setProperty('width', `${dPct}%`);
+        get('attr-seg-industry')?.style.setProperty('width', `${iPct}%`);
+        get('attr-seg-weather')?.style.setProperty('width', `${wPct}%`);
+        if (get('attr-val-traffic'))  get('attr-val-traffic').textContent  = `${tPct}%`;
+        if (get('attr-val-dust'))     get('attr-val-dust').textContent     = `${dPct}%`;
+        if (get('attr-val-industry')) get('attr-val-industry').textContent = `${iPct}%`;
+      }
+
+      // 3-Day Forecast mini-strip
+      if (sf.forecast?.length) {
+        const fc = sf.forecast;
+        if (fc[0] && get('inspect-fc-d1')) get('inspect-fc-d1').textContent = `${Math.round(fc[0].predicted_aqi)} AQI`;
+        if (fc[1] && get('inspect-fc-d2')) get('inspect-fc-d2').textContent = `${Math.round(fc[1].predicted_aqi)} AQI`;
+        if (fc[2] && get('inspect-fc-d3')) get('inspect-fc-d3').textContent = `${Math.round(fc[2].predicted_aqi)} AQI`;
+
+        const lower = Math.round(fc[0].lower);
+        const upper = Math.round(fc[0].upper);
+        const pct = Math.max(0, Math.min(100, Math.round(((aqiVal - lower) / ((upper - lower) || 1)) * 100)));
+        if (get('conf-lower')) get('conf-lower').textContent = `${lower} AQI`;
+        if (get('conf-upper')) get('conf-upper').textContent = `${upper} AQI`;
+        const pt = get('conf-point');
+        if (pt) pt.style.left = `${pct}%`;
+        if (get('conf-note')) get('conf-note').textContent = `XGBoost Quantile Band (${Math.round(fc[0].confidence_pct)}% Certainty)`;
+      }
     }
   }
 
@@ -393,7 +467,7 @@ export function initDigitalTwinMap() {
     const badgeEl = get('inspect-badge');
     if (badgeEl) { badgeEl.textContent = badge; badgeEl.className = `badge-status ${badgeClass}`; }
 
-    // Confidence interval — rough ±15% band around current AQI
+    // Fallback confidence interval if ML data not loaded yet
     const lower = Math.round(aqi * 0.88);
     const upper = Math.round(aqi * 1.12);
     const pct   = Math.round(((aqi - lower) / (upper - lower)) * 100);
@@ -401,6 +475,9 @@ export function initDigitalTwinMap() {
     if (get('conf-upper')) get('conf-upper').textContent = `${upper} AQI`;
     const pt = get('conf-point');
     if (pt) pt.style.left = `${pct}%`;
+
+    // Try applying per-station ML predictions
+    populateInspectorWithML(name, aqi);
   }
 
   // ── Time-scrub controls ───────────────────────────────────────────────────
@@ -463,6 +540,66 @@ export function initDigitalTwinMap() {
     e.currentTarget.classList.toggle('layer-pill--active', heatmapVisible);
     if (map && heatmapLoaded && map.getLayer('aqi-heatmap')) {
       map.setLayoutProperty('aqi-heatmap', 'visibility', heatmapVisible ? 'visible' : 'none');
+    }
+  });
+
+  // ── GP Spatial Interpolation Continuous Field Toggle ──────────────────────
+  document.getElementById('toggle-gp-interp')?.addEventListener('click', async (e) => {
+    gpInterpVisible = !gpInterpVisible;
+    e.currentTarget.classList.toggle('layer-pill--active', gpInterpVisible);
+
+    if (!map) return;
+
+    if (gpInterpVisible) {
+      const city = window._currentCity ?? 'Delhi';
+      try {
+        const data = await getInterpolation(city, 40);
+        if (!data?.grid_points?.length) return;
+
+        const features = data.grid_points.map((pt) => ({
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [pt.lon, pt.lat] },
+          properties: { aqi: pt.predicted_aqi, confidence: pt.confidence },
+        }));
+
+        if (map.getSource('gp-interp-source')) {
+          map.getSource('gp-interp-source').setData({ type: 'FeatureCollection', features });
+          if (map.getLayer('gp-interp-heatmap')) {
+            map.setLayoutProperty('gp-interp-heatmap', 'visibility', 'visible');
+          }
+        } else {
+          map.addSource('gp-interp-source', {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features },
+          });
+          map.addLayer({
+            id: 'gp-interp-heatmap',
+            type: 'heatmap',
+            source: 'gp-interp-source',
+            paint: {
+              'heatmap-weight':    ['interpolate', ['linear'], ['get', 'aqi'], 0, 0, 400, 1],
+              'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 8, 1.2, 14, 3.5],
+              'heatmap-color': [
+                'interpolate', ['linear'], ['heatmap-density'],
+                0,   'rgba(56, 189, 248, 0)',
+                0.2, 'rgba(52, 211, 153, 0.65)',
+                0.4, 'rgba(251, 191, 36, 0.75)',
+                0.6, 'rgba(249, 115, 22, 0.85)',
+                0.8, 'rgba(239, 68, 68, 0.95)',
+                1,   'rgba(147, 51, 234, 1)',
+              ],
+              'heatmap-radius':  ['interpolate', ['linear'], ['zoom'], 8, 25, 14, 75],
+              'heatmap-opacity': 0.8,
+            },
+          });
+        }
+      } catch (err) {
+        console.warn('[map] GP interpolation fetch failed:', err);
+      }
+    } else {
+      if (map.getLayer('gp-interp-heatmap')) {
+        map.setLayoutProperty('gp-interp-heatmap', 'visibility', 'none');
+      }
     }
   });
 

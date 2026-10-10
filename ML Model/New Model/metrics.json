@@ -1,0 +1,40 @@
+{
+  "model_type": "XGBoost",
+  "data_range": "2015-01-08 to 2020-07-01",
+  "n_stations": 37,
+  "n_train_rows": 21662,
+  "n_test_rows": 14186,
+  "split_date": "2019-05-31",
+  "metrics": {
+    "mae_t1": 40.43352362196458,
+    "rmse_t1": 52.86638705886955,
+    "baseline_persistence_mae": 39.48461966860274,
+    "baseline_seasonal_mae": 75.21688856180248,
+    "mae_t2": 56.376334426521794,
+    "rmse_t2": 74.86728703162028,
+    "mae_t3": 64.87162004532452,
+    "rmse_t3": 86.13293336608733,
+    "mae_Good": 50.30108496636259,
+    "rmse_Good": 55.440621640570946,
+    "mae_Satisfactory": 34.640768943439376,
+    "rmse_Satisfactory": 41.84341511721957,
+    "mae_Moderate": 32.537154735334575,
+    "rmse_Moderate": 44.2769113208642,
+    "mae_Poor": 37.87487278506024,
+    "rmse_Poor": 48.6908610578399,
+    "mae_Very Poor": 34.57714089671341,
+    "rmse_Very Poor": 45.510406321155976,
+    "mae_Severe": 75.72869730921823,
+    "rmse_Severe": 95.84680529233287,
+    "quantile_coverage": 74.98942619483998,
+    "loo_mae": 17.62064759768646,
+    "lockdown_actual_drop_pct": -38.13723092082276,
+    "lockdown_predicted_drop_pct": 29.400945233726972
+  },
+  "limitations": [
+    "Trained on Delhi data only (2015-2020)",
+    "Includes COVID-19 lockdown period which is anomalous",
+    "Extreme AQI events (>500) are under-predicted",
+    "Attribution is tracer-based model reliance, not emissions inventory"
+  ]
+}
