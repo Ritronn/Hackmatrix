@@ -29,6 +29,7 @@ import { initDigitalTwinMap }            from './views/map.js';
 import { initScenarioSimulator }         from './views/scenario.js';
 import { initWardsAnalytics }            from './views/wards.js';
 import { initAccuracyTracker }           from './views/accuracy.js';
+import { initSensorForecasting }         from './views/forecasting.js';
 import { initRouter }                    from './router.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -63,7 +64,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ── 9. Accuracy Tracker ─────────────────────────────────
   initAccuracyTracker();
 
-  // ── 10. Global modals (Drift, Search, Briefing) ─────────
+  // ── 10. Sensor Forecasting & Uncertainty Twin ───────────
+  initSensorForecasting();
+
+  // ── 11. Global modals (Drift, Search, Briefing) ─────────
   initGlobalModals();
 
   // ── 12. Floating AI Advisor widget ──────────────────────

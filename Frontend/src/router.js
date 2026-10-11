@@ -19,6 +19,9 @@ export const ROUTES = {
   '/analytics': 'wards',
   '/wards': 'wards',
   '/accuracy': 'accuracy',
+  '/forecasting': 'forecasting',
+  '/sensor-forecasting': 'forecasting',
+  '/sensor-forecast': 'forecasting',
 };
 
 export const VIEW_TO_PATH = {
@@ -27,6 +30,7 @@ export const VIEW_TO_PATH = {
   scenario: '/scenario',
   wards: '/analytics',
   accuracy: '/accuracy',
+  forecasting: '/forecasting',
 };
 
 export const VIEW_TITLES = {
@@ -35,6 +39,7 @@ export const VIEW_TITLES = {
   scenario: 'Atmos Twin — Scenario Simulator & Policy ROI',
   wards: 'Atmos Twin — Ward Analytics & Hotspots',
   accuracy: 'Atmos Twin — AI Forecast Accuracy Tracker',
+  forecasting: 'Atmos Twin — Sensor Forecasting & Uncertainty Intelligence',
 };
 
 let isPopStateNavigation = false;

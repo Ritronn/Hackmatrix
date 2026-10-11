@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.redis_client import get_redis, close_redis
-from app.routes import aqi, weather, scenario, drift, wards, advisor, forecast
+from app.routes import aqi, weather, scenario, drift, wards, advisor, forecast, wind
 
 
 @asynccontextmanager
@@ -72,6 +72,7 @@ app.include_router(drift.router)
 app.include_router(wards.router)
 app.include_router(advisor.router)
 app.include_router(forecast.router)
+app.include_router(wind.router)
 
 
 # ── Health check ─────────────────────────────────────────────────────────────

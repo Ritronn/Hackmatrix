@@ -1,0 +1,166 @@
+<div class="app-view" id="view-forecasting">
+  <div class="view-header">
+    <div class="view-header__left">
+      <div class="view-tag"><span class="pulse-dot"></span> Spatial Gaussian Process & Uncertainty Twin</div>
+      <h1 class="view-title">Sensor Forecasting & Uncertainty Intelligence</h1>
+      <p class="view-desc">Predict air quality across unmonitored zones & simulate widespread sensor network failures using Gaussian Process spatial regression benchmarked against IDW and Persistence.</p>
+    </div>
+    <div class="view-header__right">
+      <button class="action-pill-btn" id="btn-run-forecasting-top" style="cursor: pointer;">
+        <i data-lucide="play"></i><span>Run GP Benchmark</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Overview Cards -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
+    <div class="bento-card" style="padding: 16px;">
+      <span class="label-xs text-cyan">PRIMARY SPATIAL MODEL</span>
+      <div style="font-size: 1.25rem; font-weight: 700; color: #fff; margin: 4px 0;">Gaussian Process</div>
+      <div style="font-size: 0.75rem; color: #9CA3AF;">Matern 5/2 + RBF + Noise Kernel with spatial covariance</div>
+    </div>
+    <div class="bento-card" style="padding: 16px;">
+      <span class="label-xs text-gold">DISTANCE BASELINE</span>
+      <div style="font-size: 1.25rem; font-weight: 700; color: #FBBF24; margin: 4px 0;">Shepard IDW (p=2)</div>
+      <div style="font-size: 0.75rem; color: #9CA3AF;">Inverse distance weighting standard spatial heuristic</div>
+    </div>
+    <div class="bento-card" style="padding: 16px;">
+      <span class="label-xs text-coral">TEMPORAL BASELINE</span>
+      <div style="font-size: 1.25rem; font-weight: 700; color: #F87171; margin: 4px 0;">Frozen Persistence</div>
+      <div style="font-size: 0.75rem; color: #9CA3AF;">City-wide pre-loss mean held constant</div>
+    </div>
+    <div class="bento-card" style="padding: 16px;">
+      <span class="label-xs text-green">POLICY CONFIDENCE</span>
+      <div style="font-size: 1.25rem; font-weight: 700; color: #34D399; margin: 4px 0;">±σ Uncertainty Bounds</div>
+      <div style="font-size: 0.75rem; color: #9CA3AF;">Uncertainty propagated into civic intervention outcomes</div>
+    </div>
+  </div>
+
+  <!-- ===== Main Sensor Forecasting Container ===== -->
+  <div class="bento-card" id="forecasting-deck" style="margin-bottom: 24px; padding: 24px;">
+    <div class="bento-card__title-bar" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div>
+        <span class="label-xs" style="color: #A78BFA;">CORE PS REQUIREMENT — SENSOR FORECASTING & UNCERTAINTY</span>
+        <h2 class="card-heading" style="font-size: 1.25rem; margin-top: 4px;">Forecasting with Missing Sensors &amp; Unseen Locations</h2>
+        <p class="label-xs muted">Empirical proof of model robustness under 25%, 50%, and 75% synthetic hardware failure scenarios.</p>
+      </div>
+      <button class="btn-primary" id="btn-run-forecasting" style="white-space:nowrap; padding: 10px 22px; cursor: pointer;">
+        <i data-lucide="play"></i> Run Full Analysis
+      </button>
+    </div>
+
+    <!-- Section A: Multi-Level Sensor Loss Comparison Table -->
+    <div style="margin-top: 24px;">
+      <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 14px;">
+        <span class="label-xs" style="color: #FBBF24;">SECTION A — MULTI-LEVEL SENSOR LOSS (25% / 50% / 75%)</span>
+        <span style="font-size:10px; color:#6B7280; font-style:italic;">Three declared loss levels tested simultaneously</span>
+      </div>
+      <div id="sensor-comparison-loading" style="text-align:center; padding:28px; color:#9CA3AF; font-size:0.9rem; background:rgba(255,255,255,0.02); border-radius:10px; border:1px dashed rgba(255,255,255,0.1);">
+        Click "Run Full Analysis" to simulate sensor loss and benchmark against baselines.
+      </div>
+      <div id="sensor-comparison-table-wrap" style="display:none; overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.875rem;">
+          <thead>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.02);">
+              <th style="padding:12px 14px; text-align:left; color:#9CA3AF; font-weight:600;">Loss Level</th>
+              <th style="padding:12px 14px; text-align:center; color:#9CA3AF; font-weight:600;">Active Stations</th>
+              <th style="padding:12px 14px; text-align:center; color:#9CA3AF; font-weight:600;">Dropped</th>
+              <th style="padding:12px 14px; text-align:center; color:#60A5FA; font-weight:600;">GP MAE</th>
+              <th style="padding:12px 14px; text-align:center; color:#FBBF24; font-weight:600;">IDW MAE</th>
+              <th style="padding:12px 14px; text-align:center; color:#F87171; font-weight:600;">Persistence MAE</th>
+              <th style="padding:12px 14px; text-align:center; color:#9CA3AF; font-weight:600;">GP σ (Uncertainty)</th>
+              <th style="padding:12px 14px; text-align:center; color:#9CA3AF; font-weight:600;">GP Wins?</th>
+            </tr>
+          </thead>
+          <tbody id="sensor-comparison-tbody">
+          </tbody>
+        </table>
+        <div style="margin-top:12px; font-size:0.75rem; color:#6B7280; font-style:italic; padding: 0 4px;">
+          IDW = Inverse Distance Weighting (Shepard p=2) | Persistence = City-mean before loss event (frozen reading) | [MODELED]
+        </div>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div style="border-top:1px solid rgba(255,255,255,0.06); margin: 28px 0;"></div>
+
+    <!-- Section B: Held-Out Location Validation -->
+    <div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom: 14px; flex-wrap:wrap;">
+        <span class="label-xs" style="color: #34D399;">SECTION B — HELD-OUT LOCATION (UNSEEN DURING PREDICTION)</span>
+        <span style="font-size:10px; color:#6B7280; font-style:italic;">Station withheld from GP training, predicted from neighbors only</span>
+      </div>
+      <div style="display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; margin-bottom:18px;">
+        <div style="flex:1; min-width:220px;">
+          <label style="display:block; font-size:0.8rem; color:#9CA3AF; margin-bottom:6px;">Select Station to Withhold (Leave-One-Out):</label>
+          <select id="fo-held-out-select" style="width:100%; padding:10px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:0.875rem;">
+            <option value="Anand Vihar">Anand Vihar (Industrial Hotspot)</option>
+            <option value="ITO">ITO (Traffic Corridor)</option>
+            <option value="R K Puram">R K Puram (Traffic Arterial)</option>
+            <option value="Punjabi Bagh">Punjabi Bagh (Traffic Arterial)</option>
+            <option value="Dwarka">Dwarka (Residential Background)</option>
+            <option value="Rohini">Rohini (Residential Background)</option>
+            <option value="Lodhi Road">Lodhi Road (Residential Background)</option>
+          </select>
+        </div>
+        <button class="btn-primary" id="btn-run-held-out-fo" style="padding:10px 20px; cursor: pointer;">
+          <i data-lucide="target"></i> Predict Held-Out
+        </button>
+      </div>
+      <div id="fo-held-out-results" style="display:none;">
+        <!-- Prediction comparison grid -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:14px; margin-bottom:16px;">
+          <div style="padding:16px; background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.2); border-radius:10px; text-align:center;">
+            <div style="font-size:0.75rem; color:#6B7280; margin-bottom:4px; font-weight:600;">ACTUAL (OBSERVED)</div>
+            <div style="font-size:1.8rem; font-weight:700; color:#22C55E;" id="fo-actual-aqi">&mdash;</div>
+            <div style="font-size:0.75rem; color:#22C55E;">Ground truth reading</div>
+          </div>
+          <div style="padding:16px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); border-radius:10px; text-align:center;">
+            <div style="font-size:0.75rem; color:#6B7280; margin-bottom:4px; font-weight:600;">[MODELED] GP PREDICTION</div>
+            <div style="font-size:1.8rem; font-weight:700; color:#60A5FA;" id="fo-gp-aqi">&mdash;</div>
+            <div style="font-size:0.75rem; color:#60A5FA;">Err: <span id="fo-gp-err">&mdash;</span> | ±<span id="fo-gp-std">&mdash;</span></div>
+          </div>
+          <div style="padding:16px; background:rgba(251,191,36,0.08); border:1px solid rgba(251,191,36,0.2); border-radius:10px; text-align:center;">
+            <div style="font-size:0.75rem; color:#6B7280; margin-bottom:4px; font-weight:600;">IDW BASELINE</div>
+            <div style="font-size:1.8rem; font-weight:700; color:#FBBF24;" id="fo-idw-aqi">&mdash;</div>
+            <div style="font-size:0.75rem; color:#FBBF24;">Error: <span id="fo-idw-err">&mdash;</span></div>
+          </div>
+          <div style="padding:16px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.2); border-radius:10px; text-align:center;">
+            <div style="font-size:0.75rem; color:#6B7280; margin-bottom:4px; font-weight:600;">PERSISTENCE BASELINE</div>
+            <div style="font-size:1.8rem; font-weight:700; color:#F87171;" id="fo-pers-aqi">&mdash;</div>
+            <div style="font-size:0.75rem; color:#F87171;">Error: <span id="fo-pers-err">&mdash;</span></div>
+          </div>
+        </div>
+        <!-- Verdict -->
+        <div style="padding:14px 18px; border-radius:8px; font-size:0.875rem; border-left:3px solid #22C55E; background:rgba(34,197,94,0.06);" id="fo-held-out-verdict"></div>
+        <div style="margin-top:10px; font-size:0.75rem; color:#6B7280; font-style:italic;">
+          Nearest neighbors used: <span id="fo-neighbors">&mdash;</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div style="border-top:1px solid rgba(255,255,255,0.06); margin: 28px 0;"></div>
+
+    <!-- Section C: Intervention Package Stability Under Uncertainty -->
+    <div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom: 14px;">
+        <span class="label-xs" style="color: #F59E0B;">SECTION C — INTERVENTION PACKAGE STABILITY UNDER FORECAST UNCERTAINTY</span>
+      </div>
+      <p style="font-size:0.85rem; color:#9CA3AF; margin-bottom: 16px; line-height:1.6;">
+        Uses GP uncertainty (&sigma;) derived from Section A to bound the expected AQI reduction of the municipal intervention package.
+        Ensures decision-makers know realistic best-case and worst-case policy outcomes during sensor degradation. [MODELED]
+      </p>
+      <div id="fo-stability-loading" style="text-align:center; padding:24px; color:#9CA3AF; font-size:0.875rem; background:rgba(255,255,255,0.02); border-radius:10px;">
+        Run Section A analysis first to calculate package stability under uncertainty bounds.
+      </div>
+      <div id="fo-stability-grid" style="display:none; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:16px;"></div>
+    </div>
+
+    <div style="margin-top:24px; padding:12px 16px; background:rgba(0,0,0,0.25); border-radius:8px; font-size:0.75rem; color:#6B7280; font-style:italic;">
+      [MODELED ESTIMATES] All spatial forecasts use Gaussian Process interpolation from live WAQI station data.
+      Baselines: IDW (Shepard p=2) and Persistence (city-mean before loss). No causal intervention effects are claimed.
+      Sources: CPCB GRAP 2023, IIT-Delhi SAFAR, sklearn GaussianProcessRegressor.
+    </div>
+  </div>
+</div>
